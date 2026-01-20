@@ -40,7 +40,7 @@ export function GlobalProgressBar({
   const faltaDepositar = totalSaidas - totalEntradas;
   const faltaDepositarComFuturos = totalSaidas - (totalEntradas + totalFuturos);
   const totalAPagar = totalSaidas - totalPago;
-  const totalAPagarComFuturos = totalAPagar - totalFuturos;
+  const totalAPagarComFuturos = totalAPagar + totalFuturos;
 
   const handleMetaSubmit = () => {
     const value = parseCurrencyInput(metaInput);
