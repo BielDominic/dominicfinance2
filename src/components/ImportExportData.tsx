@@ -10,6 +10,7 @@ import {
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { IncomeEntry, ExpenseCategory, Investment, Person, EntryStatus } from '@/types/financial';
+import { formatDate, parseDateInput } from '@/utils/formatters';
 
 interface ImportExportDataProps {
   incomeEntries: IncomeEntry[];
@@ -50,7 +51,7 @@ export function ImportExportData({
         'ID': index + 1,
         'Valor': entry.valor,
         'Descrição': entry.descricao,
-        'Data': entry.data || '',
+        'Data': entry.data ? formatDate(entry.data) : '',
         'Pessoa': entry.pessoa,
       }));
       const entradasWs = XLSX.utils.json_to_sheet(entradasData);
@@ -61,7 +62,7 @@ export function ImportExportData({
         'ID': index + 1,
         'Valor': entry.valor,
         'Descrição': entry.descricao,
-        'Data': entry.data || '',
+        'Data': entry.data ? formatDate(entry.data) : '',
         'Pessoa': entry.pessoa,
       }));
       const futurosWs = XLSX.utils.json_to_sheet(futurosData);
@@ -137,6 +138,15 @@ export function ImportExportData({
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data);
 
+      // Helper to normalize person name (handles case variations)
+      const normalizePerson = (value: any): Person => {
+        const raw = safeParseString(value, '').toLowerCase().trim();
+        if (raw === 'gabriel') return 'Gabriel';
+        if (raw === 'myrelle') return 'Myrelle';
+        // Default to Gabriel if not recognized
+        return 'Gabriel';
+      };
+
       // Helper to parse income entries from a sheet
       const parseIncomeSheet = (sheetName: string, status: EntryStatus) => {
         try {
@@ -148,15 +158,16 @@ export function ImportExportData({
               const uuid = safeParseString(row['UUID']) || safeParseString(row['ID']);
               const isValidUuid = uuid && uuid.length > 10;
               
-              const pessoaRaw = safeParseString(row['Pessoa'], 'Gabriel');
-              const pessoa = (pessoaRaw === 'Gabriel' || pessoaRaw === 'Myrelle') ? pessoaRaw : 'Gabriel';
+              // Parse date using robust formatter (handles Excel serial numbers, DD/MM/YYYY, etc.)
+              const rawDate = row['Data'];
+              const parsedDate = parseDateInput(rawDate);
               
               const entry: IncomeEntry = {
                 id: isValidUuid ? uuid : `import-${status}-${Date.now()}-${index}`,
                 valor: safeParseNumber(row['Valor']),
                 descricao: safeParseString(row['Descrição']),
-                data: safeParseString(row['Data']) || null,
-                pessoa,
+                data: parsedDate,
+                pessoa: normalizePerson(row['Pessoa']),
                 status,
                 tags: [],
                 notas: null,
