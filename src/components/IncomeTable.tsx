@@ -8,6 +8,7 @@ import { PersonBadge } from './PersonBadge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PeriodFilter, PeriodFilterValue, filterByPeriod } from '@/components/PeriodFilter';
 import {
   Select,
   SelectContent,
@@ -22,21 +23,27 @@ interface IncomeTableProps {
   onUpdateEntry: (id: string, updates: Partial<IncomeEntry>) => void;
   onAddEntry: (status: 'Entrada' | 'Futuros') => void;
   onDeleteEntry: (id: string) => void;
-  isFiltered?: boolean;
 }
 
 type SortField = 'data' | 'valor' | 'pessoa';
 type SortDirection = 'asc' | 'desc';
 
-export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry, isFiltered }: IncomeTableProps) {
+export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry }: IncomeTableProps) {
   const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
   const [sortField, setSortField] = useState<SortField>('data');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [activeTab, setActiveTab] = useState<'Entrada' | 'Futuros'>('Entrada');
   const [isExpanded, setIsExpanded] = useState(true);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
+
+  // Filter entries by period first
+  const periodFilteredEntries = useMemo(() => 
+    filterByPeriod(entries, periodFilter), 
+    [entries, periodFilter]
+  );
 
   const getFilteredAndSortedEntries = (status: 'Entrada' | 'Futuros') => {
-    let result = entries.filter(e => e.status === status);
+    let result = periodFilteredEntries.filter(e => e.status === status);
 
     // Filter by person
     if (filterPerson !== 'all') {
@@ -67,8 +74,8 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry,
     return result;
   };
 
-  const entradasEntries = useMemo(() => getFilteredAndSortedEntries('Entrada'), [entries, filterPerson, sortField, sortDirection]);
-  const futurosEntries = useMemo(() => getFilteredAndSortedEntries('Futuros'), [entries, filterPerson, sortField, sortDirection]);
+  const entradasEntries = useMemo(() => getFilteredAndSortedEntries('Entrada'), [entries, filterPerson, sortField, sortDirection, periodFilter]);
+  const futurosEntries = useMemo(() => getFilteredAndSortedEntries('Futuros'), [entries, filterPerson, sortField, sortDirection, periodFilter]);
 
   const totalEntradas = useMemo(() => entradasEntries.reduce((sum, e) => sum + e.valor, 0), [entradasEntries]);
   const totalFuturos = useMemo(() => futurosEntries.reduce((sum, e) => sum + e.valor, 0), [futurosEntries]);
@@ -373,6 +380,16 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry,
             </div>
           )}
         </div>
+        
+        {/* Period Filter */}
+        {isExpanded && (
+          <div className="pt-3 mt-3 border-t border-border/50">
+            <PeriodFilter 
+              value={periodFilter}
+              onChange={setPeriodFilter}
+            />
+          </div>
+        )}
       </div>
 
       {/* Content */}
