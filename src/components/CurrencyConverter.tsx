@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { RefreshCw, Euro, TrendingUp, Percent } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { Input } from '@/components/ui/input';
@@ -8,13 +7,22 @@ import { cn } from '@/lib/utils';
 interface CurrencyConverterProps {
   saldoFinal: number;
   saldoAtual: number;
+  exchangeRate: number;
+  onExchangeRateChange: (rate: number) => void;
+  spread: number;
+  onSpreadChange: (spread: number) => void;
   className?: string;
 }
 
-export function CurrencyConverter({ saldoFinal, saldoAtual, className }: CurrencyConverterProps) {
-  const [exchangeRate, setExchangeRate] = useState(6.5);
-  const [spread, setSpread] = useState(0);
-
+export function CurrencyConverter({ 
+  saldoFinal, 
+  saldoAtual, 
+  exchangeRate,
+  onExchangeRateChange,
+  spread,
+  onSpreadChange,
+  className 
+}: CurrencyConverterProps) {
   // Taxa efetiva = taxa base + spread
   const effectiveRate = exchangeRate * (1 + spread / 100);
   
@@ -34,14 +42,14 @@ export function CurrencyConverter({ saldoFinal, saldoAtual, className }: Currenc
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">1 EUR =</span>
             <div className="relative">
-              <Input
-                type="number"
-                value={exchangeRate}
-                onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 0)}
-                className="w-24 h-9 font-mono text-right pr-8"
-                step="0.01"
-                min="0"
-              />
+            <Input
+              type="number"
+              value={exchangeRate}
+              onChange={(e) => onExchangeRateChange(parseFloat(e.target.value) || 0)}
+              className="w-24 h-9 font-mono text-right pr-8"
+              step="0.01"
+              min="0"
+            />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                 R$
               </span>
@@ -66,7 +74,7 @@ export function CurrencyConverter({ saldoFinal, saldoAtual, className }: Currenc
             {spreadPresets.map((preset) => (
               <button
                 key={preset}
-                onClick={() => setSpread(preset)}
+                onClick={() => onSpreadChange(preset)}
                 className={cn(
                   'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
                   spread === preset
@@ -83,7 +91,7 @@ export function CurrencyConverter({ saldoFinal, saldoAtual, className }: Currenc
           <div className="pt-2">
             <Slider
               value={[spread]}
-              onValueChange={(values) => setSpread(values[0])}
+              onValueChange={(values) => onSpreadChange(values[0])}
               min={0}
               max={10}
               step={0.1}

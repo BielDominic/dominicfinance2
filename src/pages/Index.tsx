@@ -51,6 +51,10 @@ const Index = () => {
 
   // Dynamic summary based on current data (only confirmed entries)
   const [taxaCambio, setTaxaCambio] = useState(6.5);
+  const [spread, setSpread] = useState(0);
+  
+  // Taxa efetiva com spread
+  const taxaEfetiva = taxaCambio * (1 + spread / 100);
   
   const summary: FinancialSummaryType = useMemo(() => {
     const totalEntradas = incomeEntries
@@ -64,7 +68,7 @@ const Index = () => {
     const totalAPagar = totalSaidas - totalPago;
     const saldoFinalPrevisto = totalEntradas - totalSaidas;
     const saldoAtual = totalEntradas - totalPago;
-    const saldoAposCambioEUR = saldoFinalPrevisto / taxaCambio;
+    const saldoAposCambioEUR = saldoFinalPrevisto / taxaEfetiva;
 
     return {
       totalEntradas,
@@ -76,9 +80,9 @@ const Index = () => {
       saldoFinalPrevisto,
       saldoAtual,
       saldoAposCambioEUR,
-      taxaCambio,
+      taxaCambio: taxaEfetiva,
     };
-  }, [incomeEntries, expenseCategories, taxaCambio]);
+  }, [incomeEntries, expenseCategories, taxaEfetiva]);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('financial-auth');
@@ -162,6 +166,10 @@ const Index = () => {
         <CurrencyConverter 
           saldoFinal={summary.saldoFinalPrevisto} 
           saldoAtual={summary.saldoAtual}
+          exchangeRate={taxaCambio}
+          onExchangeRateChange={setTaxaCambio}
+          spread={spread}
+          onSpreadChange={setSpread}
         />
 
         {/* Sync Indicator - Fixed */}
