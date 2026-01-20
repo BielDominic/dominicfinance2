@@ -2,28 +2,29 @@ import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { ExpenseCategory } from '@/types/financial';
 import { formatCurrency } from '@/utils/formatters';
-import { PieChart as PieChartIcon, BarChart3, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
+import { PieChart as PieChartIcon, BarChart3, ChevronDown, ChevronUp, CalendarDays, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, parseISO, isAfter, isBefore, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
+import { format, parseISO, isAfter, isBefore, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface ExpenseChartsProps {
   categories: ExpenseCategory[];
 }
 
-// Ireland theme colors - green and orange variations
 const COLORS = [
-  'hsl(145, 63%, 32%)',  // ireland-green
-  'hsl(30, 90%, 50%)',   // ireland-orange
-  'hsl(145, 63%, 45%)',  // ireland-green lighter
-  'hsl(30, 90%, 60%)',   // ireland-orange lighter
-  'hsl(145, 63%, 25%)',  // ireland-green darker
-  'hsl(30, 70%, 45%)',   // ireland-orange darker
-  'hsl(145, 45%, 55%)',  // ireland-green muted
-  'hsl(35, 80%, 55%)',   // ireland-orange warm
-  'hsl(140, 50%, 40%)',  // ireland-green variation
-  'hsl(25, 85%, 52%)',   // ireland-orange variation
+  'hsl(145, 63%, 32%)',
+  'hsl(30, 90%, 50%)',
+  'hsl(145, 63%, 45%)',
+  'hsl(30, 90%, 60%)',
+  'hsl(145, 63%, 25%)',
+  'hsl(30, 70%, 45%)',
+  'hsl(145, 45%, 55%)',
+  'hsl(35, 80%, 55%)',
+  'hsl(140, 50%, 40%)',
+  'hsl(25, 85%, 52%)',
 ];
 
 type ChartType = 'pie' | 'bar';
@@ -35,9 +36,9 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
   const [dataView, setDataView] = useState<DataView>('total');
   const [isExpanded, setIsExpanded] = useState(true);
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const today = new Date();
-  
   const filteredCategories = useMemo(() => {
     if (dateFilter === 'all') return categories;
     
@@ -45,21 +46,27 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
     let startDate: Date;
     let endDate: Date;
     
-    switch (dateFilter) {
-      case 'thisMonth':
-        startDate = startOfMonth(now);
-        endDate = endOfMonth(now);
-        break;
-      case 'nextMonth':
-        startDate = startOfMonth(addMonths(now, 1));
-        endDate = endOfMonth(addMonths(now, 1));
-        break;
-      case 'next3Months':
-        startDate = startOfMonth(now);
-        endDate = endOfMonth(addMonths(now, 2));
-        break;
-      default:
-        return categories;
+    if (dateFilter === 'custom') {
+      if (!customRange.from || !customRange.to) return categories;
+      startDate = customRange.from;
+      endDate = customRange.to;
+    } else {
+      switch (dateFilter) {
+        case 'thisMonth':
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+          break;
+        case 'nextMonth':
+          startDate = startOfMonth(addMonths(now, 1));
+          endDate = endOfMonth(addMonths(now, 1));
+          break;
+        case 'next3Months':
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(addMonths(now, 2));
+          break;
+        default:
+          return categories;
+      }
     }
     
     return categories.filter(cat => {
@@ -71,7 +78,7 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
         return false;
       }
     });
-  }, [categories, dateFilter]);
+  }, [categories, dateFilter, customRange]);
 
   const chartData = filteredCategories
     .filter(cat => cat.categoria && cat.total > 0)
@@ -192,6 +199,38 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
                   </button>
                 ))}
               </div>
+
+              {/* Custom Date Range */}
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant={dateFilter === 'custom' ? 'default' : 'outline'} 
+                    size="sm" 
+                    className="h-8 gap-1 text-xs"
+                  >
+                    <Filter className="h-3.5 w-3.5" />
+                    {dateFilter === 'custom' && customRange.from && customRange.to
+                      ? `${format(customRange.from, 'dd/MM')} - ${format(customRange.to, 'dd/MM')}`
+                      : 'Personalizado'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={customRange as any}
+                    onSelect={(range: any) => {
+                      setCustomRange(range || {});
+                      if (range?.from && range?.to) {
+                        setDateFilter('custom');
+                        setIsCalendarOpen(false);
+                      }
+                    }}
+                    numberOfMonths={1}
+                    locale={ptBR}
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
 
               {/* Data View Toggle */}
               <div className="flex rounded-lg border border-border overflow-hidden">
