@@ -8,17 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import confetti from 'canvas-confetti';
-import goldCoinImage from '@/assets/gold-coin.png';
 
 interface DayCounterProps {
   targetDate: string;
   onDateChange: (date: string) => void;
   title: string;
   onTitleChange: (title: string) => void;
-  progressPercentage?: number;
 }
 
-export function DayCounter({ targetDate, onDateChange, title, onTitleChange, progressPercentage = 0 }: DayCounterProps) {
+export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: DayCounterProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(title);
@@ -117,71 +115,11 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange, pro
     return 'text-expense';
   };
 
-  // Number of visible coin rows based on progress (0-100%)
-  const clampedProgress = Math.min(Math.max(progressPercentage, 0), 100);
-  const maxCoinRows = 10;
-  const visibleRows = Math.round((clampedProgress / 100) * maxCoinRows);
-
   return (
-    <div className="relative w-full flex flex-col items-center gap-3 min-h-[180px]">
-      {/* Gold coin pile - Left side */}
-      {visibleRows > 0 && (
-        <div className="absolute left-2 sm:left-4 bottom-4 w-16 sm:w-20 flex flex-col-reverse items-center pointer-events-none">
-          {Array.from({ length: visibleRows }).map((_, rowIndex) => (
-            <div 
-              key={`left-${rowIndex}`} 
-              className="flex justify-center"
-              style={{
-                marginTop: rowIndex > 0 ? '-10px' : '0',
-                transform: `translateX(${(rowIndex % 2) * 3 - 1.5}px)`,
-              }}
-            >
-              {Array.from({ length: Math.max(1, 4 - Math.floor(rowIndex / 3)) }).map((_, coinIndex) => (
-                <img
-                  key={`left-${rowIndex}-${coinIndex}`}
-                  src={goldCoinImage}
-                  alt=""
-                  className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-lg"
-                  style={{
-                    marginLeft: coinIndex > 0 ? '-8px' : '0',
-                  }}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Gold coin pile - Right side */}
-      {visibleRows > 0 && (
-        <div className="absolute right-2 sm:right-4 bottom-4 w-16 sm:w-20 flex flex-col-reverse items-center pointer-events-none">
-          {Array.from({ length: visibleRows }).map((_, rowIndex) => (
-            <div 
-              key={`right-${rowIndex}`} 
-              className="flex justify-center"
-              style={{
-                marginTop: rowIndex > 0 ? '-10px' : '0',
-                transform: `translateX(${(rowIndex % 2) * -3 + 1.5}px)`,
-              }}
-            >
-              {Array.from({ length: Math.max(1, 4 - Math.floor(rowIndex / 3)) }).map((_, coinIndex) => (
-                <img
-                  key={`right-${rowIndex}-${coinIndex}`}
-                  src={goldCoinImage}
-                  alt=""
-                  className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-lg"
-                  style={{
-                    marginLeft: coinIndex > 0 ? '-8px' : '0',
-                  }}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="w-full flex flex-col items-center gap-3">
 
       {/* Editable title with decorations */}
-      <div className="flex items-center gap-3 z-10">
+      <div className="flex items-center gap-3">
         <span className="text-2xl">☘️</span>
         {isEditingTitle ? (
           <Input
@@ -210,7 +148,7 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange, pro
       </div>
 
       {/* Big counter display */}
-      <div className="flex items-center gap-4 z-10">
+      <div className="flex items-center gap-4">
         <div className="flex flex-col items-center">
           <span className={cn(
             'font-mono font-black text-4xl sm:text-5xl md:text-6xl tracking-tight',
@@ -231,21 +169,8 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange, pro
         </div>
       </div>
 
-      {/* Progress indicator */}
-      {progressPercentage > 0 && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground z-10">
-          <span>💰 Progresso financeiro:</span>
-          <span className={cn(
-            "font-mono font-bold",
-            progressPercentage >= 100 ? 'text-income' : 'text-highlight'
-          )}>
-            {progressPercentage.toFixed(0)}%
-          </span>
-        </div>
-      )}
-
       {/* Date display and edit button */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground z-10">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Calendar className="h-4 w-4 text-ireland-green" />
         {selectedDate ? (
           <span className="font-mono">

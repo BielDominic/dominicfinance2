@@ -62,6 +62,18 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
               icon={TrendingUp}
               variant="positive"
             />
+            <div className="bg-future-light rounded-lg p-3 sm:p-4 flex flex-col gap-1 ring-2 ring-future/30">
+              <div className="flex items-center gap-2 text-future">
+                <TrendingUp className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs font-medium uppercase tracking-wide">Entradas + Futuros</span>
+              </div>
+              <span className="font-mono text-lg sm:text-xl font-bold text-future">
+                {formatCurrency(summary.totalEntradas + summary.totalFuturos)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Total combinado
+              </span>
+            </div>
             <SummaryCard
               label="Total de Saídas"
               value={summary.totalSaidas}

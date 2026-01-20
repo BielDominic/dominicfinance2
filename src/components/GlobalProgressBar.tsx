@@ -163,10 +163,14 @@ export function GlobalProgressBar({
           </div>
 
           {/* Stats Row 1 - Main indicators */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
             <div className="text-center p-2 sm:px-4 sm:py-3 bg-income-light rounded-lg">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Entradas</p>
               <p className="font-mono font-bold text-income text-xs sm:text-base">{formatCurrency(totalEntradas)}</p>
+            </div>
+            <div className="text-center p-2 sm:px-4 sm:py-3 bg-future-light rounded-lg border border-future/20">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Entradas + Futuros</p>
+              <p className="font-mono font-bold text-future text-xs sm:text-base">{formatCurrency(totalEntradas + totalFuturos)}</p>
             </div>
             <div className="text-center p-2 sm:px-4 sm:py-3 bg-expense-light rounded-lg">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Saídas</p>
