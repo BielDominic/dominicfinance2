@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Wallet, Plane, LogOut, Pencil, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,15 @@ export function Header({
   const [titleInput, setTitleInput] = useState(title);
   const [subtitleInput, setSubtitleInput] = useState(subtitle);
 
+  // Sync local state with props when they change
+  useEffect(() => {
+    setTitleInput(title);
+  }, [title]);
+
+  useEffect(() => {
+    setSubtitleInput(subtitle);
+  }, [subtitle]);
+
   const handleLogout = () => {
     localStorage.removeItem('financial-auth');
     onLogout?.();
@@ -72,16 +81,16 @@ export function Header({
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground">
-              <Wallet className="h-5 w-5" />
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary text-primary-foreground flex-shrink-0">
+              <Wallet className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               {/* Editable Title */}
               {isEditingTitle ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Input
                     value={titleInput}
                     onChange={(e) => setTitleInput(e.target.value)}
@@ -89,24 +98,24 @@ export function Header({
                       if (e.key === 'Enter') handleSaveTitle();
                       if (e.key === 'Escape') handleCancelTitle();
                     }}
-                    className="h-8 text-lg font-bold w-64"
+                    className="h-7 sm:h-8 text-sm sm:text-lg font-bold w-full max-w-[200px] sm:max-w-[280px]"
                     autoFocus
                   />
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleSaveTitle}>
-                    <Check className="h-4 w-4 text-income" />
+                  <Button size="icon" variant="ghost" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" onClick={handleSaveTitle}>
+                    <Check className="h-3 w-3 sm:h-4 sm:w-4 text-income" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleCancelTitle}>
-                    <X className="h-4 w-4 text-expense" />
+                  <Button size="icon" variant="ghost" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" onClick={handleCancelTitle}>
+                    <X className="h-3 w-3 sm:h-4 sm:w-4 text-expense" />
                   </Button>
                 </div>
               ) : (
                 <h1 
-                  className="text-xl font-bold tracking-tight flex items-center gap-2 group cursor-pointer"
+                  className="text-sm sm:text-xl font-bold tracking-tight flex items-center gap-1 sm:gap-2 group cursor-pointer flex-wrap"
                   onClick={() => setIsEditingTitle(true)}
                 >
-                  {title}
-                  <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span className="text-xs px-2 py-0.5 bg-ireland-orange-light text-ireland-orange rounded-full font-medium">
+                  <span className="truncate max-w-[120px] sm:max-w-none">{title}</span>
+                  <Pencil className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-ireland-orange-light text-ireland-orange rounded-full font-medium whitespace-nowrap flex-shrink-0">
                     🇮🇪 Irlanda
                   </span>
                 </h1>
@@ -114,7 +123,7 @@ export function Header({
               
               {/* Editable Subtitle */}
               {isEditingSubtitle ? (
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-1 sm:gap-2 mt-1">
                   <Input
                     value={subtitleInput}
                     onChange={(e) => setSubtitleInput(e.target.value)}
@@ -122,31 +131,31 @@ export function Header({
                       if (e.key === 'Enter') handleSaveSubtitle();
                       if (e.key === 'Escape') handleCancelSubtitle();
                     }}
-                    className="h-7 text-sm w-48"
+                    className="h-6 sm:h-7 text-xs sm:text-sm w-full max-w-[150px] sm:max-w-[200px]"
                     autoFocus
                   />
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleSaveSubtitle}>
-                    <Check className="h-3 w-3 text-income" />
+                  <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" onClick={handleSaveSubtitle}>
+                    <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-income" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleCancelSubtitle}>
-                    <X className="h-3 w-3 text-expense" />
+                  <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" onClick={handleCancelSubtitle}>
+                    <X className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-expense" />
                   </Button>
                 </div>
               ) : (
                 <p 
-                  className="text-sm text-muted-foreground flex items-center gap-1 group cursor-pointer"
+                  className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 group cursor-pointer"
                   onClick={() => setIsEditingSubtitle(true)}
                 >
-                  <Plane className="h-3 w-3" />
-                  {subtitle}
-                  <Pencil className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Plane className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                  <span className="truncate">{subtitle}</span>
+                  <Pencil className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </p>
               )}
             </div>
           </div>
           
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
               <span className="px-2 py-1 bg-income-light text-income rounded-md font-medium">
                 Gabriel
               </span>
@@ -175,9 +184,9 @@ export function Header({
                 variant="outline" 
                 size="sm" 
                 onClick={handleLogout}
-                className="gap-2 text-muted-foreground hover:text-expense"
+                className="gap-1 sm:gap-2 text-muted-foreground hover:text-expense h-8 px-2 sm:px-3"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Sair</span>
               </Button>
             )}
