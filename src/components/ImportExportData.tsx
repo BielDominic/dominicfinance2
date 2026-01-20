@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
+import { IncomeEntry, ExpenseCategory, Investment, Person, EntryStatus } from '@/types/financial';
 
 interface ImportExportDataProps {
   incomeEntries: IncomeEntry[];
@@ -41,9 +41,10 @@ export function ImportExportData({
       // Create workbook
       const wb = XLSX.utils.book_new();
 
-      // Income Entries Sheet
-      const incomeData = incomeEntries.map(entry => ({
-        'ID': entry.id,
+      // Income Entries Sheet with sequential IDs
+      const incomeData = incomeEntries.map((entry, index) => ({
+        'ID': index + 1,
+        'UUID': entry.id,
         'Valor': entry.valor,
         'Descrição': entry.descricao,
         'Data': entry.data || '',
@@ -53,9 +54,10 @@ export function ImportExportData({
       const incomeWs = XLSX.utils.json_to_sheet(incomeData);
       XLSX.utils.book_append_sheet(wb, incomeWs, 'Entradas');
 
-      // Expense Categories Sheet
-      const expenseData = expenseCategories.map(cat => ({
-        'ID': cat.id,
+      // Expense Categories Sheet with sequential IDs
+      const expenseData = expenseCategories.map((cat, index) => ({
+        'ID': index + 1,
+        'UUID': cat.id,
         'Categoria': cat.categoria,
         'Total': cat.total,
         'Pago': cat.pago,
@@ -64,9 +66,10 @@ export function ImportExportData({
       const expenseWs = XLSX.utils.json_to_sheet(expenseData);
       XLSX.utils.book_append_sheet(wb, expenseWs, 'Despesas');
 
-      // Investments Sheet
-      const investmentData = investments.map(inv => ({
-        'ID': inv.id,
+      // Investments Sheet with sequential IDs
+      const investmentData = investments.map((inv, index) => ({
+        'ID': index + 1,
+        'UUID': inv.id,
         'Categoria': inv.categoria,
         'Valor': inv.valor,
       }));
@@ -95,52 +98,145 @@ export function ImportExportData({
     fileInputRef.current?.click();
   };
 
+  const safeParseNumber = (value: any, defaultValue: number = 0): number => {
+    if (value === null || value === undefined || value === '') return defaultValue;
+    const parsed = Number(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+  };
+
+  const safeParseString = (value: any, defaultValue: string = ''): string => {
+    if (value === null || value === undefined) return defaultValue;
+    return String(value).trim();
+  };
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setIsImporting(true);
+    
+    let parsedIncome: IncomeEntry[] = [];
+    let parsedExpenses: ExpenseCategory[] = [];
+    let parsedInvestments: Investment[] = [];
+    let parsedMeta = 20000;
+    let warnings: string[] = [];
+    let skippedRows = 0;
+
     try {
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data);
 
-      // Parse Income Entries
-      const incomeSheet = wb.Sheets['Entradas'];
-      const incomeRaw = incomeSheet ? XLSX.utils.sheet_to_json<any>(incomeSheet) : [];
-      const parsedIncome: IncomeEntry[] = incomeRaw.map((row: any, index: number) => ({
-        id: row['ID'] || `import-${Date.now()}-${index}`,
-        valor: Number(row['Valor']) || 0,
-        descricao: row['Descrição'] || '',
-        data: row['Data'] || null,
-        pessoa: row['Pessoa'] || 'Gabriel',
-        status: row['Status'] || 'Entrada',
-      }));
+      // Parse Income Entries with error handling per row
+      try {
+        const incomeSheet = wb.Sheets['Entradas'];
+        const incomeRaw = incomeSheet ? XLSX.utils.sheet_to_json<any>(incomeSheet) : [];
+        
+        incomeRaw.forEach((row: any, index: number) => {
+          try {
+            // Use UUID if available, otherwise use ID or generate new one
+            const uuid = safeParseString(row['UUID']) || safeParseString(row['ID']);
+            const isValidUuid = uuid && uuid.length > 10; // Simple check for UUID format
+            
+            // Validate pessoa and status values
+            const pessoaRaw = safeParseString(row['Pessoa'], 'Gabriel');
+            const pessoa = (pessoaRaw === 'Gabriel' || pessoaRaw === 'Myrelle') ? pessoaRaw : 'Gabriel';
+            
+            const statusRaw = safeParseString(row['Status'], 'Entrada');
+            const status = (statusRaw === 'Entrada' || statusRaw === 'Futuros') ? statusRaw : 'Entrada';
+            
+            const entry: IncomeEntry = {
+              id: isValidUuid ? uuid : `import-${Date.now()}-${index}`,
+              valor: safeParseNumber(row['Valor']),
+              descricao: safeParseString(row['Descrição']),
+              data: safeParseString(row['Data']) || null,
+              pessoa,
+              status,
+            };
+            parsedIncome.push(entry);
+          } catch (rowError) {
+            console.warn(`Skipped income row ${index + 1}:`, rowError);
+            skippedRows++;
+          }
+        });
+      } catch (sheetError) {
+        console.warn('Error parsing Entradas sheet:', sheetError);
+        warnings.push('Aba "Entradas" não encontrada ou com erros');
+      }
 
-      // Parse Expense Categories
-      const expenseSheet = wb.Sheets['Despesas'];
-      const expenseRaw = expenseSheet ? XLSX.utils.sheet_to_json<any>(expenseSheet) : [];
-      const parsedExpenses: ExpenseCategory[] = expenseRaw.map((row: any, index: number) => ({
-        id: row['ID'] || `import-exp-${Date.now()}-${index}`,
-        categoria: row['Categoria'] || '',
-        total: Number(row['Total']) || 0,
-        pago: Number(row['Pago']) || 0,
-        faltaPagar: Number(row['Falta Pagar']) || 0,
-      }));
+      // Parse Expense Categories with error handling per row
+      try {
+        const expenseSheet = wb.Sheets['Despesas'];
+        const expenseRaw = expenseSheet ? XLSX.utils.sheet_to_json<any>(expenseSheet) : [];
+        
+        expenseRaw.forEach((row: any, index: number) => {
+          try {
+            const uuid = safeParseString(row['UUID']) || safeParseString(row['ID']);
+            const isValidUuid = uuid && uuid.length > 10;
+            
+            const expense: ExpenseCategory = {
+              id: isValidUuid ? uuid : `import-exp-${Date.now()}-${index}`,
+              categoria: safeParseString(row['Categoria']),
+              total: safeParseNumber(row['Total']),
+              pago: safeParseNumber(row['Pago']),
+              faltaPagar: safeParseNumber(row['Falta Pagar']),
+            };
+            parsedExpenses.push(expense);
+          } catch (rowError) {
+            console.warn(`Skipped expense row ${index + 1}:`, rowError);
+            skippedRows++;
+          }
+        });
+      } catch (sheetError) {
+        console.warn('Error parsing Despesas sheet:', sheetError);
+        warnings.push('Aba "Despesas" não encontrada ou com erros');
+      }
 
-      // Parse Investments
-      const investmentSheet = wb.Sheets['Investimentos'];
-      const investmentRaw = investmentSheet ? XLSX.utils.sheet_to_json<any>(investmentSheet) : [];
-      const parsedInvestments: Investment[] = investmentRaw.map((row: any, index: number) => ({
-        id: row['ID'] || `import-inv-${Date.now()}-${index}`,
-        categoria: row['Categoria'] || '',
-        valor: Number(row['Valor']) || 0,
-      }));
+      // Parse Investments with error handling per row
+      try {
+        const investmentSheet = wb.Sheets['Investimentos'];
+        const investmentRaw = investmentSheet ? XLSX.utils.sheet_to_json<any>(investmentSheet) : [];
+        
+        investmentRaw.forEach((row: any, index: number) => {
+          try {
+            const uuid = safeParseString(row['UUID']) || safeParseString(row['ID']);
+            const isValidUuid = uuid && uuid.length > 10;
+            
+            const investment: Investment = {
+              id: isValidUuid ? uuid : `import-inv-${Date.now()}-${index}`,
+              categoria: safeParseString(row['Categoria']),
+              valor: safeParseNumber(row['Valor']),
+            };
+            parsedInvestments.push(investment);
+          } catch (rowError) {
+            console.warn(`Skipped investment row ${index + 1}:`, rowError);
+            skippedRows++;
+          }
+        });
+      } catch (sheetError) {
+        console.warn('Error parsing Investimentos sheet:', sheetError);
+        warnings.push('Aba "Investimentos" não encontrada ou com erros');
+      }
 
-      // Parse Settings
-      const settingsSheet = wb.Sheets['Configurações'];
-      const settingsRaw = settingsSheet ? XLSX.utils.sheet_to_json<any>(settingsSheet) : [];
-      const metaRow = settingsRaw.find((row: any) => row['Configuração'] === 'Meta Entradas');
-      const parsedMeta = metaRow ? Number(metaRow['Valor']) || 20000 : 20000;
+      // Parse Settings with error handling
+      try {
+        const settingsSheet = wb.Sheets['Configurações'];
+        const settingsRaw = settingsSheet ? XLSX.utils.sheet_to_json<any>(settingsSheet) : [];
+        const metaRow = settingsRaw.find((row: any) => 
+          safeParseString(row['Configuração']).toLowerCase().includes('meta')
+        );
+        parsedMeta = metaRow ? safeParseNumber(metaRow['Valor'], 20000) : 20000;
+      } catch (sheetError) {
+        console.warn('Error parsing Configurações sheet:', sheetError);
+        warnings.push('Aba "Configurações" não encontrada, usando valores padrão');
+      }
+
+      // Only import if we have at least some valid data
+      const hasData = parsedIncome.length > 0 || parsedExpenses.length > 0 || parsedInvestments.length > 0;
+      
+      if (!hasData) {
+        toast.error('Nenhum dado válido encontrado no arquivo. Verifique se as abas estão nomeadas corretamente: Entradas, Despesas, Investimentos');
+        return;
+      }
 
       onImportData({
         incomeEntries: parsedIncome,
@@ -149,10 +245,22 @@ export function ImportExportData({
         metaEntradas: parsedMeta,
       });
 
-      toast.success(`Dados importados: ${parsedIncome.length} entradas, ${parsedExpenses.length} despesas, ${parsedInvestments.length} investimentos`);
+      // Build success message
+      let message = `Importado: ${parsedIncome.length} entradas, ${parsedExpenses.length} despesas, ${parsedInvestments.length} investimentos`;
+      
+      if (skippedRows > 0) {
+        message += `. ${skippedRows} linhas ignoradas por erros`;
+        toast.warning(message);
+      } else if (warnings.length > 0) {
+        toast.success(message);
+        warnings.forEach(w => toast.warning(w));
+      } else {
+        toast.success(message);
+      }
+
     } catch (error) {
       console.error('Error importing data:', error);
-      toast.error('Erro ao importar dados. Verifique o formato do arquivo.');
+      toast.error('Erro ao ler o arquivo. Verifique se é um arquivo Excel válido (.xlsx ou .xls)');
     } finally {
       setIsImporting(false);
       // Reset input
