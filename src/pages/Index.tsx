@@ -39,17 +39,21 @@ const Index = () => {
     handleImportData,
   } = useFinancialData();
 
-  // Calculate totals from income entries
+  // Calculate totals from income entries (only confirmed entries, not "Futuros")
   const calculatedTotals = useMemo(() => {
-    const totalEntradas = incomeEntries.reduce((sum, e) => sum + e.valor, 0);
+    const totalEntradas = incomeEntries
+      .filter(e => e.status === 'Entrada')
+      .reduce((sum, e) => sum + e.valor, 0);
     const totalSaidas = expenseCategories.reduce((sum, c) => sum + c.total, 0);
     const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
     return { totalEntradas, totalSaidas, totalPago };
   }, [incomeEntries, expenseCategories]);
 
-  // Dynamic summary based on current data
+  // Dynamic summary based on current data (only confirmed entries)
   const summary: FinancialSummaryType = useMemo(() => {
-    const totalEntradas = incomeEntries.reduce((sum, e) => sum + e.valor, 0);
+    const totalEntradas = incomeEntries
+      .filter(e => e.status === 'Entrada')
+      .reduce((sum, e) => sum + e.valor, 0);
     const totalSaidas = expenseCategories.reduce((sum, c) => sum + c.total, 0);
     const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
     const totalAPagar = totalSaidas - totalPago;
