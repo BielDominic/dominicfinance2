@@ -3,6 +3,7 @@ import { Wallet, Plane, LogOut, Pencil, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ImportExportData } from '@/components/ImportExportData';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
 
 interface HeaderProps {
@@ -21,6 +22,8 @@ interface HeaderProps {
   subtitle?: string;
   onTitleChange?: (title: string) => void;
   onSubtitleChange?: (subtitle: string) => void;
+  darkMode?: boolean;
+  onDarkModeChange?: (value: boolean) => void;
 }
 
 export function Header({ 
@@ -34,6 +37,8 @@ export function Header({
   subtitle = 'Viagem 2025/2026',
   onTitleChange,
   onSubtitleChange,
+  darkMode = false,
+  onDarkModeChange,
 }: HeaderProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
@@ -150,6 +155,10 @@ export function Header({
                 Myrelle
               </span>
             </div>
+            
+            {onDarkModeChange && (
+              <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />
+            )}
             
             {onImportData && (
               <ImportExportData

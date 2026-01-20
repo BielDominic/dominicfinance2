@@ -158,6 +158,8 @@ export function ImportExportData({
                 data: safeParseString(row['Data']) || null,
                 pessoa,
                 status,
+                tags: [],
+                notas: null,
               };
               parsedIncome.push(entry);
             } catch (rowError) {
@@ -193,6 +195,9 @@ export function ImportExportData({
               total: safeParseNumber(row['Total']),
               pago: safeParseNumber(row['Pago']),
               faltaPagar: safeParseNumber(row['Falta Pagar']),
+              metaOrcamento: safeParseNumber(row['Meta Orçamento']) || null,
+              vencimento: safeParseString(row['Vencimento']) || null,
+              notas: safeParseString(row['Notas']) || null,
             };
             parsedExpenses.push(expense);
           } catch (rowError) {

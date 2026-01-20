@@ -29,6 +29,8 @@ export const useFinancialData = () => {
           data: e.data,
           pessoa: e.pessoa as 'Gabriel' | 'Myrelle',
           status: e.status as 'Entrada' | 'Futuros',
+          tags: (e as any).tags || [],
+          notas: (e as any).notas || null,
         })));
       }
 
@@ -39,6 +41,9 @@ export const useFinancialData = () => {
           total: Number(c.total),
           pago: Number(c.pago),
           faltaPagar: Number(c.falta_pagar),
+          metaOrcamento: (c as any).meta_orcamento ? Number((c as any).meta_orcamento) : null,
+          vencimento: (c as any).vencimento || null,
+          notas: (c as any).notas || null,
         })));
       }
 
@@ -137,6 +142,8 @@ export const useFinancialData = () => {
         data: data.data,
         pessoa: data.pessoa as 'Gabriel' | 'Myrelle',
         status: data.status as 'Entrada' | 'Futuros',
+        tags: (data as any).tags || [],
+        notas: (data as any).notas || null,
       }]);
     }
   }, []);
@@ -180,6 +187,9 @@ export const useFinancialData = () => {
         total: Number(data.total),
         pago: Number(data.pago),
         faltaPagar: Number(data.falta_pagar),
+        metaOrcamento: (data as any).meta_orcamento ? Number((data as any).meta_orcamento) : null,
+        vencimento: (data as any).vencimento || null,
+        notas: (data as any).notas || null,
       }]);
     }
   }, []);
@@ -297,6 +307,8 @@ export const useFinancialData = () => {
               data: e.data,
               pessoa: e.pessoa as 'Gabriel' | 'Myrelle',
               status: e.status as 'Entrada' | 'Futuros',
+              tags: (e as any).tags || [],
+              notas: (e as any).notas || null,
             }));
           }
         })();
@@ -319,6 +331,9 @@ export const useFinancialData = () => {
               total: Number(c.total),
               pago: Number(c.pago),
               faltaPagar: Number(c.falta_pagar),
+              metaOrcamento: (c as any).meta_orcamento ? Number((c as any).meta_orcamento) : null,
+              vencimento: (c as any).vencimento || null,
+              notas: (c as any).notas || null,
             }));
           }
         })();

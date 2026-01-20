@@ -1,5 +1,6 @@
 export type Person = 'Gabriel' | 'Myrelle';
 export type EntryStatus = 'Entrada' | 'Futuros';
+export type EntryTag = 'urgente' | 'opcional' | 'confirmado' | 'pendente' | 'recorrente';
 
 export interface IncomeEntry {
   id: string;
@@ -8,6 +9,8 @@ export interface IncomeEntry {
   data: string | null;
   pessoa: Person;
   status: EntryStatus;
+  tags: EntryTag[];
+  notas: string | null;
 }
 
 export interface ExpenseCategory {
@@ -16,6 +19,9 @@ export interface ExpenseCategory {
   total: number;
   pago: number;
   faltaPagar: number;
+  metaOrcamento: number | null;
+  vencimento: string | null;
+  notas: string | null;
 }
 
 export interface Investment {
@@ -35,4 +41,10 @@ export interface FinancialSummary {
   saldoAtual: number;
   saldoAposCambioEUR: number;
   taxaCambio: number;
+}
+
+export interface AppConfig {
+  darkMode: boolean;
+  headerTitle: string;
+  headerSubtitle: string;
 }
