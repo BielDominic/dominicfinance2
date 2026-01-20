@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Header } from '@/components/Header';
+import { GlobalProgressBar } from '@/components/GlobalProgressBar';
 import { IncomeTable } from '@/components/IncomeTable';
 import { ExpenseTable } from '@/components/ExpenseTable';
 import { FinancialSummary } from '@/components/FinancialSummary';
@@ -16,6 +17,14 @@ const Index = () => {
   const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(initialExpenseCategories);
   const [summary] = useState<FinancialSummaryType>(initialSummary);
 
+  // Calculate totals from income entries
+  const calculatedTotals = useMemo(() => {
+    const totalEntradas = incomeEntries.reduce((sum, e) => sum + e.valor, 0);
+    const totalSaidas = expenseCategories.reduce((sum, c) => sum + c.total, 0);
+    const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
+    return { totalEntradas, totalSaidas, totalPago };
+  }, [incomeEntries, expenseCategories]);
+
   const handleUpdateIncomeEntry = useCallback((id: string, updates: Partial<IncomeEntry>) => {
     setIncomeEntries(prev => 
       prev.map(entry => 
@@ -24,14 +33,14 @@ const Index = () => {
     );
   }, []);
 
-  const handleAddIncomeEntry = useCallback(() => {
+  const handleAddIncomeEntry = useCallback((status: 'Entrada' | 'Futuros') => {
     const newEntry: IncomeEntry = {
       id: `new-${Date.now()}`,
       valor: 0,
       descricao: '',
       data: new Date().toISOString().split('T')[0],
       pessoa: 'Gabriel',
-      status: 'Entrada',
+      status: status,
     };
     setIncomeEntries(prev => [...prev, newEntry]);
   }, []);
@@ -60,6 +69,13 @@ const Index = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Global Progress Bar */}
+        <GlobalProgressBar 
+          totalEntradas={calculatedTotals.totalEntradas}
+          totalSaidas={calculatedTotals.totalSaidas}
+          totalPago={calculatedTotals.totalPago}
+        />
+
         {/* Main Grid - Income and Expenses */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Income Table - Takes 2 columns on XL */}
