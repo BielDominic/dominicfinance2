@@ -26,6 +26,7 @@ const Index = () => {
     metaEntradas,
     isLoading,
     isSaving,
+    appConfig,
     handleUpdateIncomeEntry,
     handleAddIncomeEntry,
     handleDeleteIncomeEntry,
@@ -38,6 +39,11 @@ const Index = () => {
     handleMetaChange,
     handleSaveData,
     handleImportData,
+    handleTitleChange,
+    handleSubtitleChange,
+    handleTaxaCambioChange,
+    handleSpreadChange,
+    handleDarkModeChange,
   } = useFinancialData();
 
   // Calculate totals from income entries (only confirmed entries, not "Futuros")
@@ -50,28 +56,17 @@ const Index = () => {
     return { totalEntradas, totalSaidas, totalPago };
   }, [incomeEntries, expenseCategories]);
 
-  // Dynamic summary based on current data (only confirmed entries)
-  const [taxaCambio, setTaxaCambio] = useState(6.5);
-  const [spread, setSpread] = useState(0);
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('dark-mode') === 'true';
-    }
-    return false;
-  });
-  
-  // Apply dark mode on change
+  // Apply dark mode on change (synced from database)
   useEffect(() => {
-    localStorage.setItem('dark-mode', String(darkMode));
-    if (darkMode) {
+    if (appConfig.darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [darkMode]);
+  }, [appConfig.darkMode]);
   
   // Taxa efetiva com spread
-  const taxaEfetiva = taxaCambio * (1 + spread / 100);
+  const taxaEfetiva = appConfig.taxaCambio * (1 + appConfig.spread / 100);
   
   const summary: FinancialSummaryType = useMemo(() => {
     const totalEntradas = incomeEntries
@@ -132,8 +127,12 @@ const Index = () => {
         investments={investments}
         metaEntradas={metaEntradas}
         onImportData={handleImportData}
-        darkMode={darkMode}
-        onDarkModeChange={setDarkMode}
+        title={appConfig.headerTitle}
+        subtitle={appConfig.headerSubtitle}
+        onTitleChange={handleTitleChange}
+        onSubtitleChange={handleSubtitleChange}
+        darkMode={appConfig.darkMode}
+        onDarkModeChange={handleDarkModeChange}
       />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
@@ -185,10 +184,10 @@ const Index = () => {
           saldoFinal={summary.saldoFinalPrevisto}
           saldoFinalComFuturos={summary.saldoFinalComFuturos}
           saldoAtual={summary.saldoAtual}
-          exchangeRate={taxaCambio}
-          onExchangeRateChange={setTaxaCambio}
-          spread={spread}
-          onSpreadChange={setSpread}
+          exchangeRate={appConfig.taxaCambio}
+          onExchangeRateChange={handleTaxaCambioChange}
+          spread={appConfig.spread}
+          onSpreadChange={handleSpreadChange}
         />
 
         {/* Sync Indicator - Fixed */}
