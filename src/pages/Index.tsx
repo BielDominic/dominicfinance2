@@ -45,6 +45,10 @@ const Index = () => {
     setIncomeEntries(prev => [...prev, newEntry]);
   }, []);
 
+  const handleDeleteIncomeEntry = useCallback((id: string) => {
+    setIncomeEntries(prev => prev.filter(entry => entry.id !== id));
+  }, []);
+
   const handleUpdateExpenseCategory = useCallback((id: string, updates: Partial<ExpenseCategory>) => {
     setExpenseCategories(prev =>
       prev.map(category =>
@@ -62,6 +66,10 @@ const Index = () => {
       faltaPagar: 0,
     };
     setExpenseCategories(prev => [...prev, newCategory]);
+  }, []);
+
+  const handleDeleteExpenseCategory = useCallback((id: string) => {
+    setExpenseCategories(prev => prev.filter(category => category.id !== id));
   }, []);
 
   return (
@@ -84,6 +92,7 @@ const Index = () => {
               entries={incomeEntries}
               onUpdateEntry={handleUpdateIncomeEntry}
               onAddEntry={handleAddIncomeEntry}
+              onDeleteEntry={handleDeleteIncomeEntry}
             />
           </div>
           
@@ -93,6 +102,7 @@ const Index = () => {
               categories={expenseCategories}
               onUpdateCategory={handleUpdateExpenseCategory}
               onAddCategory={handleAddExpenseCategory}
+              onDeleteCategory={handleDeleteExpenseCategory}
             />
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Plus, User, CalendarDays, Sparkles } from 'lucide-react';
-import { IncomeEntry, Person } from '@/types/financial';
+import { ArrowUpDown, Plus, User, CalendarDays, Sparkles, Trash2 } from 'lucide-react';
+import { IncomeEntry, Person, EntryStatus } from '@/types/financial';
 import { formatCurrency, formatDate, parseCurrencyInput, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
 import { StatusBadge } from './StatusBadge';
@@ -21,12 +21,13 @@ interface IncomeTableProps {
   entries: IncomeEntry[];
   onUpdateEntry: (id: string, updates: Partial<IncomeEntry>) => void;
   onAddEntry: (status: 'Entrada' | 'Futuros') => void;
+  onDeleteEntry: (id: string) => void;
 }
 
 type SortField = 'data' | 'valor' | 'pessoa';
 type SortDirection = 'asc' | 'desc';
 
-export function IncomeTable({ entries, onUpdateEntry, onAddEntry }: IncomeTableProps) {
+export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry }: IncomeTableProps) {
   const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
   const [sortField, setSortField] = useState<SortField>('data');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -136,6 +137,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry }: IncomeTableP
                   </button>
                 </th>
                 <th className="text-left p-3">Status</th>
+                <th className="text-center p-3 w-10"></th>
               </tr>
             </thead>
             <tbody>
@@ -143,7 +145,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry }: IncomeTableP
                 <tr 
                   key={entry.id}
                   className={cn(
-                    'border-b border-border/50 hover:bg-muted/30 transition-colors',
+                    'border-b border-border/50 hover:bg-muted/30 transition-colors group',
                     index % 2 === 0 && 'bg-muted/10'
                   )}
                   style={{ animationDelay: `${index * 20}ms` }}
@@ -185,13 +187,38 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry }: IncomeTableP
                     />
                   </td>
                   <td className="p-3">
-                    <PersonBadge person={entry.pessoa} />
+                    <PersonBadge 
+                      person={entry.pessoa} 
+                      editable 
+                      onChange={(pessoa) => onUpdateEntry(entry.id, { pessoa })}
+                    />
                   </td>
                   <td className="p-3">
-                    <StatusBadge status={entry.status} />
+                    <StatusBadge 
+                      status={entry.status} 
+                      editable
+                      onChange={(newStatus) => onUpdateEntry(entry.id, { status: newStatus })}
+                    />
+                  </td>
+                  <td className="p-3 text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-expense hover:bg-expense/10"
+                      onClick={() => onDeleteEntry(entry.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </td>
                 </tr>
               ))}
+              {tableEntries.length === 0 && (
+                <tr>
+                  <td colSpan={showCheckbox ? 7 : 6} className="p-8 text-center text-muted-foreground">
+                    Nenhum registro encontrado
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
