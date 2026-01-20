@@ -47,6 +47,7 @@ export const initialSummary: FinancialSummary = {
   totalPago: 5630.00,
   totalAPagar: 5942.86,
   totalAntecipado: 12680.97,
+  totalFuturos: 1650.00,
   saldoFinalPrevisto: 19776.11,
   saldoAtual: 12725.14,
   saldoAposCambio: 19084.11,

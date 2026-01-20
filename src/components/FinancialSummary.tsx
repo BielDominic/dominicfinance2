@@ -6,7 +6,8 @@ import {
   PiggyBank, 
   Target,
   ArrowRightLeft,
-  CheckCircle2
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { SummaryCard } from './SummaryCard';
@@ -53,6 +54,12 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
           value={summary.totalAntecipado}
           icon={PiggyBank}
           variant="highlight"
+        />
+        <SummaryCard
+          label="Total Futuros"
+          value={summary.totalFuturos}
+          icon={Clock}
+          variant="default"
         />
         <SummaryCard
           label="Saldo Atual"
