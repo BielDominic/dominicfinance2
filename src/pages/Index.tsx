@@ -84,6 +84,7 @@ const Index = () => {
     const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
     const totalAPagar = totalSaidas - totalPago;
     const saldoFinalPrevisto = totalEntradas - totalSaidas;
+    const saldoFinalComFuturos = totalEntradas + totalFuturos - totalSaidas;
     const saldoAtual = totalEntradas - totalPago;
     const saldoAposCambioEUR = saldoFinalPrevisto / taxaEfetiva;
 
@@ -95,6 +96,7 @@ const Index = () => {
       totalAntecipado: 0,
       totalFuturos,
       saldoFinalPrevisto,
+      saldoFinalComFuturos,
       saldoAtual,
       saldoAposCambioEUR,
       taxaCambio: taxaEfetiva,
@@ -180,7 +182,8 @@ const Index = () => {
 
         {/* Currency Converter */}
         <CurrencyConverter 
-          saldoFinal={summary.saldoFinalPrevisto} 
+          saldoFinal={summary.saldoFinalPrevisto}
+          saldoFinalComFuturos={summary.saldoFinalComFuturos}
           saldoAtual={summary.saldoAtual}
           exchangeRate={taxaCambio}
           onExchangeRateChange={setTaxaCambio}
