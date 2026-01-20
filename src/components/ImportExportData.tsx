@@ -41,17 +41,31 @@ export function ImportExportData({
       // Create workbook
       const wb = XLSX.utils.book_new();
 
-      // Income Entries Sheet with sequential IDs only
-      const incomeData = incomeEntries.map((entry, index) => ({
+      // Separate entries by status
+      const entradasEntries = incomeEntries.filter(e => e.status === 'Entrada');
+      const futurosEntries = incomeEntries.filter(e => e.status === 'Futuros');
+
+      // Entradas Sheet (only status = 'Entrada')
+      const entradasData = entradasEntries.map((entry, index) => ({
         'ID': index + 1,
         'Valor': entry.valor,
         'Descrição': entry.descricao,
         'Data': entry.data || '',
         'Pessoa': entry.pessoa,
-        'Status': entry.status,
       }));
-      const incomeWs = XLSX.utils.json_to_sheet(incomeData);
-      XLSX.utils.book_append_sheet(wb, incomeWs, 'Entradas');
+      const entradasWs = XLSX.utils.json_to_sheet(entradasData);
+      XLSX.utils.book_append_sheet(wb, entradasWs, 'Entradas');
+
+      // Futuros Sheet (only status = 'Futuros')
+      const futurosData = futurosEntries.map((entry, index) => ({
+        'ID': index + 1,
+        'Valor': entry.valor,
+        'Descrição': entry.descricao,
+        'Data': entry.data || '',
+        'Pessoa': entry.pessoa,
+      }));
+      const futurosWs = XLSX.utils.json_to_sheet(futurosData);
+      XLSX.utils.book_append_sheet(wb, futurosWs, 'Futuros');
 
       // Expense Categories Sheet with sequential IDs only
       const expenseData = expenseCategories.map((cat, index) => ({
@@ -123,42 +137,45 @@ export function ImportExportData({
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data);
 
-      // Parse Income Entries with error handling per row
-      try {
-        const incomeSheet = wb.Sheets['Entradas'];
-        const incomeRaw = incomeSheet ? XLSX.utils.sheet_to_json<any>(incomeSheet) : [];
-        
-        incomeRaw.forEach((row: any, index: number) => {
-          try {
-            // Use UUID if available, otherwise use ID or generate new one
-            const uuid = safeParseString(row['UUID']) || safeParseString(row['ID']);
-            const isValidUuid = uuid && uuid.length > 10; // Simple check for UUID format
-            
-            // Validate pessoa and status values
-            const pessoaRaw = safeParseString(row['Pessoa'], 'Gabriel');
-            const pessoa = (pessoaRaw === 'Gabriel' || pessoaRaw === 'Myrelle') ? pessoaRaw : 'Gabriel';
-            
-            const statusRaw = safeParseString(row['Status'], 'Entrada');
-            const status = (statusRaw === 'Entrada' || statusRaw === 'Futuros') ? statusRaw : 'Entrada';
-            
-            const entry: IncomeEntry = {
-              id: isValidUuid ? uuid : `import-${Date.now()}-${index}`,
-              valor: safeParseNumber(row['Valor']),
-              descricao: safeParseString(row['Descrição']),
-              data: safeParseString(row['Data']) || null,
-              pessoa,
-              status,
-            };
-            parsedIncome.push(entry);
-          } catch (rowError) {
-            console.warn(`Skipped income row ${index + 1}:`, rowError);
-            skippedRows++;
-          }
-        });
-      } catch (sheetError) {
-        console.warn('Error parsing Entradas sheet:', sheetError);
-        warnings.push('Aba "Entradas" não encontrada ou com erros');
-      }
+      // Helper to parse income entries from a sheet
+      const parseIncomeSheet = (sheetName: string, status: EntryStatus) => {
+        try {
+          const sheet = wb.Sheets[sheetName];
+          const rawData = sheet ? XLSX.utils.sheet_to_json<any>(sheet) : [];
+          
+          rawData.forEach((row: any, index: number) => {
+            try {
+              const uuid = safeParseString(row['UUID']) || safeParseString(row['ID']);
+              const isValidUuid = uuid && uuid.length > 10;
+              
+              const pessoaRaw = safeParseString(row['Pessoa'], 'Gabriel');
+              const pessoa = (pessoaRaw === 'Gabriel' || pessoaRaw === 'Myrelle') ? pessoaRaw : 'Gabriel';
+              
+              const entry: IncomeEntry = {
+                id: isValidUuid ? uuid : `import-${status}-${Date.now()}-${index}`,
+                valor: safeParseNumber(row['Valor']),
+                descricao: safeParseString(row['Descrição']),
+                data: safeParseString(row['Data']) || null,
+                pessoa,
+                status,
+              };
+              parsedIncome.push(entry);
+            } catch (rowError) {
+              console.warn(`Skipped ${sheetName} row ${index + 1}:`, rowError);
+              skippedRows++;
+            }
+          });
+        } catch (sheetError) {
+          console.warn(`Error parsing ${sheetName} sheet:`, sheetError);
+          warnings.push(`Aba "${sheetName}" não encontrada ou com erros`);
+        }
+      };
+
+      // Parse Entradas sheet (status = 'Entrada')
+      parseIncomeSheet('Entradas', 'Entrada');
+
+      // Parse Futuros sheet (status = 'Futuros')
+      parseIncomeSheet('Futuros', 'Futuros');
 
       // Parse Expense Categories with error handling per row
       try {
