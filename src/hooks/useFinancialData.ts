@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
 import { toast } from 'sonner';
 
+interface AppConfig {
+  headerTitle: string;
+  headerSubtitle: string;
+  taxaCambio: number;
+  spread: number;
+  darkMode: boolean;
+}
+
 export const useFinancialData = () => {
   const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
   const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>([]);
@@ -10,6 +18,38 @@ export const useFinancialData = () => {
   const [metaEntradas, setMetaEntradas] = useState(35000);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // App config state (synced in realtime)
+  const [appConfig, setAppConfig] = useState<AppConfig>({
+    headerTitle: 'Planejamento Financeiro',
+    headerSubtitle: 'Viagem 2025/2026',
+    taxaCambio: 6.5,
+    spread: 0,
+    darkMode: false,
+  });
+
+  // Fetch app config from database
+  const fetchAppConfig = useCallback(async () => {
+    try {
+      const { data } = await supabase.from('app_config').select('*');
+      if (data) {
+        const configMap: Record<string, string> = {};
+        data.forEach(item => {
+          configMap[item.key] = item.value;
+        });
+        
+        setAppConfig(prev => ({
+          headerTitle: configMap['header_title'] || prev.headerTitle,
+          headerSubtitle: configMap['header_subtitle'] || prev.headerSubtitle,
+          taxaCambio: configMap['taxa_cambio'] ? parseFloat(configMap['taxa_cambio']) : prev.taxaCambio,
+          spread: configMap['spread'] ? parseFloat(configMap['spread']) : prev.spread,
+          darkMode: configMap['dark_mode'] === 'true',
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching app config:', error);
+    }
+  }, []);
 
   // Fetch all data from database
   const fetchData = useCallback(async () => {
@@ -69,6 +109,7 @@ export const useFinancialData = () => {
   // Setup realtime subscriptions
   useEffect(() => {
     fetchData();
+    fetchAppConfig();
 
     const incomeChannel = supabase
       .channel('income_entries_changes')
@@ -98,13 +139,55 @@ export const useFinancialData = () => {
       })
       .subscribe();
 
+    const configChannel = supabase
+      .channel('app_config_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_config' }, () => {
+        fetchAppConfig();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(incomeChannel);
       supabase.removeChannel(expenseChannel);
       supabase.removeChannel(investChannel);
       supabase.removeChannel(settingsChannel);
+      supabase.removeChannel(configChannel);
     };
-  }, [fetchData]);
+  }, [fetchData, fetchAppConfig]);
+
+  // Update app config
+  const updateAppConfig = useCallback(async (key: string, value: string) => {
+    const { error } = await supabase
+      .from('app_config')
+      .upsert({ key, value }, { onConflict: 'key' });
+    
+    if (error) console.error('Error updating app config:', error);
+  }, []);
+
+  const handleTitleChange = useCallback(async (title: string) => {
+    setAppConfig(prev => ({ ...prev, headerTitle: title }));
+    await updateAppConfig('header_title', title);
+  }, [updateAppConfig]);
+
+  const handleSubtitleChange = useCallback(async (subtitle: string) => {
+    setAppConfig(prev => ({ ...prev, headerSubtitle: subtitle }));
+    await updateAppConfig('header_subtitle', subtitle);
+  }, [updateAppConfig]);
+
+  const handleTaxaCambioChange = useCallback(async (taxa: number) => {
+    setAppConfig(prev => ({ ...prev, taxaCambio: taxa }));
+    await updateAppConfig('taxa_cambio', taxa.toString());
+  }, [updateAppConfig]);
+
+  const handleSpreadChange = useCallback(async (spreadValue: number) => {
+    setAppConfig(prev => ({ ...prev, spread: spreadValue }));
+    await updateAppConfig('spread', spreadValue.toString());
+  }, [updateAppConfig]);
+
+  const handleDarkModeChange = useCallback(async (darkMode: boolean) => {
+    setAppConfig(prev => ({ ...prev, darkMode }));
+    await updateAppConfig('dark_mode', darkMode.toString());
+  }, [updateAppConfig]);
 
   // Income entry handlers
   const handleUpdateIncomeEntry = useCallback(async (id: string, updates: Partial<IncomeEntry>) => {
@@ -390,6 +473,7 @@ export const useFinancialData = () => {
     metaEntradas,
     isLoading,
     isSaving,
+    appConfig,
     handleUpdateIncomeEntry,
     handleAddIncomeEntry,
     handleDeleteIncomeEntry,
@@ -402,5 +486,10 @@ export const useFinancialData = () => {
     handleMetaChange,
     handleSaveData,
     handleImportData,
+    handleTitleChange,
+    handleSubtitleChange,
+    handleTaxaCambioChange,
+    handleSpreadChange,
+    handleDarkModeChange,
   };
 };
