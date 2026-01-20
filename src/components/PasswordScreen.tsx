@@ -35,13 +35,21 @@ export function PasswordScreen({ onSuccess }: PasswordScreenProps) {
         }`}
       >
         <div className="text-center mb-8">
+          {/* Irish Flag */}
+          <div className="flex justify-center mb-4">
+            <div className="flex rounded-lg overflow-hidden shadow-lg">
+              <div className="w-8 h-12 bg-[hsl(145,63%,32%)]"></div>
+              <div className="w-8 h-12 bg-white"></div>
+              <div className="w-8 h-12 bg-[hsl(30,90%,50%)]"></div>
+            </div>
+          </div>
           <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground mx-auto mb-4">
             <Plane className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Planejamento Financeiro</h1>
           <p className="text-muted-foreground mt-2 flex items-center justify-center gap-2">
             <Lock className="h-4 w-4" />
-            Acesso Restrito
+            Viagem Irlanda 2025/2026
           </p>
         </div>
 

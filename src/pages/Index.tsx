@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { GlobalProgressBar } from '@/components/GlobalProgressBar';
 import { IncomeTable } from '@/components/IncomeTable';
@@ -6,12 +6,20 @@ import { ExpenseTable } from '@/components/ExpenseTable';
 import { FinancialSummary } from '@/components/FinancialSummary';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
+import { InvestmentsTable, Investment } from '@/components/InvestmentsTable';
 import { IncomeEntry, ExpenseCategory, FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { 
   initialIncomeEntries, 
   initialExpenseCategories, 
   initialSummary 
 } from '@/data/initialData';
+
+const initialInvestments: Investment[] = [
+  { id: '1', categoria: 'Nubank', valor: 5000 },
+  { id: '2', categoria: 'XP Investimentos', valor: 3500 },
+  { id: '3', categoria: 'Wise (EUR)', valor: 2000 },
+  { id: '4', categoria: 'C6 Bank', valor: 1500 },
+];
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -21,6 +29,7 @@ const Index = () => {
   const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(initialExpenseCategories);
   const [summary] = useState<FinancialSummaryType>(initialSummary);
   const [metaEntradas, setMetaEntradas] = useState(35000);
+  const [investments, setInvestments] = useState<Investment[]>(initialInvestments);
 
   // Calculate totals from income entries
   const calculatedTotals = useMemo(() => {
@@ -77,13 +86,36 @@ const Index = () => {
     setExpenseCategories(prev => prev.filter(category => category.id !== id));
   }, []);
 
+  const handleUpdateInvestment = useCallback((id: string, updates: Partial<Investment>) => {
+    setInvestments(prev =>
+      prev.map(inv => inv.id === id ? { ...inv, ...updates } : inv)
+    );
+  }, []);
+
+  const handleAddInvestment = useCallback(() => {
+    const newInvestment: Investment = {
+      id: `inv-${Date.now()}`,
+      categoria: '',
+      valor: 0,
+    };
+    setInvestments(prev => [...prev, newInvestment]);
+  }, []);
+
+  const handleDeleteInvestment = useCallback((id: string) => {
+    setInvestments(prev => prev.filter(inv => inv.id !== id));
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+  }, []);
+
   if (!isAuthenticated) {
     return <PasswordScreen onSuccess={() => setIsAuthenticated(true)} />;
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onLogout={handleLogout} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Global Progress Bar */}
@@ -118,6 +150,14 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Investments Section */}
+        <InvestmentsTable
+          investments={investments}
+          onUpdateInvestment={handleUpdateInvestment}
+          onAddInvestment={handleAddInvestment}
+          onDeleteInvestment={handleDeleteInvestment}
+        />
+
         {/* Summary Section */}
         <FinancialSummary summary={summary} />
 
@@ -130,7 +170,7 @@ const Index = () => {
         {/* Footer */}
         <footer className="text-center py-6 text-sm text-muted-foreground">
           <p>
-            Planejamento Financeiro • Viagem 2025/2026 • Gabriel & Myrelle
+            🇮🇪 Planejamento Financeiro • Viagem Irlanda 2025/2026 • Gabriel & Myrelle
           </p>
           <p className="mt-1 text-xs">
             Todos os valores são editáveis • Clique em qualquer campo para modificar

@@ -6,61 +6,67 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 25% 10%;
+    --background: 145 20% 97%;
+    --foreground: 145 25% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 145 25% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 145 25% 10%;
 
-    --primary: 220 70% 50%;
+    --primary: 145 63% 32%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 25% 20%;
+    --secondary: 145 15% 92%;
+    --secondary-foreground: 145 25% 20%;
 
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 145 15% 95%;
+    --muted-foreground: 145 10% 45%;
 
-    --accent: 220 15% 92%;
-    --accent-foreground: 220 25% 20%;
+    --accent: 30 90% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 220 70% 50%;
+    --border: 145 15% 88%;
+    --input: 145 15% 88%;
+    --ring: 145 63% 32%;
 
     --radius: 0.75rem;
 
+    /* Irish flag colors */
+    --ireland-green: 145 63% 32%;
+    --ireland-green-light: 145 63% 95%;
+    --ireland-orange: 30 90% 50%;
+    --ireland-orange-light: 30 90% 95%;
+
     /* Semantic financial colors */
-    --income: 152 69% 31%;
-    --income-light: 152 69% 95%;
-    --income-foreground: 152 69% 20%;
+    --income: 145 63% 32%;
+    --income-light: 145 63% 95%;
+    --income-foreground: 145 63% 20%;
 
     --future: 217 91% 50%;
     --future-light: 217 91% 95%;
     --future-foreground: 217 91% 30%;
 
-    --highlight: 45 93% 47%;
-    --highlight-light: 45 93% 90%;
-    --highlight-foreground: 45 93% 20%;
+    --highlight: 30 90% 50%;
+    --highlight-light: 30 90% 92%;
+    --highlight-foreground: 30 90% 20%;
 
     --expense: 0 72% 51%;
     --expense-light: 0 72% 95%;
     --expense-foreground: 0 72% 30%;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-foreground: 145 25% 26%;
+    --sidebar-primary: 145 63% 32%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 145 15% 95%;
+    --sidebar-accent-foreground: 145 25% 10%;
+    --sidebar-border: 145 15% 91%;
+    --sidebar-ring: 145 63% 32%;
   }
 
   .dark {
