@@ -17,7 +17,7 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('financial-auth') === 'true';
+    return sessionStorage.getItem('financial-auth') === 'true';
   });
 
   // Dark mode is local per user (not synchronized)
@@ -121,7 +121,7 @@ const Index = () => {
   }, [incomeEntries, expenseCategories, taxaEfetiva]);
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem('financial-auth');
+    sessionStorage.removeItem('financial-auth');
     setIsAuthenticated(false);
   }, []);
 

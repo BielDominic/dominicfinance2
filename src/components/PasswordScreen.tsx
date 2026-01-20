@@ -18,7 +18,7 @@ export function PasswordScreen({ onSuccess }: PasswordScreenProps) {
     e.preventDefault();
     
     if (password.toUpperCase() === CORRECT_PASSWORD) {
-      localStorage.setItem('financial-auth', 'true');
+      sessionStorage.setItem('financial-auth', 'true');
       onSuccess();
     } else {
       setError(true);
