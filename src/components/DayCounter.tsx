@@ -68,42 +68,61 @@ export function DayCounter({ targetDate, onDateChange, label = 'Contagem' }: Day
   };
 
   return (
-    <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
-      <Calendar className="h-4 w-4 text-future shrink-0" />
-      <div className="flex flex-col min-w-0">
-        <span className="text-xs text-muted-foreground truncate">{label}</span>
-        <div className="flex items-center gap-2">
-          <span className={cn('font-mono font-bold text-sm', getCounterColor())}>
-            {getCounterText()}
+    <div className="flex flex-col items-center gap-3">
+      {/* Big counter display */}
+      <div className="flex items-center gap-4">
+        <div className="flex flex-col items-center">
+          <span className={cn(
+            'font-mono font-black text-4xl sm:text-5xl md:text-6xl tracking-tight',
+            getCounterColor()
+          )}>
+            {daysRemaining !== null ? Math.abs(daysRemaining) : '—'}
           </span>
-          {selectedDate && (
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              ({format(selectedDate, 'dd/MM/yy', { locale: ptBR })})
-            </span>
-          )}
+          <span className="text-sm sm:text-base text-muted-foreground font-medium">
+            {daysRemaining === null 
+              ? 'dias' 
+              : daysRemaining === 0 
+                ? 'HOJE!' 
+                : daysRemaining > 0 
+                  ? 'dias restantes'
+                  : 'dias atrás'}
+          </span>
         </div>
       </div>
-      
-      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <PopoverTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-7 w-7 shrink-0 hover:bg-background"
-          >
-            <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
-          <CalendarComponent
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            locale={ptBR}
-            className="pointer-events-auto"
-          />
-        </PopoverContent>
-      </Popover>
+
+      {/* Date display and edit button */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Calendar className="h-4 w-4 text-ireland-green" />
+        {selectedDate ? (
+          <span className="font-mono">
+            {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          </span>
+        ) : (
+          <span>Definir data de destino</span>
+        )}
+        
+        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 gap-1 text-xs border-ireland-green/30 hover:border-ireland-green hover:bg-ireland-green/10"
+            >
+              <Edit2 className="h-3 w-3" />
+              Editar
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <CalendarComponent
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              locale={ptBR}
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   );
 }

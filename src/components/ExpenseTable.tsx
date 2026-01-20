@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
+import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays, X } from 'lucide-react';
 import { ExpenseCategory } from '@/types/financial';
 import { formatCurrency, parseCurrencyInput, formatDate, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
@@ -164,11 +164,22 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
         
         {/* Period Filter */}
         {isExpanded && (
-          <div className="pt-3 mt-3 border-t border-border/50">
+          <div className="pt-3 mt-3 border-t border-border/50 flex items-center justify-between gap-2">
             <PeriodFilter 
               value={periodFilter}
               onChange={setPeriodFilter}
             />
+            {periodFilter.type !== 'all' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPeriodFilter({ type: 'all' })}
+                className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpar filtro
+              </Button>
+            )}
           </div>
         )}
       </div>
