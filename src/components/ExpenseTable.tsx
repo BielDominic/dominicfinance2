@@ -12,9 +12,10 @@ interface ExpenseTableProps {
   onUpdateCategory: (id: string, updates: Partial<ExpenseCategory>) => void;
   onAddCategory: () => void;
   onDeleteCategory: (id: string) => void;
+  isFiltered?: boolean;
 }
 
-export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDeleteCategory }: ExpenseTableProps) {
+export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDeleteCategory, isFiltered }: ExpenseTableProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   
   const totals = categories.reduce(

@@ -9,6 +9,8 @@ import { FinancialSummary } from '@/components/FinancialSummary';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
 import { InvestmentsTable } from '@/components/InvestmentsTable';
+import { DayCounter } from '@/components/DayCounter';
+import { PeriodFilter, PeriodFilterValue, filterByPeriod, filterExpensesByPeriod } from '@/components/PeriodFilter';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Save, Check, Loader2 } from 'lucide-react';
@@ -44,7 +46,22 @@ const Index = () => {
     handleTaxaCambioChange,
     handleSpreadChange,
     handleDarkModeChange,
+    handleTargetDateChange,
   } = useFinancialData();
+
+  // Period filter state (local, not synced)
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
+
+  // Filter entries by period
+  const filteredIncomeEntries = useMemo(() => 
+    filterByPeriod(incomeEntries, periodFilter), 
+    [incomeEntries, periodFilter]
+  );
+  
+  const filteredExpenseCategories = useMemo(() => 
+    filterExpensesByPeriod(expenseCategories, periodFilter), 
+    [expenseCategories, periodFilter]
+  );
 
   // Calculate totals from income entries (only confirmed entries, not "Futuros")
   const calculatedTotals = useMemo(() => {
@@ -136,6 +153,19 @@ const Index = () => {
       />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Day Counter and Period Filter */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border">
+          <DayCounter 
+            targetDate={appConfig.targetDate}
+            onDateChange={handleTargetDateChange}
+            label="Dias para viagem"
+          />
+          <PeriodFilter 
+            value={periodFilter}
+            onChange={setPeriodFilter}
+          />
+        </div>
+
         {/* Global Progress Bar */}
         <GlobalProgressBar 
           totalEntradas={calculatedTotals.totalEntradas}
@@ -148,17 +178,19 @@ const Index = () => {
         {/* Income and Expenses - Stacked Layout */}
         <div className="space-y-6">
           <IncomeTable
-            entries={incomeEntries}
+            entries={periodFilter.type === 'all' ? incomeEntries : filteredIncomeEntries}
             onUpdateEntry={handleUpdateIncomeEntry}
             onAddEntry={handleAddIncomeEntry}
             onDeleteEntry={handleDeleteIncomeEntry}
+            isFiltered={periodFilter.type !== 'all'}
           />
           
           <ExpenseTable
-            categories={expenseCategories}
+            categories={periodFilter.type === 'all' ? expenseCategories : filteredExpenseCategories}
             onUpdateCategory={handleUpdateExpenseCategory}
             onAddCategory={handleAddExpenseCategory}
             onDeleteCategory={handleDeleteExpenseCategory}
+            isFiltered={periodFilter.type !== 'all'}
           />
         </div>
 
