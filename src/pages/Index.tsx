@@ -4,6 +4,7 @@ import { GlobalProgressBar } from '@/components/GlobalProgressBar';
 import { IncomeTable } from '@/components/IncomeTable';
 import { ExpenseTable } from '@/components/ExpenseTable';
 import { ExpenseCharts } from '@/components/ExpenseCharts';
+import { EvolutionChart } from '@/components/EvolutionChart';
 import { FinancialSummary } from '@/components/FinancialSummary';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
@@ -52,6 +53,22 @@ const Index = () => {
   // Dynamic summary based on current data (only confirmed entries)
   const [taxaCambio, setTaxaCambio] = useState(6.5);
   const [spread, setSpread] = useState(0);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('dark-mode') === 'true';
+    }
+    return false;
+  });
+  
+  // Apply dark mode on change
+  useEffect(() => {
+    localStorage.setItem('dark-mode', String(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
   
   // Taxa efetiva com spread
   const taxaEfetiva = taxaCambio * (1 + spread / 100);
@@ -113,6 +130,8 @@ const Index = () => {
         investments={investments}
         metaEntradas={metaEntradas}
         onImportData={handleImportData}
+        darkMode={darkMode}
+        onDarkModeChange={setDarkMode}
       />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
@@ -150,6 +169,9 @@ const Index = () => {
 
         {/* Expense Charts */}
         <ExpenseCharts categories={expenseCategories} />
+
+        {/* Evolution Chart */}
+        <EvolutionChart incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
 
         {/* Investments Section */}
         <InvestmentsTable

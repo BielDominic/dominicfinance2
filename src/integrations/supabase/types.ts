@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -44,27 +68,36 @@ export type Database = {
           created_at: string
           falta_pagar: number
           id: string
+          meta_orcamento: number | null
+          notas: string | null
           pago: number
           total: number
           updated_at: string
+          vencimento: string | null
         }
         Insert: {
           categoria?: string
           created_at?: string
           falta_pagar?: number
           id?: string
+          meta_orcamento?: number | null
+          notas?: string | null
           pago?: number
           total?: number
           updated_at?: string
+          vencimento?: string | null
         }
         Update: {
           categoria?: string
           created_at?: string
           falta_pagar?: number
           id?: string
+          meta_orcamento?: number | null
+          notas?: string | null
           pago?: number
           total?: number
           updated_at?: string
+          vencimento?: string | null
         }
         Relationships: []
       }
@@ -74,8 +107,10 @@ export type Database = {
           data: string
           descricao: string
           id: string
+          notas: string | null
           pessoa: string
           status: string
+          tags: string[] | null
           updated_at: string
           valor: number
         }
@@ -84,8 +119,10 @@ export type Database = {
           data?: string
           descricao?: string
           id?: string
+          notas?: string | null
           pessoa?: string
           status?: string
+          tags?: string[] | null
           updated_at?: string
           valor?: number
         }
@@ -94,8 +131,10 @@ export type Database = {
           data?: string
           descricao?: string
           id?: string
+          notas?: string | null
           pessoa?: string
           status?: string
+          tags?: string[] | null
           updated_at?: string
           valor?: number
         }
