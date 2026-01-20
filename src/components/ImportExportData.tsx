@@ -41,10 +41,9 @@ export function ImportExportData({
       // Create workbook
       const wb = XLSX.utils.book_new();
 
-      // Income Entries Sheet with sequential IDs
+      // Income Entries Sheet with sequential IDs only
       const incomeData = incomeEntries.map((entry, index) => ({
         'ID': index + 1,
-        'UUID': entry.id,
         'Valor': entry.valor,
         'Descrição': entry.descricao,
         'Data': entry.data || '',
@@ -54,10 +53,9 @@ export function ImportExportData({
       const incomeWs = XLSX.utils.json_to_sheet(incomeData);
       XLSX.utils.book_append_sheet(wb, incomeWs, 'Entradas');
 
-      // Expense Categories Sheet with sequential IDs
+      // Expense Categories Sheet with sequential IDs only
       const expenseData = expenseCategories.map((cat, index) => ({
         'ID': index + 1,
-        'UUID': cat.id,
         'Categoria': cat.categoria,
         'Total': cat.total,
         'Pago': cat.pago,
@@ -66,10 +64,9 @@ export function ImportExportData({
       const expenseWs = XLSX.utils.json_to_sheet(expenseData);
       XLSX.utils.book_append_sheet(wb, expenseWs, 'Despesas');
 
-      // Investments Sheet with sequential IDs
+      // Investments Sheet with sequential IDs only
       const investmentData = investments.map((inv, index) => ({
         'ID': index + 1,
-        'UUID': inv.id,
         'Categoria': inv.categoria,
         'Valor': inv.valor,
       }));
