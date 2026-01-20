@@ -98,13 +98,96 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
     }
   };
 
+  // Mobile card view for each entry
+  const renderMobileCard = (entry: IncomeEntry, status: 'Entrada' | 'Futuros') => {
+    const showCheckbox = status === 'Futuros';
+    
+    return (
+      <div 
+        key={entry.id}
+        className="p-4 border-b border-border/50 last:border-b-0 bg-card"
+      >
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            {showCheckbox && (
+              <Checkbox
+                checked={false}
+                onCheckedChange={(checked) => handleCheckboxChange(entry.id, checked as boolean)}
+                className="data-[state=checked]:bg-income data-[state=checked]:border-income"
+              />
+            )}
+            <div className={cn(
+              'font-mono font-medium rounded px-2 py-1',
+              'bg-highlight-light text-highlight-foreground'
+            )}>
+              <EditableCell
+                value={formatCurrency(entry.valor)}
+                onChange={(v) => handleValueChange(entry.id, v)}
+                type="currency"
+              />
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-expense hover:bg-expense/10 shrink-0"
+            onClick={() => onDeleteEntry(entry.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <div className="mb-3">
+          <EditableCell
+            value={entry.descricao}
+            onChange={(v) => onUpdateEntry(entry.id, { descricao: v })}
+            placeholder="Descrição..."
+            className="text-sm"
+          />
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="font-mono text-muted-foreground">
+            <EditableCell
+              value={formatDate(entry.data)}
+              onChange={(v) => handleDateChange(entry.id, v)}
+              type="date"
+              placeholder="—"
+            />
+          </div>
+          <PersonBadge 
+            person={entry.pessoa} 
+            editable 
+            onChange={(pessoa) => onUpdateEntry(entry.id, { pessoa })}
+          />
+          <StatusBadge 
+            status={entry.status} 
+            editable
+            onChange={(newStatus) => onUpdateEntry(entry.id, { status: newStatus })}
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderTable = (tableEntries: IncomeEntry[], status: 'Entrada' | 'Futuros') => {
     const total = status === 'Entrada' ? totalEntradas : totalFuturos;
     const showCheckbox = status === 'Futuros';
 
     return (
       <>
-        <div className="overflow-x-auto scrollbar-thin">
+        {/* Mobile View */}
+        <div className="md:hidden">
+          {tableEntries.map((entry) => renderMobileCard(entry, status))}
+          {tableEntries.length === 0 && (
+            <div className="p-8 text-center text-muted-foreground">
+              Nenhum registro encontrado
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto scrollbar-thin">
           <table className="w-full">
             <thead>
               <tr className="table-header">
