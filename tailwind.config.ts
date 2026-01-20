@@ -71,6 +71,14 @@ export default {
           light: "hsl(var(--expense-light))",
           foreground: "hsl(var(--expense-foreground))",
         },
+        "ireland-green": {
+          DEFAULT: "hsl(var(--ireland-green))",
+          light: "hsl(var(--ireland-green-light))",
+        },
+        "ireland-orange": {
+          DEFAULT: "hsl(var(--ireland-orange))",
+          light: "hsl(var(--ireland-orange-light))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
