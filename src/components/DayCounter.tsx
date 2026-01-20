@@ -117,86 +117,68 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange, pro
     return 'text-expense';
   };
 
-  // Calculate fill height based on progress (0-100%)
-  const fillHeight = Math.min(Math.max(progressPercentage, 0), 100);
-  
-  // Number of visible coin rows based on progress
-  const maxCoinRows = 8;
-  const visibleRows = Math.ceil((fillHeight / 100) * maxCoinRows);
+  // Number of visible coin rows based on progress (0-100%)
+  const clampedProgress = Math.min(Math.max(progressPercentage, 0), 100);
+  const maxCoinRows = 10;
+  const visibleRows = Math.round((clampedProgress / 100) * maxCoinRows);
 
   return (
     <div className="relative w-full flex flex-col items-center gap-3 min-h-[180px]">
       {/* Gold coin pile - Left side */}
-      <div className="absolute left-2 sm:left-4 bottom-0 w-14 sm:w-20 h-full flex flex-col justify-end items-center overflow-hidden pointer-events-none">
-        <div className="relative w-full flex flex-col-reverse items-center">
+      {visibleRows > 0 && (
+        <div className="absolute left-2 sm:left-4 bottom-4 w-16 sm:w-20 flex flex-col-reverse items-center pointer-events-none">
           {Array.from({ length: visibleRows }).map((_, rowIndex) => (
             <div 
               key={`left-${rowIndex}`} 
-              className="flex justify-center transition-all duration-500 ease-out"
+              className="flex justify-center"
               style={{
-                marginTop: rowIndex > 0 ? '-8px' : '0',
-                transform: `translateX(${(rowIndex % 2) * 4 - 2}px)`,
+                marginTop: rowIndex > 0 ? '-10px' : '0',
+                transform: `translateX(${(rowIndex % 2) * 3 - 1.5}px)`,
               }}
             >
-              {Array.from({ length: Math.max(1, 3 - Math.floor(rowIndex / 2)) }).map((_, coinIndex) => (
+              {Array.from({ length: Math.max(1, 4 - Math.floor(rowIndex / 3)) }).map((_, coinIndex) => (
                 <img
                   key={`left-${rowIndex}-${coinIndex}`}
                   src={goldCoinImage}
-                  alt="Gold coin"
-                  className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-md"
+                  alt=""
+                  className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-lg"
                   style={{
-                    marginLeft: coinIndex > 0 ? '-6px' : '0',
-                    opacity: 0.85 + (rowIndex * 0.02),
+                    marginLeft: coinIndex > 0 ? '-8px' : '0',
                   }}
                 />
               ))}
             </div>
           ))}
         </div>
-        {/* Glow effect at the bottom */}
-        {fillHeight > 0 && (
-          <div 
-            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/40 to-transparent rounded-t-full blur-sm"
-            style={{ height: `${Math.min(fillHeight, 30)}%` }}
-          />
-        )}
-      </div>
+      )}
 
       {/* Gold coin pile - Right side */}
-      <div className="absolute right-2 sm:right-4 bottom-0 w-14 sm:w-20 h-full flex flex-col justify-end items-center overflow-hidden pointer-events-none">
-        <div className="relative w-full flex flex-col-reverse items-center">
+      {visibleRows > 0 && (
+        <div className="absolute right-2 sm:right-4 bottom-4 w-16 sm:w-20 flex flex-col-reverse items-center pointer-events-none">
           {Array.from({ length: visibleRows }).map((_, rowIndex) => (
             <div 
               key={`right-${rowIndex}`} 
-              className="flex justify-center transition-all duration-500 ease-out"
+              className="flex justify-center"
               style={{
-                marginTop: rowIndex > 0 ? '-8px' : '0',
-                transform: `translateX(${(rowIndex % 2) * -4 + 2}px)`,
+                marginTop: rowIndex > 0 ? '-10px' : '0',
+                transform: `translateX(${(rowIndex % 2) * -3 + 1.5}px)`,
               }}
             >
-              {Array.from({ length: Math.max(1, 3 - Math.floor(rowIndex / 2)) }).map((_, coinIndex) => (
+              {Array.from({ length: Math.max(1, 4 - Math.floor(rowIndex / 3)) }).map((_, coinIndex) => (
                 <img
                   key={`right-${rowIndex}-${coinIndex}`}
                   src={goldCoinImage}
-                  alt="Gold coin"
-                  className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-md"
+                  alt=""
+                  className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-lg"
                   style={{
-                    marginLeft: coinIndex > 0 ? '-6px' : '0',
-                    opacity: 0.85 + (rowIndex * 0.02),
+                    marginLeft: coinIndex > 0 ? '-8px' : '0',
                   }}
                 />
               ))}
             </div>
           ))}
         </div>
-        {/* Glow effect at the bottom */}
-        {fillHeight > 0 && (
-          <div 
-            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/40 to-transparent rounded-t-full blur-sm"
-            style={{ height: `${Math.min(fillHeight, 30)}%` }}
-          />
-        )}
-      </div>
+      )}
 
       {/* Editable title with decorations */}
       <div className="flex items-center gap-3 z-10">
