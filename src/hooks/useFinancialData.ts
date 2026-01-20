@@ -234,7 +234,7 @@ export const useFinancialData = () => {
       console.error('Error adding income entry:', error);
       toast.error('Erro ao adicionar entrada');
     } else if (data) {
-      setIncomeEntries(prev => [...prev, {
+      setIncomeEntries(prev => [{
         id: data.id,
         valor: Number(data.valor),
         descricao: data.descricao,
@@ -243,7 +243,7 @@ export const useFinancialData = () => {
         status: data.status as 'Entrada' | 'Futuros',
         tags: (data as any).tags || [],
         notas: (data as any).notas || null,
-      }]);
+      }, ...prev]);
     }
   }, []);
 
@@ -280,7 +280,7 @@ export const useFinancialData = () => {
       console.error('Error adding expense category:', error);
       toast.error('Erro ao adicionar categoria');
     } else if (data) {
-      setExpenseCategories(prev => [...prev, {
+      setExpenseCategories(prev => [{
         id: data.id,
         categoria: data.categoria,
         total: Number(data.total),
@@ -289,7 +289,7 @@ export const useFinancialData = () => {
         metaOrcamento: (data as any).meta_orcamento ? Number((data as any).meta_orcamento) : null,
         vencimento: (data as any).vencimento || null,
         notas: (data as any).notas || null,
-      }]);
+      }, ...prev]);
     }
   }, []);
 
@@ -322,11 +322,11 @@ export const useFinancialData = () => {
       console.error('Error adding investment:', error);
       toast.error('Erro ao adicionar investimento');
     } else if (data) {
-      setInvestments(prev => [...prev, {
+      setInvestments(prev => [{
         id: data.id,
         categoria: data.categoria,
         valor: Number(data.valor),
-      }]);
+      }, ...prev]);
     }
   }, []);
 
