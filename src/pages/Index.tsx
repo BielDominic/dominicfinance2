@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { GlobalProgressBar } from '@/components/GlobalProgressBar';
 import { IncomeTable } from '@/components/IncomeTable';
@@ -6,57 +6,36 @@ import { ExpenseTable } from '@/components/ExpenseTable';
 import { FinancialSummary } from '@/components/FinancialSummary';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
-import { InvestmentsTable, Investment } from '@/components/InvestmentsTable';
-import { IncomeEntry, ExpenseCategory, FinancialSummary as FinancialSummaryType } from '@/types/financial';
+import { InvestmentsTable } from '@/components/InvestmentsTable';
+import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Button } from '@/components/ui/button';
-import { Save, Check } from 'lucide-react';
-import { toast } from 'sonner';
-import { 
-  initialIncomeEntries, 
-  initialExpenseCategories, 
-  initialSummary 
-} from '@/data/initialData';
-
-const initialInvestments: Investment[] = [
-  { id: '1', categoria: 'Nubank', valor: 5000 },
-  { id: '2', categoria: 'XP Investimentos', valor: 3500 },
-  { id: '3', categoria: 'Wise (EUR)', valor: 2000 },
-  { id: '4', categoria: 'C6 Bank', valor: 1500 },
-];
-
-const STORAGE_KEY = 'financial-data-ireland';
-
-const loadFromStorage = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {
-    console.error('Error loading data:', e);
-  }
-  return null;
-};
+import { Save, Check, Loader2 } from 'lucide-react';
+import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('financial-auth') === 'true';
   });
-  
-  const [savedData] = useState(() => loadFromStorage());
-  
-  const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>(
-    savedData?.incomeEntries || initialIncomeEntries
-  );
-  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(
-    savedData?.expenseCategories || initialExpenseCategories
-  );
-  const [summary] = useState<FinancialSummaryType>(initialSummary);
-  const [metaEntradas, setMetaEntradas] = useState(savedData?.metaEntradas || 35000);
-  const [investments, setInvestments] = useState<Investment[]>(
-    savedData?.investments || initialInvestments
-  );
-  const [isSaving, setIsSaving] = useState(false);
+
+  const {
+    incomeEntries,
+    expenseCategories,
+    investments,
+    metaEntradas,
+    isLoading,
+    isSaving,
+    handleUpdateIncomeEntry,
+    handleAddIncomeEntry,
+    handleDeleteIncomeEntry,
+    handleUpdateExpenseCategory,
+    handleAddExpenseCategory,
+    handleDeleteExpenseCategory,
+    handleUpdateInvestment,
+    handleAddInvestment,
+    handleDeleteInvestment,
+    handleMetaChange,
+    handleSaveData,
+  } = useFinancialData();
 
   // Calculate totals from income entries
   const calculatedTotals = useMemo(() => {
@@ -66,101 +45,45 @@ const Index = () => {
     return { totalEntradas, totalSaidas, totalPago };
   }, [incomeEntries, expenseCategories]);
 
-  const handleSaveData = useCallback(() => {
-    setIsSaving(true);
-    try {
-      const dataToSave = {
-        incomeEntries,
-        expenseCategories,
-        metaEntradas,
-        investments,
-        savedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-      toast.success('Dados salvos com sucesso!', {
-        description: 'Todas as informações foram armazenadas.',
-      });
-    } catch (e) {
-      toast.error('Erro ao salvar dados', {
-        description: 'Tente novamente.',
-      });
-    } finally {
-      setTimeout(() => setIsSaving(false), 1000);
-    }
-  }, [incomeEntries, expenseCategories, metaEntradas, investments]);
+  // Dynamic summary based on current data
+  const summary: FinancialSummaryType = useMemo(() => {
+    const totalEntradas = incomeEntries.reduce((sum, e) => sum + e.valor, 0);
+    const totalSaidas = expenseCategories.reduce((sum, c) => sum + c.total, 0);
+    const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
+    const totalAPagar = totalSaidas - totalPago;
+    const saldoFinalPrevisto = totalEntradas - totalSaidas;
+    const saldoAtual = totalEntradas - totalPago;
 
-  const handleUpdateIncomeEntry = useCallback((id: string, updates: Partial<IncomeEntry>) => {
-    setIncomeEntries(prev => 
-      prev.map(entry => 
-        entry.id === id ? { ...entry, ...updates } : entry
-      )
-    );
-  }, []);
-
-  const handleAddIncomeEntry = useCallback((status: 'Entrada' | 'Futuros') => {
-    const newEntry: IncomeEntry = {
-      id: `new-${Date.now()}`,
-      valor: 0,
-      descricao: '',
-      data: new Date().toISOString().split('T')[0],
-      pessoa: 'Gabriel',
-      status: status,
+    return {
+      totalEntradas,
+      totalSaidas,
+      totalPago,
+      totalAPagar,
+      totalAntecipado: 0,
+      saldoFinalPrevisto,
+      saldoAtual,
+      saldoAposCambio: saldoFinalPrevisto,
     };
-    setIncomeEntries(prev => [...prev, newEntry]);
-  }, []);
-
-  const handleDeleteIncomeEntry = useCallback((id: string) => {
-    setIncomeEntries(prev => prev.filter(entry => entry.id !== id));
-  }, []);
-
-  const handleUpdateExpenseCategory = useCallback((id: string, updates: Partial<ExpenseCategory>) => {
-    setExpenseCategories(prev =>
-      prev.map(category =>
-        category.id === id ? { ...category, ...updates } : category
-      )
-    );
-  }, []);
-
-  const handleAddExpenseCategory = useCallback(() => {
-    const newCategory: ExpenseCategory = {
-      id: `new-${Date.now()}`,
-      categoria: '',
-      total: 0,
-      pago: 0,
-      faltaPagar: 0,
-    };
-    setExpenseCategories(prev => [...prev, newCategory]);
-  }, []);
-
-  const handleDeleteExpenseCategory = useCallback((id: string) => {
-    setExpenseCategories(prev => prev.filter(category => category.id !== id));
-  }, []);
-
-  const handleUpdateInvestment = useCallback((id: string, updates: Partial<Investment>) => {
-    setInvestments(prev =>
-      prev.map(inv => inv.id === id ? { ...inv, ...updates } : inv)
-    );
-  }, []);
-
-  const handleAddInvestment = useCallback(() => {
-    const newInvestment: Investment = {
-      id: `inv-${Date.now()}`,
-      categoria: '',
-      valor: 0,
-    };
-    setInvestments(prev => [...prev, newInvestment]);
-  }, []);
-
-  const handleDeleteInvestment = useCallback((id: string) => {
-    setInvestments(prev => prev.filter(inv => inv.id !== id));
-  }, []);
+  }, [incomeEntries, expenseCategories]);
 
   const handleLogout = useCallback(() => {
+    localStorage.removeItem('financial-auth');
     setIsAuthenticated(false);
   }, []);
 
   if (!isAuthenticated) {
     return <PasswordScreen onSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-ireland-green mx-auto" />
+          <p className="text-muted-foreground">Carregando dados...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -174,7 +97,7 @@ const Index = () => {
           totalSaidas={calculatedTotals.totalSaidas}
           totalPago={calculatedTotals.totalPago}
           metaEntradas={metaEntradas}
-          onMetaChange={setMetaEntradas}
+          onMetaChange={handleMetaChange}
         />
 
         {/* Main Grid - Income and Expenses */}
@@ -217,23 +140,23 @@ const Index = () => {
           saldoAtual={summary.saldoAtual}
         />
 
-        {/* Save Button - Fixed */}
+        {/* Sync Indicator - Fixed */}
         <div className="fixed bottom-6 right-6 z-50">
           <Button
             size="lg"
             onClick={handleSaveData}
             disabled={isSaving}
-            className="gap-2 shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+            className="gap-2 shadow-lg bg-ireland-green hover:bg-ireland-green/90 text-white px-6"
           >
             {isSaving ? (
               <>
                 <Check className="h-5 w-5" />
-                Salvo!
+                Sincronizado!
               </>
             ) : (
               <>
                 <Save className="h-5 w-5" />
-                Salvar Dados
+                Sincronizar
               </>
             )}
           </Button>
@@ -245,7 +168,7 @@ const Index = () => {
             🇮🇪 Planejamento Financeiro • Viagem Irlanda 2025/2026 • Gabriel & Myrelle
           </p>
           <p className="mt-1 text-xs">
-            Todos os valores são editáveis • Clique em qualquer campo para modificar
+            Todos os valores são editáveis • Alterações sincronizam automaticamente
           </p>
         </footer>
       </main>
