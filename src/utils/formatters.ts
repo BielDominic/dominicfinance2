@@ -7,15 +7,25 @@ export const formatCurrency = (value: number, currency: 'BRL' | 'EUR' = 'BRL'): 
   }).format(value);
 };
 
-export const formatDate = (dateString: string | null): string => {
-  if (!dateString) return '—';
+export const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString || dateString.trim() === '') return '—';
   
-  const date = new Date(dateString + 'T00:00:00');
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
+  try {
+    const date = new Date(dateString + 'T00:00:00');
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return '—';
+    }
+    
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  } catch {
+    return '—';
+  }
 };
 
 export const parseCurrencyInput = (value: string): number => {
