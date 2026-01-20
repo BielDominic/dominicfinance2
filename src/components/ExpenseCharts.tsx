@@ -10,17 +10,18 @@ interface ExpenseChartsProps {
   categories: ExpenseCategory[];
 }
 
+// Ireland theme colors - green and orange variations
 const COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-  'hsl(142, 76%, 36%)', // ireland-green
-  'hsl(39, 100%, 50%)', // ireland-orange
-  'hsl(220, 70%, 50%)',
-  'hsl(280, 70%, 50%)',
-  'hsl(340, 70%, 50%)',
+  'hsl(145, 63%, 32%)',  // ireland-green
+  'hsl(30, 90%, 50%)',   // ireland-orange
+  'hsl(145, 63%, 45%)',  // ireland-green lighter
+  'hsl(30, 90%, 60%)',   // ireland-orange lighter
+  'hsl(145, 63%, 25%)',  // ireland-green darker
+  'hsl(30, 70%, 45%)',   // ireland-orange darker
+  'hsl(145, 45%, 55%)',  // ireland-green muted
+  'hsl(35, 80%, 55%)',   // ireland-orange warm
+  'hsl(140, 50%, 40%)',  // ireland-green variation
+  'hsl(25, 85%, 52%)',   // ireland-orange variation
 ];
 
 type ChartType = 'pie' | 'bar';

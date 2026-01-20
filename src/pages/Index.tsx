@@ -50,6 +50,8 @@ const Index = () => {
   }, [incomeEntries, expenseCategories]);
 
   // Dynamic summary based on current data (only confirmed entries)
+  const [taxaCambio, setTaxaCambio] = useState(6.5);
+  
   const summary: FinancialSummaryType = useMemo(() => {
     const totalEntradas = incomeEntries
       .filter(e => e.status === 'Entrada')
@@ -62,6 +64,7 @@ const Index = () => {
     const totalAPagar = totalSaidas - totalPago;
     const saldoFinalPrevisto = totalEntradas - totalSaidas;
     const saldoAtual = totalEntradas - totalPago;
+    const saldoAposCambioEUR = saldoFinalPrevisto / taxaCambio;
 
     return {
       totalEntradas,
@@ -72,9 +75,10 @@ const Index = () => {
       totalFuturos,
       saldoFinalPrevisto,
       saldoAtual,
-      saldoAposCambio: saldoFinalPrevisto,
+      saldoAposCambioEUR,
+      taxaCambio,
     };
-  }, [incomeEntries, expenseCategories]);
+  }, [incomeEntries, expenseCategories, taxaCambio]);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('financial-auth');
