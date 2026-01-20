@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { RefreshCw, Euro, TrendingUp } from 'lucide-react';
+import { RefreshCw, Euro, TrendingUp, Percent } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
 interface CurrencyConverterProps {
@@ -12,30 +13,93 @@ interface CurrencyConverterProps {
 
 export function CurrencyConverter({ saldoFinal, saldoAtual, className }: CurrencyConverterProps) {
   const [exchangeRate, setExchangeRate] = useState(6.5);
+  const [spread, setSpread] = useState(0);
 
-  const saldoFinalEUR = saldoFinal / exchangeRate;
-  const saldoAtualEUR = saldoAtual / exchangeRate;
+  // Taxa efetiva = taxa base + spread
+  const effectiveRate = exchangeRate * (1 + spread / 100);
+  
+  const saldoFinalEUR = saldoFinal / effectiveRate;
+  const saldoAtualEUR = saldoAtual / effectiveRate;
+
+  const spreadPresets = [0, 1, 2, 3, 4, 5];
 
   return (
     <div className={cn('financial-card p-6 animate-fade-in', className)}>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <RefreshCw className="h-5 w-5 text-primary" />
-          Conversão de Moeda
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">1 EUR =</span>
-          <div className="relative">
-            <Input
-              type="number"
-              value={exchangeRate}
-              onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 0)}
-              className="w-24 h-9 font-mono text-right pr-8"
-              step="0.01"
-              min="0"
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <RefreshCw className="h-5 w-5 text-primary" />
+            Conversão de Moeda
+          </h2>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">1 EUR =</span>
+            <div className="relative">
+              <Input
+                type="number"
+                value={exchangeRate}
+                onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 0)}
+                className="w-24 h-9 font-mono text-right pr-8"
+                step="0.01"
+                min="0"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                R$
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Spread Selector */}
+        <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Percent className="h-4 w-4 text-ireland-orange" />
+              Spread da Corretora
+            </div>
+            <span className="font-mono text-lg font-bold text-ireland-orange">
+              {spread.toFixed(1)}%
+            </span>
+          </div>
+          
+          {/* Preset buttons */}
+          <div className="flex gap-2 flex-wrap">
+            {spreadPresets.map((preset) => (
+              <button
+                key={preset}
+                onClick={() => setSpread(preset)}
+                className={cn(
+                  'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                  spread === preset
+                    ? 'bg-ireland-orange text-white'
+                    : 'bg-background border border-border hover:bg-muted'
+                )}
+              >
+                {preset}%
+              </button>
+            ))}
+          </div>
+          
+          {/* Slider for fine control */}
+          <div className="pt-2">
+            <Slider
+              value={[spread]}
+              onValueChange={(values) => setSpread(values[0])}
+              min={0}
+              max={10}
+              step={0.1}
+              className="w-full"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-              R$
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>0%</span>
+              <span>10%</span>
+            </div>
+          </div>
+          
+          {/* Effective rate display */}
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <span className="text-sm text-muted-foreground">Taxa efetiva com spread:</span>
+            <span className="font-mono font-semibold text-ireland-green">
+              1 EUR = R$ {effectiveRate.toFixed(4)}
             </span>
           </div>
         </div>
@@ -89,7 +153,7 @@ export function CurrencyConverter({ saldoFinal, saldoAtual, className }: Currenc
 
       <div className="mt-4 pt-4 border-t border-border">
         <p className="text-xs text-muted-foreground text-center">
-          Taxa de câmbio editável • Valores convertidos automaticamente
+          Taxa de câmbio editável • Spread ajustável • Valores convertidos automaticamente
         </p>
       </div>
     </div>
