@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
 import { ExpenseCategory } from '@/types/financial';
 import { formatCurrency, parseCurrencyInput, formatDate, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
 import { ProgressBar } from './ProgressBar';
 import { Button } from '@/components/ui/button';
+import { PeriodFilter, PeriodFilterValue, filterExpensesByPeriod } from '@/components/PeriodFilter';
 import { cn } from '@/lib/utils';
 
 interface ExpenseTableProps {
@@ -12,13 +13,22 @@ interface ExpenseTableProps {
   onUpdateCategory: (id: string, updates: Partial<ExpenseCategory>) => void;
   onAddCategory: () => void;
   onDeleteCategory: (id: string) => void;
-  isFiltered?: boolean;
 }
 
-export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDeleteCategory, isFiltered }: ExpenseTableProps) {
+export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDeleteCategory }: ExpenseTableProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
+
+  // Filter categories by period (using vencimento date)
+  const filteredCategories = useMemo(() => 
+    filterExpensesByPeriod(categories, periodFilter), 
+    [categories, periodFilter]
+  );
+
+  // Use filtered categories for display
+  const displayCategories = periodFilter.type === 'all' ? categories : filteredCategories;
   
-  const totals = categories.reduce(
+  const totals = displayCategories.reduce(
     (acc, cat) => ({
       total: acc.total + cat.total,
       pago: acc.pago + cat.pago,
@@ -139,7 +149,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                 Saídas (Viagem)
               </h2>
               <p className="text-sm text-muted-foreground">
-                {categories.length} categorias • Falta: <span className="font-mono font-semibold text-expense">{formatCurrency(totals.faltaPagar)}</span>
+                {displayCategories.length} categorias • Falta: <span className="font-mono font-semibold text-expense">{formatCurrency(totals.faltaPagar)}</span>
               </p>
             </div>
           </button>
@@ -151,13 +161,22 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
             </Button>
           )}
         </div>
+        
+        {/* Period Filter */}
+        {isExpanded && (
+          <div className="pt-3 mt-3 border-t border-border/50">
+            <PeriodFilter 
+              value={periodFilter}
+              onChange={setPeriodFilter}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Mobile View */}
       {isExpanded && (
         <div className="md:hidden">
-          {categories.map(renderMobileCard)}
-          {categories.length === 0 && (
+          {displayCategories.map(renderMobileCard)}
+          {displayCategories.length === 0 && (
             <div className="p-8 text-center text-muted-foreground">
               Nenhuma categoria encontrada
             </div>
@@ -201,7 +220,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
               </tr>
             </thead>
             <tbody>
-              {categories.map((category, index) => (
+              {displayCategories.map((category, index) => (
                 <tr 
                   key={category.id}
                   className={cn(
@@ -264,7 +283,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                   </td>
                 </tr>
               ))}
-              {categories.length === 0 && (
+              {displayCategories.length === 0 && (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-muted-foreground">
                     Nenhuma categoria encontrada

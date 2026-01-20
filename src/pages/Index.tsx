@@ -10,7 +10,6 @@ import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
 import { InvestmentsTable } from '@/components/InvestmentsTable';
 import { DayCounter } from '@/components/DayCounter';
-import { PeriodFilter, PeriodFilterValue, filterByPeriod, filterExpensesByPeriod } from '@/components/PeriodFilter';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Save, Check, Loader2 } from 'lucide-react';
@@ -19,6 +18,11 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('financial-auth') === 'true';
+  });
+
+  // Dark mode is local per user (not synchronized)
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('financial-dark-mode') === 'true';
   });
 
   const {
@@ -45,23 +49,23 @@ const Index = () => {
     handleSubtitleChange,
     handleTaxaCambioChange,
     handleSpreadChange,
-    handleDarkModeChange,
     handleTargetDateChange,
   } = useFinancialData();
 
-  // Period filter state (local, not synced)
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
+  // Handle dark mode change (local only)
+  const handleDarkModeChange = (enabled: boolean) => {
+    setDarkMode(enabled);
+    localStorage.setItem('financial-dark-mode', enabled.toString());
+  };
 
-  // Filter entries by period
-  const filteredIncomeEntries = useMemo(() => 
-    filterByPeriod(incomeEntries, periodFilter), 
-    [incomeEntries, periodFilter]
-  );
-  
-  const filteredExpenseCategories = useMemo(() => 
-    filterExpensesByPeriod(expenseCategories, periodFilter), 
-    [expenseCategories, periodFilter]
-  );
+  // Apply dark mode on change (local per user)
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   // Calculate totals from income entries (only confirmed entries, not "Futuros")
   const calculatedTotals = useMemo(() => {
@@ -73,14 +77,14 @@ const Index = () => {
     return { totalEntradas, totalSaidas, totalPago };
   }, [incomeEntries, expenseCategories]);
 
-  // Apply dark mode on change (synced from database)
+  // Apply dark mode on change (local per user)
   useEffect(() => {
-    if (appConfig.darkMode) {
+    if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [appConfig.darkMode]);
+  }, [darkMode]);
   
   // Taxa efetiva com spread
   const taxaEfetiva = appConfig.taxaCambio * (1 + appConfig.spread / 100);
@@ -148,21 +152,17 @@ const Index = () => {
         subtitle={appConfig.headerSubtitle}
         onTitleChange={handleTitleChange}
         onSubtitleChange={handleSubtitleChange}
-        darkMode={appConfig.darkMode}
+        darkMode={darkMode}
         onDarkModeChange={handleDarkModeChange}
       />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Day Counter and Period Filter */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-card rounded-lg border">
+        {/* Day Counter */}
+        <div className="flex items-center justify-center p-4 bg-card rounded-lg border">
           <DayCounter 
             targetDate={appConfig.targetDate}
             onDateChange={handleTargetDateChange}
             label="Dias para viagem"
-          />
-          <PeriodFilter 
-            value={periodFilter}
-            onChange={setPeriodFilter}
           />
         </div>
 
@@ -178,19 +178,17 @@ const Index = () => {
         {/* Income and Expenses - Stacked Layout */}
         <div className="space-y-6">
           <IncomeTable
-            entries={periodFilter.type === 'all' ? incomeEntries : filteredIncomeEntries}
+            entries={incomeEntries}
             onUpdateEntry={handleUpdateIncomeEntry}
             onAddEntry={handleAddIncomeEntry}
             onDeleteEntry={handleDeleteIncomeEntry}
-            isFiltered={periodFilter.type !== 'all'}
           />
           
           <ExpenseTable
-            categories={periodFilter.type === 'all' ? expenseCategories : filteredExpenseCategories}
+            categories={expenseCategories}
             onUpdateCategory={handleUpdateExpenseCategory}
             onAddCategory={handleAddExpenseCategory}
             onDeleteCategory={handleDeleteExpenseCategory}
-            isFiltered={periodFilter.type !== 'all'}
           />
         </div>
 
