@@ -35,6 +35,7 @@ const Index = () => {
     handleDeleteInvestment,
     handleMetaChange,
     handleSaveData,
+    handleImportData,
   } = useFinancialData();
 
   // Calculate totals from income entries
@@ -88,7 +89,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onLogout={handleLogout} />
+      <Header 
+        onLogout={handleLogout}
+        incomeEntries={incomeEntries}
+        expenseCategories={expenseCategories}
+        investments={investments}
+        metaEntradas={metaEntradas}
+        onImportData={handleImportData}
+      />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Global Progress Bar */}

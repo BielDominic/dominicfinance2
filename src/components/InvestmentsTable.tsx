@@ -3,6 +3,7 @@ import { PiggyBank, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency, parseCurrencyInput } from '@/utils/formatters';
+import { Investment } from '@/types/financial';
 import {
   Table,
   TableBody,
@@ -11,12 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-export interface Investment {
-  id: string;
-  categoria: string;
-  valor: number;
-}
 
 interface InvestmentsTableProps {
   investments: Investment[];

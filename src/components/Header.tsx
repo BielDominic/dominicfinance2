@@ -1,11 +1,30 @@
 import { Wallet, Plane, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ImportExportData } from '@/components/ImportExportData';
+import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
 
 interface HeaderProps {
   onLogout?: () => void;
+  incomeEntries?: IncomeEntry[];
+  expenseCategories?: ExpenseCategory[];
+  investments?: Investment[];
+  metaEntradas?: number;
+  onImportData?: (data: {
+    incomeEntries: IncomeEntry[];
+    expenseCategories: ExpenseCategory[];
+    investments: Investment[];
+    metaEntradas: number;
+  }) => void;
 }
 
-export function Header({ onLogout }: HeaderProps) {
+export function Header({ 
+  onLogout,
+  incomeEntries = [],
+  expenseCategories = [],
+  investments = [],
+  metaEntradas = 20000,
+  onImportData,
+}: HeaderProps) {
   const handleLogout = () => {
     localStorage.removeItem('financial-auth');
     onLogout?.();
@@ -33,7 +52,7 @@ export function Header({ onLogout }: HeaderProps) {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
               <span className="px-2 py-1 bg-income-light text-income rounded-md font-medium">
                 Gabriel
@@ -43,6 +62,16 @@ export function Header({ onLogout }: HeaderProps) {
                 Myrelle
               </span>
             </div>
+            
+            {onImportData && (
+              <ImportExportData
+                incomeEntries={incomeEntries}
+                expenseCategories={expenseCategories}
+                investments={investments}
+                metaEntradas={metaEntradas}
+                onImportData={onImportData}
+              />
+            )}
             
             {onLogout && (
               <Button 

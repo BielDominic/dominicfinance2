@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { IncomeEntry, ExpenseCategory } from '@/types/financial';
-import { Investment } from '@/components/InvestmentsTable';
+import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
 import { toast } from 'sonner';
 
 export const useFinancialData = () => {
@@ -251,6 +250,65 @@ export const useFinancialData = () => {
     }
   }, []);
 
+  // Import data from Excel
+  const handleImportData = useCallback(async (data: {
+    incomeEntries: IncomeEntry[];
+    expenseCategories: ExpenseCategory[];
+    investments: Investment[];
+    metaEntradas: number;
+  }) => {
+    try {
+      // Delete all existing data first
+      await Promise.all([
+        supabase.from('income_entries').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('expense_categories').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+        supabase.from('investments').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
+      ]);
+
+      // Insert new data
+      if (data.incomeEntries.length > 0) {
+        const incomeData = data.incomeEntries.map(e => ({
+          valor: e.valor,
+          descricao: e.descricao,
+          data: e.data || '',
+          pessoa: e.pessoa,
+          status: e.status,
+        }));
+        await supabase.from('income_entries').insert(incomeData);
+      }
+
+      if (data.expenseCategories.length > 0) {
+        const expenseData = data.expenseCategories.map(c => ({
+          categoria: c.categoria,
+          total: c.total,
+          pago: c.pago,
+          falta_pagar: c.faltaPagar,
+        }));
+        await supabase.from('expense_categories').insert(expenseData);
+      }
+
+      if (data.investments.length > 0) {
+        const investData = data.investments.map(i => ({
+          categoria: i.categoria,
+          valor: i.valor,
+        }));
+        await supabase.from('investments').insert(investData);
+      }
+
+      // Update meta
+      await supabase
+        .from('app_settings')
+        .upsert({ key: 'meta_entradas', value: data.metaEntradas }, { onConflict: 'key' });
+
+      // Refetch data
+      await fetchData();
+      toast.success('Dados importados com sucesso!');
+    } catch (error) {
+      console.error('Error importing data:', error);
+      toast.error('Erro ao importar dados');
+    }
+  }, [fetchData]);
+
   return {
     incomeEntries,
     expenseCategories,
@@ -269,5 +327,6 @@ export const useFinancialData = () => {
     handleDeleteInvestment,
     handleMetaChange,
     handleSaveData,
+    handleImportData,
   };
 };
