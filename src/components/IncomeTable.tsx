@@ -22,12 +22,13 @@ interface IncomeTableProps {
   onUpdateEntry: (id: string, updates: Partial<IncomeEntry>) => void;
   onAddEntry: (status: 'Entrada' | 'Futuros') => void;
   onDeleteEntry: (id: string) => void;
+  isFiltered?: boolean;
 }
 
 type SortField = 'data' | 'valor' | 'pessoa';
 type SortDirection = 'asc' | 'desc';
 
-export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry }: IncomeTableProps) {
+export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry, isFiltered }: IncomeTableProps) {
   const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
   const [sortField, setSortField] = useState<SortField>('data');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');

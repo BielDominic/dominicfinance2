@@ -9,6 +9,7 @@ interface AppConfig {
   taxaCambio: number;
   spread: number;
   darkMode: boolean;
+  targetDate: string;
 }
 
 export const useFinancialData = () => {
@@ -26,6 +27,7 @@ export const useFinancialData = () => {
     taxaCambio: 6.5,
     spread: 0,
     darkMode: false,
+    targetDate: '',
   });
 
   // Fetch app config from database
@@ -44,6 +46,7 @@ export const useFinancialData = () => {
           taxaCambio: configMap['taxa_cambio'] ? parseFloat(configMap['taxa_cambio']) : prev.taxaCambio,
           spread: configMap['spread'] ? parseFloat(configMap['spread']) : prev.spread,
           darkMode: configMap['dark_mode'] === 'true',
+          targetDate: configMap['target_date'] || prev.targetDate,
         }));
       }
     } catch (error) {
@@ -187,6 +190,11 @@ export const useFinancialData = () => {
   const handleDarkModeChange = useCallback(async (darkMode: boolean) => {
     setAppConfig(prev => ({ ...prev, darkMode }));
     await updateAppConfig('dark_mode', darkMode.toString());
+  }, [updateAppConfig]);
+
+  const handleTargetDateChange = useCallback(async (targetDate: string) => {
+    setAppConfig(prev => ({ ...prev, targetDate }));
+    await updateAppConfig('target_date', targetDate);
   }, [updateAppConfig]);
 
   // Income entry handlers
@@ -491,5 +499,6 @@ export const useFinancialData = () => {
     handleTaxaCambioChange,
     handleSpreadChange,
     handleDarkModeChange,
+    handleTargetDateChange,
   };
 };
