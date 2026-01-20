@@ -54,8 +54,8 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
 
       {/* Content */}
       {isExpanded && (
-        <div className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <SummaryCard
               label="Total de Entradas"
               value={summary.totalEntradas}
@@ -98,12 +98,12 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
               icon={Target}
               variant="positive"
             />
-            <div className="bg-future-light rounded-lg p-4 flex flex-col gap-1 ring-2 ring-future/30">
+            <div className="bg-future-light rounded-lg p-3 sm:p-4 flex flex-col gap-1 ring-2 ring-future/30">
               <div className="flex items-center gap-2 text-future">
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs font-medium uppercase tracking-wide">Com Futuros</span>
               </div>
-              <span className="font-mono text-xl font-bold text-future">
+              <span className="font-mono text-lg sm:text-xl font-bold text-future">
                 {formatCurrency(summary.saldoFinalComFuturos)}
               </span>
               <span className="text-xs text-muted-foreground">
@@ -114,25 +114,25 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
 
           {/* EUR Conversion Summary */}
           <div className="mt-4 pt-4 border-t border-border">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-ireland-orange/10 rounded-lg p-4 flex flex-col gap-1">
+            <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
+              <div className="bg-ireland-orange/10 rounded-lg p-3 sm:p-4 flex flex-col gap-1">
                 <div className="flex items-center gap-2 text-ireland-orange">
-                  <Euro className="h-4 w-4" />
+                  <Euro className="h-4 w-4 flex-shrink-0" />
                   <span className="text-xs font-medium uppercase tracking-wide">Saldo em EUR</span>
                 </div>
-                <span className="font-mono text-xl font-bold text-ireland-orange">
+                <span className="font-mono text-lg sm:text-xl font-bold text-ireland-orange">
                   {formatEUR(summary.saldoAposCambioEUR)}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   Saldo Final Previsto
                 </span>
               </div>
-              <div className="bg-future-light rounded-lg p-4 flex flex-col gap-1">
+              <div className="bg-future-light rounded-lg p-3 sm:p-4 flex flex-col gap-1">
                 <div className="flex items-center gap-2 text-future">
-                  <Euro className="h-4 w-4" />
+                  <Euro className="h-4 w-4 flex-shrink-0" />
                   <span className="text-xs font-medium uppercase tracking-wide">EUR com Futuros</span>
                 </div>
-                <span className="font-mono text-xl font-bold text-future">
+                <span className="font-mono text-lg sm:text-xl font-bold text-future">
                   {formatEUR(summary.saldoFinalComFuturos / summary.taxaCambio)}
                 </span>
                 <span className="text-xs text-muted-foreground">
