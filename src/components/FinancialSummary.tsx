@@ -5,7 +5,7 @@ import {
   CreditCard, 
   PiggyBank, 
   Target,
-  ArrowRightLeft,
+  Euro,
   CheckCircle2,
   Clock
 } from 'lucide-react';
@@ -17,6 +17,10 @@ interface FinancialSummaryProps {
 }
 
 export function FinancialSummary({ summary }: FinancialSummaryProps) {
+  const formatEUR = (value: number) => {
+    return `€${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   return (
     <div className="financial-card p-6 animate-fade-in">
       <div className="flex items-center gap-2 mb-6">
@@ -67,12 +71,18 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
           icon={Wallet}
           variant="neutral"
         />
-        <SummaryCard
-          label="Saldo Após Câmbio"
-          value={summary.saldoAposCambio}
-          icon={ArrowRightLeft}
-          variant="default"
-        />
+        <div className="bg-ireland-orange/10 rounded-lg p-4 flex flex-col gap-1 ring-2 ring-ireland-orange/30">
+          <div className="flex items-center gap-2 text-ireland-orange">
+            <Euro className="h-4 w-4" />
+            <span className="text-xs font-medium uppercase tracking-wide">Saldo em EUR</span>
+          </div>
+          <span className="font-mono text-xl font-bold text-ireland-orange">
+            {formatEUR(summary.saldoAposCambioEUR)}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Taxa: 1 EUR = R$ {summary.taxaCambio.toFixed(2)}
+          </span>
+        </div>
         <SummaryCard
           label="Saldo Final Previsto"
           value={summary.saldoFinalPrevisto}

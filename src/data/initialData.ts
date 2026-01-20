@@ -50,5 +50,6 @@ export const initialSummary: FinancialSummary = {
   totalFuturos: 1650.00,
   saldoFinalPrevisto: 19776.11,
   saldoAtual: 12725.14,
-  saldoAposCambio: 19084.11,
+  saldoAposCambioEUR: 2935.56,
+  taxaCambio: 6.5,
 };
