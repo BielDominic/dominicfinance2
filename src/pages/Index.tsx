@@ -157,13 +157,44 @@ const Index = () => {
       />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Day Counter */}
-        <div className="flex items-center justify-center p-4 bg-card rounded-lg border">
-          <DayCounter 
-            targetDate={appConfig.targetDate}
-            onDateChange={handleTargetDateChange}
-            label="Dias para viagem"
-          />
+        {/* Day Counter - Ireland Theme Section */}
+        <div className="relative overflow-hidden rounded-xl border-2 border-ireland-green/30 bg-gradient-to-r from-ireland-green/5 via-white/50 to-ireland-orange/5 dark:from-ireland-green/10 dark:via-card dark:to-ireland-orange/10">
+          {/* Decorative elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-12 -left-12 w-32 h-32 rounded-full bg-ireland-green/10 blur-2xl" />
+            <div className="absolute -bottom-12 -right-12 w-32 h-32 rounded-full bg-ireland-orange/10 blur-2xl" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-ireland-green via-white to-ireland-orange" />
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-ireland-green via-white to-ireland-orange" />
+          </div>
+          
+          <div className="relative flex flex-col items-center justify-center p-6 sm:p-8">
+            {/* Irish flag decorative corners */}
+            <div className="absolute top-3 left-3 flex gap-1">
+              <div className="w-3 h-3 rounded-full bg-ireland-green" />
+              <div className="w-3 h-3 rounded-full bg-white border border-border" />
+              <div className="w-3 h-3 rounded-full bg-ireland-orange" />
+            </div>
+            <div className="absolute top-3 right-3 flex gap-1">
+              <div className="w-3 h-3 rounded-full bg-ireland-green" />
+              <div className="w-3 h-3 rounded-full bg-white border border-border" />
+              <div className="w-3 h-3 rounded-full bg-ireland-orange" />
+            </div>
+            
+            {/* Shamrock emoji decoration */}
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">☘️</span>
+              <h3 className="text-lg sm:text-xl font-bold text-ireland-green uppercase tracking-wide">
+                Contagem para Irlanda
+              </h3>
+              <span className="text-2xl">🇮🇪</span>
+            </div>
+            
+            <DayCounter 
+              targetDate={appConfig.targetDate}
+              onDateChange={handleTargetDateChange}
+              label="Dias para viagem"
+            />
+          </div>
         </div>
 
         {/* Global Progress Bar */}
@@ -171,6 +202,7 @@ const Index = () => {
           totalEntradas={calculatedTotals.totalEntradas}
           totalSaidas={calculatedTotals.totalSaidas}
           totalPago={calculatedTotals.totalPago}
+          totalFuturos={summary.totalFuturos}
           metaEntradas={metaEntradas}
           onMetaChange={handleMetaChange}
         />

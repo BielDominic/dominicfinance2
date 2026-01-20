@@ -8,6 +8,7 @@ interface GlobalProgressBarProps {
   totalEntradas: number;
   totalSaidas: number;
   totalPago: number;
+  totalFuturos: number;
   metaEntradas: number;
   onMetaChange: (value: number) => void;
 }
@@ -16,6 +17,7 @@ export function GlobalProgressBar({
   totalEntradas, 
   totalSaidas, 
   totalPago, 
+  totalFuturos,
   metaEntradas,
   onMetaChange 
 }: GlobalProgressBarProps) {
@@ -34,6 +36,8 @@ export function GlobalProgressBar({
   }, [totalEntradas, metaEntradas]);
 
   const saldoDisponivel = totalEntradas - totalSaidas;
+  const faltaDepositar = totalSaidas - totalEntradas;
+  const faltaDepositarComFuturos = totalSaidas - (totalEntradas + totalFuturos);
 
   const handleMetaSubmit = () => {
     const value = parseCurrencyInput(metaInput);
@@ -173,6 +177,31 @@ export function GlobalProgressBar({
               <p className="font-mono font-bold text-highlight text-xs sm:text-base">{formatCurrency(saldoDisponivel)}</p>
             </div>
           </div>
+
+          {/* Falta Depositar Section */}
+          {faltaDepositar > 0 && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                <div className="text-center p-3 sm:p-4 bg-expense-light rounded-lg border border-expense/20">
+                  <p className="text-xs text-muted-foreground mb-1">Falta Depositar</p>
+                  <p className="font-mono font-bold text-expense text-lg sm:text-xl">{formatCurrency(faltaDepositar)}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Saídas - Entradas</p>
+                </div>
+                <div className="text-center p-3 sm:p-4 bg-future-light rounded-lg border border-future/20">
+                  <p className="text-xs text-muted-foreground mb-1">Falta (com Futuros)</p>
+                  <p className={cn(
+                    "font-mono font-bold text-lg sm:text-xl",
+                    faltaDepositarComFuturos > 0 ? 'text-future' : 'text-income'
+                  )}>
+                    {faltaDepositarComFuturos > 0 
+                      ? formatCurrency(faltaDepositarComFuturos)
+                      : formatCurrency(Math.abs(faltaDepositarComFuturos)) + ' ✓'}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Saídas - (Entradas + Futuros)</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
