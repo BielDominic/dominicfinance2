@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Plus, User, CalendarDays, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Plus, User, CalendarDays, Sparkles, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { IncomeEntry, Person, EntryStatus } from '@/types/financial';
 import { formatCurrency, formatDate, parseCurrencyInput, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
@@ -32,6 +32,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
   const [sortField, setSortField] = useState<SortField>('data');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [activeTab, setActiveTab] = useState<'Entrada' | 'Futuros'>('Entrada');
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const getFilteredAndSortedEntries = (status: 'Entrada' | 'Futuros') => {
     let result = entries.filter(e => e.status === status);
@@ -246,73 +247,88 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
       {/* Header */}
       <div className="p-4 border-b border-border bg-muted/30">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-income" />
-              Entradas
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Registros de entradas e valores futuros
-            </p>
-          </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity text-left"
+          >
+            {isExpanded ? (
+              <ChevronUp className="h-5 w-5 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            )}
+            <div>
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-income" />
+                Entradas
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Registros de entradas e valores futuros
+              </p>
+            </div>
+          </button>
           
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Filter by Person */}
-            <Select value={filterPerson} onValueChange={(v) => setFilterPerson(v as Person | 'all')}>
-              <SelectTrigger className="w-[130px] h-9">
-                <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Pessoa" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="Gabriel">Gabriel</SelectItem>
-                <SelectItem value="Myrelle">Myrelle</SelectItem>
-              </SelectContent>
-            </Select>
+          {isExpanded && (
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Filter by Person */}
+              <Select value={filterPerson} onValueChange={(v) => setFilterPerson(v as Person | 'all')}>
+                <SelectTrigger className="w-[130px] h-9">
+                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Pessoa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Gabriel">Gabriel</SelectItem>
+                  <SelectItem value="Myrelle">Myrelle</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Button onClick={() => onAddEntry(activeTab)} size="sm" className="h-9">
-              <Plus className="h-4 w-4 mr-1" />
-              Adicionar
-            </Button>
-          </div>
+              <Button onClick={() => onAddEntry(activeTab)} size="sm" className="h-9">
+                <Plus className="h-4 w-4 mr-1" />
+                Adicionar
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'Entrada' | 'Futuros')} className="w-full">
-        <div className="px-4 pt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="Entrada" className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" />
-              Entradas
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-income-light text-income text-xs font-mono">
-                {entradasEntries.length}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="Futuros" className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              Futuros
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-future-light text-future text-xs font-mono">
-                {futurosEntries.length}
-              </span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value="Entrada" className="mt-0">
-          {renderTable(entradasEntries, 'Entrada')}
-        </TabsContent>
-
-        <TabsContent value="Futuros" className="mt-0">
-          <div className="px-4 pt-3 pb-2 bg-future-light/50 border-b border-future/20">
-            <p className="text-sm text-future flex items-center gap-2">
-              <Checkbox className="h-4 w-4" disabled />
-              <span>Marque o checkbox para confirmar a entrada do valor</span>
-            </p>
+      {/* Content */}
+      {isExpanded && (
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'Entrada' | 'Futuros')} className="w-full">
+          <div className="px-4 pt-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="Entrada" className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                Entradas
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-income-light text-income text-xs font-mono">
+                  {entradasEntries.length}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="Futuros" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Futuros
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-future-light text-future text-xs font-mono">
+                  {futurosEntries.length}
+                </span>
+              </TabsTrigger>
+            </TabsList>
           </div>
-          {renderTable(futurosEntries, 'Futuros')}
-        </TabsContent>
-      </Tabs>
+
+          <TabsContent value="Entrada" className="mt-0">
+            {renderTable(entradasEntries, 'Entrada')}
+          </TabsContent>
+
+          <TabsContent value="Futuros" className="mt-0">
+            <div className="px-4 pt-3 pb-2 bg-future-light/50 border-b border-future/20">
+              <p className="text-sm text-future flex items-center gap-2">
+                <Checkbox className="h-4 w-4" disabled />
+                <span>Marque o checkbox para confirmar a entrada do valor</span>
+              </p>
+            </div>
+            {renderTable(futurosEntries, 'Futuros')}
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }
+

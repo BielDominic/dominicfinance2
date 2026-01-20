@@ -1,5 +1,7 @@
-import { Wallet, Plane, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Wallet, Plane, LogOut, Pencil, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ImportExportData } from '@/components/ImportExportData';
 import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
 
@@ -15,6 +17,10 @@ interface HeaderProps {
     investments: Investment[];
     metaEntradas: number;
   }) => void;
+  title?: string;
+  subtitle?: string;
+  onTitleChange?: (title: string) => void;
+  onSubtitleChange?: (subtitle: string) => void;
 }
 
 export function Header({ 
@@ -24,10 +30,39 @@ export function Header({
   investments = [],
   metaEntradas = 20000,
   onImportData,
+  title = 'Planejamento Financeiro',
+  subtitle = 'Viagem 2025/2026',
+  onTitleChange,
+  onSubtitleChange,
 }: HeaderProps) {
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
+  const [titleInput, setTitleInput] = useState(title);
+  const [subtitleInput, setSubtitleInput] = useState(subtitle);
+
   const handleLogout = () => {
     localStorage.removeItem('financial-auth');
     onLogout?.();
+  };
+
+  const handleSaveTitle = () => {
+    onTitleChange?.(titleInput);
+    setIsEditingTitle(false);
+  };
+
+  const handleSaveSubtitle = () => {
+    onSubtitleChange?.(subtitleInput);
+    setIsEditingSubtitle(false);
+  };
+
+  const handleCancelTitle = () => {
+    setTitleInput(title);
+    setIsEditingTitle(false);
+  };
+
+  const handleCancelSubtitle = () => {
+    setSubtitleInput(subtitle);
+    setIsEditingSubtitle(false);
   };
 
   return (
@@ -39,16 +74,69 @@ export function Header({
               <Wallet className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                Planejamento Financeiro
-                <span className="text-xs px-2 py-0.5 bg-ireland-orange-light text-ireland-orange rounded-full font-medium">
-                  🇮🇪 Irlanda
-                </span>
-              </h1>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <Plane className="h-3 w-3" />
-                Viagem 2025/2026
-              </p>
+              {/* Editable Title */}
+              {isEditingTitle ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={titleInput}
+                    onChange={(e) => setTitleInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveTitle();
+                      if (e.key === 'Escape') handleCancelTitle();
+                    }}
+                    className="h-8 text-lg font-bold w-64"
+                    autoFocus
+                  />
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleSaveTitle}>
+                    <Check className="h-4 w-4 text-income" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleCancelTitle}>
+                    <X className="h-4 w-4 text-expense" />
+                  </Button>
+                </div>
+              ) : (
+                <h1 
+                  className="text-xl font-bold tracking-tight flex items-center gap-2 group cursor-pointer"
+                  onClick={() => setIsEditingTitle(true)}
+                >
+                  {title}
+                  <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-xs px-2 py-0.5 bg-ireland-orange-light text-ireland-orange rounded-full font-medium">
+                    🇮🇪 Irlanda
+                  </span>
+                </h1>
+              )}
+              
+              {/* Editable Subtitle */}
+              {isEditingSubtitle ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    value={subtitleInput}
+                    onChange={(e) => setSubtitleInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSaveSubtitle();
+                      if (e.key === 'Escape') handleCancelSubtitle();
+                    }}
+                    className="h-7 text-sm w-48"
+                    autoFocus
+                  />
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleSaveSubtitle}>
+                    <Check className="h-3 w-3 text-income" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleCancelSubtitle}>
+                    <X className="h-3 w-3 text-expense" />
+                  </Button>
+                </div>
+              ) : (
+                <p 
+                  className="text-sm text-muted-foreground flex items-center gap-1 group cursor-pointer"
+                  onClick={() => setIsEditingSubtitle(true)}
+                >
+                  <Plane className="h-3 w-3" />
+                  {subtitle}
+                  <Pencil className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </p>
+              )}
             </div>
           </div>
           
