@@ -30,6 +30,7 @@ export interface FinancialSummary {
   totalPago: number;
   totalAPagar: number;
   totalAntecipado: number;
+  totalFuturos: number;
   saldoFinalPrevisto: number;
   saldoAtual: number;
   saldoAposCambio: number;

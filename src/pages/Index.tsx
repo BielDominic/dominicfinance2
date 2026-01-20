@@ -54,6 +54,9 @@ const Index = () => {
     const totalEntradas = incomeEntries
       .filter(e => e.status === 'Entrada')
       .reduce((sum, e) => sum + e.valor, 0);
+    const totalFuturos = incomeEntries
+      .filter(e => e.status === 'Futuros')
+      .reduce((sum, e) => sum + e.valor, 0);
     const totalSaidas = expenseCategories.reduce((sum, c) => sum + c.total, 0);
     const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
     const totalAPagar = totalSaidas - totalPago;
@@ -66,6 +69,7 @@ const Index = () => {
       totalPago,
       totalAPagar,
       totalAntecipado: 0,
+      totalFuturos,
       saldoFinalPrevisto,
       saldoAtual,
       saldoAposCambio: saldoFinalPrevisto,
