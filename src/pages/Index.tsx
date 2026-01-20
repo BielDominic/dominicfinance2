@@ -144,27 +144,21 @@ const Index = () => {
           onMetaChange={handleMetaChange}
         />
 
-        {/* Main Grid - Income and Expenses */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Income Table - Takes 2 columns on XL */}
-          <div className="xl:col-span-2">
-            <IncomeTable
-              entries={incomeEntries}
-              onUpdateEntry={handleUpdateIncomeEntry}
-              onAddEntry={handleAddIncomeEntry}
-              onDeleteEntry={handleDeleteIncomeEntry}
-            />
-          </div>
+        {/* Income and Expenses - Stacked Layout */}
+        <div className="space-y-6">
+          <IncomeTable
+            entries={incomeEntries}
+            onUpdateEntry={handleUpdateIncomeEntry}
+            onAddEntry={handleAddIncomeEntry}
+            onDeleteEntry={handleDeleteIncomeEntry}
+          />
           
-          {/* Expense Table - Takes 1 column on XL */}
-          <div className="xl:col-span-1">
-            <ExpenseTable
-              categories={expenseCategories}
-              onUpdateCategory={handleUpdateExpenseCategory}
-              onAddCategory={handleAddExpenseCategory}
-              onDeleteCategory={handleDeleteExpenseCategory}
-            />
-          </div>
+          <ExpenseTable
+            categories={expenseCategories}
+            onUpdateCategory={handleUpdateExpenseCategory}
+            onAddCategory={handleAddExpenseCategory}
+            onDeleteCategory={handleDeleteExpenseCategory}
+          />
         </div>
 
         {/* Expense Charts */}
