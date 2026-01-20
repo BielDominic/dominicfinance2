@@ -18,6 +18,12 @@ export interface ExpenseCategory {
   faltaPagar: number;
 }
 
+export interface Investment {
+  id: string;
+  categoria: string;
+  valor: number;
+}
+
 export interface FinancialSummary {
   totalEntradas: number;
   totalSaidas: number;
