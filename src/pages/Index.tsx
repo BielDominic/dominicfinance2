@@ -1,12 +1,105 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from 'react';
+import { Header } from '@/components/Header';
+import { IncomeTable } from '@/components/IncomeTable';
+import { ExpenseTable } from '@/components/ExpenseTable';
+import { FinancialSummary } from '@/components/FinancialSummary';
+import { CurrencyConverter } from '@/components/CurrencyConverter';
+import { IncomeEntry, ExpenseCategory, FinancialSummary as FinancialSummaryType } from '@/types/financial';
+import { 
+  initialIncomeEntries, 
+  initialExpenseCategories, 
+  initialSummary 
+} from '@/data/initialData';
 
 const Index = () => {
+  const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>(initialIncomeEntries);
+  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(initialExpenseCategories);
+  const [summary] = useState<FinancialSummaryType>(initialSummary);
+
+  const handleUpdateIncomeEntry = useCallback((id: string, updates: Partial<IncomeEntry>) => {
+    setIncomeEntries(prev => 
+      prev.map(entry => 
+        entry.id === id ? { ...entry, ...updates } : entry
+      )
+    );
+  }, []);
+
+  const handleAddIncomeEntry = useCallback(() => {
+    const newEntry: IncomeEntry = {
+      id: `new-${Date.now()}`,
+      valor: 0,
+      descricao: '',
+      data: new Date().toISOString().split('T')[0],
+      pessoa: 'Gabriel',
+      status: 'Entrada',
+    };
+    setIncomeEntries(prev => [...prev, newEntry]);
+  }, []);
+
+  const handleUpdateExpenseCategory = useCallback((id: string, updates: Partial<ExpenseCategory>) => {
+    setExpenseCategories(prev =>
+      prev.map(category =>
+        category.id === id ? { ...category, ...updates } : category
+      )
+    );
+  }, []);
+
+  const handleAddExpenseCategory = useCallback(() => {
+    const newCategory: ExpenseCategory = {
+      id: `new-${Date.now()}`,
+      categoria: '',
+      total: 0,
+      pago: 0,
+      faltaPagar: 0,
+    };
+    setExpenseCategories(prev => [...prev, newCategory]);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Main Grid - Income and Expenses */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Income Table - Takes 2 columns on XL */}
+          <div className="xl:col-span-2">
+            <IncomeTable
+              entries={incomeEntries}
+              onUpdateEntry={handleUpdateIncomeEntry}
+              onAddEntry={handleAddIncomeEntry}
+            />
+          </div>
+          
+          {/* Expense Table - Takes 1 column on XL */}
+          <div className="xl:col-span-1">
+            <ExpenseTable
+              categories={expenseCategories}
+              onUpdateCategory={handleUpdateExpenseCategory}
+              onAddCategory={handleAddExpenseCategory}
+            />
+          </div>
+        </div>
+
+        {/* Summary Section */}
+        <FinancialSummary summary={summary} />
+
+        {/* Currency Converter */}
+        <CurrencyConverter 
+          saldoFinal={summary.saldoFinalPrevisto} 
+          saldoAtual={summary.saldoAtual}
+        />
+
+        {/* Footer */}
+        <footer className="text-center py-6 text-sm text-muted-foreground">
+          <p>
+            Planejamento Financeiro • Viagem 2025/2026 • Gabriel & Myrelle
+          </p>
+          <p className="mt-1 text-xs">
+            Todos os valores são editáveis • Clique em qualquer campo para modificar
+          </p>
+        </footer>
+      </main>
     </div>
   );
 };
