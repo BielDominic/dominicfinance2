@@ -186,7 +186,7 @@ const Index = () => {
               onDateChange={handleTargetDateChange}
               title={appConfig.counterTitle}
               onTitleChange={handleCounterTitleChange}
-              progressPercentage={Math.min((calculatedTotals.totalEntradas / calculatedTotals.totalSaidas) * 100, 100)}
+              progressPercentage={metaEntradas > 0 ? Math.min((calculatedTotals.totalEntradas / metaEntradas) * 100, 100) : 0}
             />
           </div>
         </div>
