@@ -70,14 +70,14 @@ export function GlobalProgressBar({
         <div className="p-4 space-y-4">
           {/* Meta de Entradas Section */}
           <div className="pb-4 border-b border-border">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <Goal className="h-5 w-5 text-highlight" />
                 <span className="font-semibold text-sm">Meta de Entradas</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {formatCurrency(totalEntradas)} de
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  <span className="font-mono">{formatCurrency(totalEntradas)}</span> de
                 </span>
                 {isEditingMeta ? (
                   <Input
@@ -92,7 +92,7 @@ export function GlobalProgressBar({
                         setIsEditingMeta(false);
                       }
                     }}
-                    className="w-32 h-7 text-right font-mono text-sm"
+                    className="w-28 h-7 text-right font-mono text-sm"
                     autoFocus
                   />
                 ) : (
@@ -126,53 +126,51 @@ export function GlobalProgressBar({
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-            {/* Progress Section */}
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-sm">Progresso do Pagamento</span>
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  {formatCurrency(totalPago)} de {formatCurrency(totalSaidas)}
+          {/* Payment Progress Section */}
+          <div className="pb-4 border-b border-border sm:border-b-0 sm:pb-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-sm">Progresso do Pagamento</span>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                <span className="font-mono">{formatCurrency(totalPago)}</span> de <span className="font-mono">{formatCurrency(totalSaidas)}</span>
+              </span>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="relative h-6 bg-muted rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500 ease-out",
+                  "bg-gradient-to-r from-income to-income/80"
+                )}
+                style={{ width: `${progressPercentage}%` }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs font-bold text-foreground drop-shadow-sm">
+                  {progressPercentage.toFixed(1)}% Pago
                 </span>
               </div>
-              
-              {/* Progress Bar */}
-              <div className="relative h-6 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-500 ease-out",
-                    "bg-gradient-to-r from-income to-income/80"
-                  )}
-                  style={{ width: `${progressPercentage}%` }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-bold text-foreground drop-shadow-sm">
-                    {progressPercentage.toFixed(1)}% Pago
-                  </span>
-                </div>
-              </div>
             </div>
+          </div>
 
-            {/* Stats */}
-            <div className="flex gap-4 lg:gap-6">
-              <div className="text-center px-4 py-2 bg-income-light rounded-lg">
-                <p className="text-xs text-muted-foreground">Total Entradas</p>
-                <p className="font-mono font-bold text-income">{formatCurrency(totalEntradas)}</p>
+          {/* Stats - Mobile Responsive Grid */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="text-center p-2 sm:px-4 sm:py-3 bg-income-light rounded-lg">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Entradas</p>
+              <p className="font-mono font-bold text-income text-xs sm:text-base">{formatCurrency(totalEntradas)}</p>
+            </div>
+            <div className="text-center p-2 sm:px-4 sm:py-3 bg-expense-light rounded-lg">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Saídas</p>
+              <p className="font-mono font-bold text-expense text-xs sm:text-base">{formatCurrency(totalSaidas)}</p>
+            </div>
+            <div className="text-center p-2 sm:px-4 sm:py-3 bg-highlight-light rounded-lg">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <TrendingUp className="h-3 w-3 text-highlight" />
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Saldo</p>
               </div>
-              <div className="text-center px-4 py-2 bg-expense-light rounded-lg">
-                <p className="text-xs text-muted-foreground">Total Saídas</p>
-                <p className="font-mono font-bold text-expense">{formatCurrency(totalSaidas)}</p>
-              </div>
-              <div className="text-center px-4 py-2 bg-highlight-light rounded-lg">
-                <div className="flex items-center justify-center gap-1">
-                  <TrendingUp className="h-3 w-3 text-highlight" />
-                  <p className="text-xs text-muted-foreground">Saldo</p>
-                </div>
-                <p className="font-mono font-bold text-highlight">{formatCurrency(saldoDisponivel)}</p>
-              </div>
+              <p className="font-mono font-bold text-highlight text-xs sm:text-base">{formatCurrency(saldoDisponivel)}</p>
             </div>
           </div>
         </div>
