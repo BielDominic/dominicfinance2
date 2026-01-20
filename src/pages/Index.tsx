@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { GlobalProgressBar } from '@/components/GlobalProgressBar';
 import { IncomeTable } from '@/components/IncomeTable';
 import { ExpenseTable } from '@/components/ExpenseTable';
 import { FinancialSummary } from '@/components/FinancialSummary';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
+import { PasswordScreen } from '@/components/PasswordScreen';
 import { IncomeEntry, ExpenseCategory, FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { 
   initialIncomeEntries, 
@@ -13,9 +14,13 @@ import {
 } from '@/data/initialData';
 
 const Index = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('financial-auth') === 'true';
+  });
   const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>(initialIncomeEntries);
   const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(initialExpenseCategories);
   const [summary] = useState<FinancialSummaryType>(initialSummary);
+  const [metaEntradas, setMetaEntradas] = useState(35000);
 
   // Calculate totals from income entries
   const calculatedTotals = useMemo(() => {
@@ -72,6 +77,10 @@ const Index = () => {
     setExpenseCategories(prev => prev.filter(category => category.id !== id));
   }, []);
 
+  if (!isAuthenticated) {
+    return <PasswordScreen onSuccess={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -82,6 +91,8 @@ const Index = () => {
           totalEntradas={calculatedTotals.totalEntradas}
           totalSaidas={calculatedTotals.totalSaidas}
           totalPago={calculatedTotals.totalPago}
+          metaEntradas={metaEntradas}
+          onMetaChange={setMetaEntradas}
         />
 
         {/* Main Grid - Income and Expenses */}
