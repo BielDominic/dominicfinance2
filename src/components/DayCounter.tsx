@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Calendar, Edit2 } from 'lucide-react';
 import { format, differenceInDays, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,13 +14,31 @@ interface DayCounterProps {
   onDateChange: (date: string) => void;
   title: string;
   onTitleChange: (title: string) => void;
+  progressPercentage?: number;
 }
 
-export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: DayCounterProps) {
+// Generate coin positions based on progress
+function generateCoins(progress: number, side: 'left' | 'right') {
+  const coins: { id: number; bottom: number; delay: number; size: number; opacity: number }[] = [];
+  const coinCount = Math.floor(progress / 5); // More coins as progress increases
+  
+  for (let i = 0; i < Math.min(coinCount, 20); i++) {
+    coins.push({
+      id: i,
+      bottom: (i / 20) * 100, // Stack from bottom
+      delay: i * 0.1,
+      size: 16 + Math.random() * 8,
+      opacity: 0.6 + Math.random() * 0.4,
+    });
+  }
+  
+  return coins;
+}
+
+export function DayCounter({ targetDate, onDateChange, title, onTitleChange, progressPercentage = 0 }: DayCounterProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(title);
-  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
   const confettiRef = useRef<boolean>(false);
   
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
@@ -32,6 +50,9 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
       return undefined;
     }
   });
+
+  const leftCoins = useMemo(() => generateCoins(progressPercentage, 'left'), [progressPercentage]);
+  const rightCoins = useMemo(() => generateCoins(progressPercentage, 'right'), [progressPercentage]);
 
   useEffect(() => {
     setTitleInput(title);
@@ -59,7 +80,6 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
   useEffect(() => {
     if (daysRemaining === 0 && !confettiRef.current) {
       confettiRef.current = true;
-      // Fire confetti multiple times for a celebratory effect
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
@@ -77,7 +97,6 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
 
         const particleCount = 50 * (timeLeft / duration);
         
-        // Irish colors: green, white, orange
         confetti({
           ...defaults,
           particleCount,
@@ -118,10 +137,60 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
     return 'text-expense';
   };
 
+  // Calculate fill height based on progress
+  const fillHeight = Math.min(progressPercentage, 100);
+
   return (
-    <div className="flex flex-col items-center gap-3">
-      {/* Editable title */}
-      <div className="flex items-center gap-2">
+    <div className="relative w-full flex flex-col items-center gap-3">
+      {/* Gold coins animation - Left side */}
+      <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 overflow-hidden pointer-events-none">
+        <div 
+          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/30 via-amber-300/20 to-transparent transition-all duration-1000 ease-out"
+          style={{ height: `${fillHeight}%` }}
+        />
+        {leftCoins.map((coin) => (
+          <div
+            key={coin.id}
+            className="absolute animate-bounce"
+            style={{
+              bottom: `${coin.bottom}%`,
+              left: `${20 + Math.random() * 40}%`,
+              animationDelay: `${coin.delay}s`,
+              animationDuration: '2s',
+              opacity: coin.opacity,
+            }}
+          >
+            <span style={{ fontSize: coin.size }} className="drop-shadow-lg">🪙</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Gold coins animation - Right side */}
+      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 overflow-hidden pointer-events-none">
+        <div 
+          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/30 via-amber-300/20 to-transparent transition-all duration-1000 ease-out"
+          style={{ height: `${fillHeight}%` }}
+        />
+        {rightCoins.map((coin) => (
+          <div
+            key={coin.id}
+            className="absolute animate-bounce"
+            style={{
+              bottom: `${coin.bottom}%`,
+              right: `${20 + Math.random() * 40}%`,
+              animationDelay: `${coin.delay + 0.5}s`,
+              animationDuration: '2s',
+              opacity: coin.opacity,
+            }}
+          >
+            <span style={{ fontSize: coin.size }} className="drop-shadow-lg">🪙</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Editable title with decorations */}
+      <div className="flex items-center gap-3 z-10">
+        <span className="text-2xl">☘️</span>
         {isEditingTitle ? (
           <Input
             value={titleInput}
@@ -145,10 +214,11 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
             {title}
           </button>
         )}
+        <span className="text-2xl">🇮🇪</span>
       </div>
 
       {/* Big counter display */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 z-10">
         <div className="flex flex-col items-center">
           <span className={cn(
             'font-mono font-black text-4xl sm:text-5xl md:text-6xl tracking-tight',
@@ -169,8 +239,21 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
         </div>
       </div>
 
+      {/* Progress indicator */}
+      {progressPercentage > 0 && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground z-10">
+          <span>💰 Progresso financeiro:</span>
+          <span className={cn(
+            "font-mono font-bold",
+            progressPercentage >= 100 ? 'text-income' : 'text-highlight'
+          )}>
+            {progressPercentage.toFixed(0)}%
+          </span>
+        </div>
+      )}
+
       {/* Date display and edit button */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground z-10">
         <Calendar className="h-4 w-4 text-ireland-green" />
         {selectedDate ? (
           <span className="font-mono">

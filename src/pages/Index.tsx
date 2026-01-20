@@ -181,20 +181,12 @@ const Index = () => {
               <div className="w-3 h-3 rounded-full bg-ireland-orange" />
             </div>
             
-            {/* Shamrock emoji decoration */}
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">☘️</span>
-              <h3 className="text-lg sm:text-xl font-bold text-ireland-green uppercase tracking-wide">
-                Contagem para Irlanda
-              </h3>
-              <span className="text-2xl">🇮🇪</span>
-            </div>
-            
             <DayCounter 
               targetDate={appConfig.targetDate}
               onDateChange={handleTargetDateChange}
               title={appConfig.counterTitle}
               onTitleChange={handleCounterTitleChange}
+              progressPercentage={Math.min((calculatedTotals.totalEntradas / calculatedTotals.totalSaidas) * 100, 100)}
             />
           </div>
         </div>
