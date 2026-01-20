@@ -1,4 +1,4 @@
-import { Plus, Plane } from 'lucide-react';
+import { Plus, Plane, Trash2 } from 'lucide-react';
 import { ExpenseCategory } from '@/types/financial';
 import { formatCurrency, parseCurrencyInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
@@ -10,9 +10,10 @@ interface ExpenseTableProps {
   categories: ExpenseCategory[];
   onUpdateCategory: (id: string, updates: Partial<ExpenseCategory>) => void;
   onAddCategory: () => void;
+  onDeleteCategory: (id: string) => void;
 }
 
-export function ExpenseTable({ categories, onUpdateCategory, onAddCategory }: ExpenseTableProps) {
+export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDeleteCategory }: ExpenseTableProps) {
   const totals = categories.reduce(
     (acc, cat) => ({
       total: acc.total + cat.total,
@@ -70,6 +71,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory }: Ex
               <th className="text-right p-3 whitespace-nowrap">Pago (R$)</th>
               <th className="text-right p-3 whitespace-nowrap">Falta (R$)</th>
               <th className="text-left p-3 w-32">Progresso</th>
+              <th className="text-center p-3 w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -77,7 +79,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory }: Ex
               <tr 
                 key={category.id}
                 className={cn(
-                  'border-b border-border/50 hover:bg-muted/30 transition-colors',
+                  'border-b border-border/50 hover:bg-muted/30 transition-colors group',
                   index % 2 === 0 && 'bg-muted/10'
                 )}
               >
@@ -85,6 +87,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory }: Ex
                   <EditableCell
                     value={category.categoria}
                     onChange={(v) => onUpdateCategory(category.id, { categoria: v })}
+                    placeholder="Nome da categoria..."
                   />
                 </td>
                 <td className="p-3 text-right font-mono">
@@ -115,8 +118,25 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory }: Ex
                 <td className="p-3">
                   <ProgressBar value={category.pago} max={category.total} />
                 </td>
+                <td className="p-3 text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-expense hover:bg-expense/10"
+                    onClick={() => onDeleteCategory(category.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </td>
               </tr>
             ))}
+            {categories.length === 0 && (
+              <tr>
+                <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                  Nenhuma categoria encontrada
+                </td>
+              </tr>
+            )}
           </tbody>
           <tfoot>
             <tr className="bg-muted/50 font-semibold">
@@ -127,6 +147,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory }: Ex
               <td className="p-3">
                 <ProgressBar value={totals.pago} max={totals.total} />
               </td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
