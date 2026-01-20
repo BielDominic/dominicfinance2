@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { GlobalProgressBar } from '@/components/GlobalProgressBar';
 import { IncomeTable } from '@/components/IncomeTable';
 import { ExpenseTable } from '@/components/ExpenseTable';
+import { ExpenseCharts } from '@/components/ExpenseCharts';
 import { FinancialSummary } from '@/components/FinancialSummary';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
@@ -130,6 +131,9 @@ const Index = () => {
             />
           </div>
         </div>
+
+        {/* Expense Charts */}
+        <ExpenseCharts categories={expenseCategories} />
 
         {/* Investments Section */}
         <InvestmentsTable
