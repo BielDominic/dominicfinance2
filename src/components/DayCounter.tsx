@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Calendar, Edit2 } from 'lucide-react';
 import { format, differenceInDays, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import confetti from 'canvas-confetti';
+import goldCoinImage from '@/assets/gold-coin.png';
 
 interface DayCounterProps {
   targetDate: string;
@@ -15,24 +16,6 @@ interface DayCounterProps {
   title: string;
   onTitleChange: (title: string) => void;
   progressPercentage?: number;
-}
-
-// Generate coin positions based on progress
-function generateCoins(progress: number, side: 'left' | 'right') {
-  const coins: { id: number; bottom: number; delay: number; size: number; opacity: number }[] = [];
-  const coinCount = Math.floor(progress / 5); // More coins as progress increases
-  
-  for (let i = 0; i < Math.min(coinCount, 20); i++) {
-    coins.push({
-      id: i,
-      bottom: (i / 20) * 100, // Stack from bottom
-      delay: i * 0.1,
-      size: 16 + Math.random() * 8,
-      opacity: 0.6 + Math.random() * 0.4,
-    });
-  }
-  
-  return coins;
 }
 
 export function DayCounter({ targetDate, onDateChange, title, onTitleChange, progressPercentage = 0 }: DayCounterProps) {
@@ -50,9 +33,6 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange, pro
       return undefined;
     }
   });
-
-  const leftCoins = useMemo(() => generateCoins(progressPercentage, 'left'), [progressPercentage]);
-  const rightCoins = useMemo(() => generateCoins(progressPercentage, 'right'), [progressPercentage]);
 
   useEffect(() => {
     setTitleInput(title);
@@ -137,55 +117,85 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange, pro
     return 'text-expense';
   };
 
-  // Calculate fill height based on progress
-  const fillHeight = Math.min(progressPercentage, 100);
+  // Calculate fill height based on progress (0-100%)
+  const fillHeight = Math.min(Math.max(progressPercentage, 0), 100);
+  
+  // Number of visible coin rows based on progress
+  const maxCoinRows = 8;
+  const visibleRows = Math.ceil((fillHeight / 100) * maxCoinRows);
 
   return (
-    <div className="relative w-full flex flex-col items-center gap-3">
-      {/* Gold coins animation - Left side */}
-      <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 overflow-hidden pointer-events-none">
-        <div 
-          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/30 via-amber-300/20 to-transparent transition-all duration-1000 ease-out"
-          style={{ height: `${fillHeight}%` }}
-        />
-        {leftCoins.map((coin) => (
-          <div
-            key={coin.id}
-            className="absolute animate-bounce"
-            style={{
-              bottom: `${coin.bottom}%`,
-              left: `${20 + Math.random() * 40}%`,
-              animationDelay: `${coin.delay}s`,
-              animationDuration: '2s',
-              opacity: coin.opacity,
-            }}
-          >
-            <span style={{ fontSize: coin.size }} className="drop-shadow-lg">🪙</span>
-          </div>
-        ))}
+    <div className="relative w-full flex flex-col items-center gap-3 min-h-[180px]">
+      {/* Gold coin pile - Left side */}
+      <div className="absolute left-2 sm:left-4 bottom-0 w-14 sm:w-20 h-full flex flex-col justify-end items-center overflow-hidden pointer-events-none">
+        <div className="relative w-full flex flex-col-reverse items-center">
+          {Array.from({ length: visibleRows }).map((_, rowIndex) => (
+            <div 
+              key={`left-${rowIndex}`} 
+              className="flex justify-center transition-all duration-500 ease-out"
+              style={{
+                marginTop: rowIndex > 0 ? '-8px' : '0',
+                transform: `translateX(${(rowIndex % 2) * 4 - 2}px)`,
+              }}
+            >
+              {Array.from({ length: Math.max(1, 3 - Math.floor(rowIndex / 2)) }).map((_, coinIndex) => (
+                <img
+                  key={`left-${rowIndex}-${coinIndex}`}
+                  src={goldCoinImage}
+                  alt="Gold coin"
+                  className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-md"
+                  style={{
+                    marginLeft: coinIndex > 0 ? '-6px' : '0',
+                    opacity: 0.85 + (rowIndex * 0.02),
+                  }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+        {/* Glow effect at the bottom */}
+        {fillHeight > 0 && (
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/40 to-transparent rounded-t-full blur-sm"
+            style={{ height: `${Math.min(fillHeight, 30)}%` }}
+          />
+        )}
       </div>
 
-      {/* Gold coins animation - Right side */}
-      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 overflow-hidden pointer-events-none">
-        <div 
-          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/30 via-amber-300/20 to-transparent transition-all duration-1000 ease-out"
-          style={{ height: `${fillHeight}%` }}
-        />
-        {rightCoins.map((coin) => (
-          <div
-            key={coin.id}
-            className="absolute animate-bounce"
-            style={{
-              bottom: `${coin.bottom}%`,
-              right: `${20 + Math.random() * 40}%`,
-              animationDelay: `${coin.delay + 0.5}s`,
-              animationDuration: '2s',
-              opacity: coin.opacity,
-            }}
-          >
-            <span style={{ fontSize: coin.size }} className="drop-shadow-lg">🪙</span>
-          </div>
-        ))}
+      {/* Gold coin pile - Right side */}
+      <div className="absolute right-2 sm:right-4 bottom-0 w-14 sm:w-20 h-full flex flex-col justify-end items-center overflow-hidden pointer-events-none">
+        <div className="relative w-full flex flex-col-reverse items-center">
+          {Array.from({ length: visibleRows }).map((_, rowIndex) => (
+            <div 
+              key={`right-${rowIndex}`} 
+              className="flex justify-center transition-all duration-500 ease-out"
+              style={{
+                marginTop: rowIndex > 0 ? '-8px' : '0',
+                transform: `translateX(${(rowIndex % 2) * -4 + 2}px)`,
+              }}
+            >
+              {Array.from({ length: Math.max(1, 3 - Math.floor(rowIndex / 2)) }).map((_, coinIndex) => (
+                <img
+                  key={`right-${rowIndex}-${coinIndex}`}
+                  src={goldCoinImage}
+                  alt="Gold coin"
+                  className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-md"
+                  style={{
+                    marginLeft: coinIndex > 0 ? '-6px' : '0',
+                    opacity: 0.85 + (rowIndex * 0.02),
+                  }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+        {/* Glow effect at the bottom */}
+        {fillHeight > 0 && (
+          <div 
+            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-400/40 to-transparent rounded-t-full blur-sm"
+            style={{ height: `${Math.min(fillHeight, 30)}%` }}
+          />
+        )}
       </div>
 
       {/* Editable title with decorations */}
