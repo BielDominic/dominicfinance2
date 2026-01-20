@@ -38,6 +38,7 @@ export interface FinancialSummary {
   totalAntecipado: number;
   totalFuturos: number;
   saldoFinalPrevisto: number;
+  saldoFinalComFuturos: number;
   saldoAtual: number;
   saldoAposCambioEUR: number;
   taxaCambio: number;

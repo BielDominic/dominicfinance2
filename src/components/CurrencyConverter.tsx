@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 
 interface CurrencyConverterProps {
   saldoFinal: number;
+  saldoFinalComFuturos: number;
   saldoAtual: number;
   exchangeRate: number;
   onExchangeRateChange: (rate: number) => void;
@@ -17,6 +18,7 @@ interface CurrencyConverterProps {
 
 export function CurrencyConverter({ 
   saldoFinal, 
+  saldoFinalComFuturos,
   saldoAtual, 
   exchangeRate,
   onExchangeRateChange,
@@ -30,6 +32,7 @@ export function CurrencyConverter({
   const effectiveRate = exchangeRate * (1 + spread / 100);
   
   const saldoFinalEUR = saldoFinal / effectiveRate;
+  const saldoFinalComFuturosEUR = saldoFinalComFuturos / effectiveRate;
   const saldoAtualEUR = saldoAtual / effectiveRate;
 
   const spreadPresets = [0, 1, 2, 3, 4, 5];
@@ -138,7 +141,7 @@ export function CurrencyConverter({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Saldo Atual */}
             <div className="bg-muted/30 rounded-lg p-4 space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -178,6 +181,28 @@ export function CurrencyConverter({
                   </span>
                   <span className="font-mono text-xl font-bold text-income">
                     €{saldoFinalEUR.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Saldo com Futuros */}
+            <div className="bg-future-light rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm text-future-foreground">
+                <TrendingUp className="h-4 w-4" />
+                Com Futuros
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-future-foreground/80">BRL</span>
+                  <span className="font-mono font-semibold text-future-foreground">{formatCurrency(saldoFinalComFuturos)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm flex items-center gap-1 text-future-foreground/80">
+                    <Euro className="h-3 w-3" /> EUR
+                  </span>
+                  <span className="font-mono text-xl font-bold text-future">
+                    €{saldoFinalComFuturosEUR.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>

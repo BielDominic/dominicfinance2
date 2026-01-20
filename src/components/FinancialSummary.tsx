@@ -9,10 +9,12 @@ import {
   CheckCircle2,
   Clock,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Sparkles
 } from 'lucide-react';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { SummaryCard } from './SummaryCard';
+import { formatCurrency } from '@/utils/formatters';
 
 interface FinancialSummaryProps {
   summary: FinancialSummaryType;
@@ -90,25 +92,54 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
               icon={Wallet}
               variant="neutral"
             />
-            <div className="bg-ireland-orange/10 rounded-lg p-4 flex flex-col gap-1 ring-2 ring-ireland-orange/30">
-              <div className="flex items-center gap-2 text-ireland-orange">
-                <Euro className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wide">Saldo em EUR</span>
-              </div>
-              <span className="font-mono text-xl font-bold text-ireland-orange">
-                {formatEUR(summary.saldoAposCambioEUR)}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Taxa: 1 EUR = R$ {summary.taxaCambio.toFixed(2)}
-              </span>
-            </div>
             <SummaryCard
               label="Saldo Final Previsto"
               value={summary.saldoFinalPrevisto}
               icon={Target}
               variant="positive"
-              className="ring-2 ring-income/30"
             />
+            <div className="bg-future-light rounded-lg p-4 flex flex-col gap-1 ring-2 ring-future/30">
+              <div className="flex items-center gap-2 text-future">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wide">Com Futuros</span>
+              </div>
+              <span className="font-mono text-xl font-bold text-future">
+                {formatCurrency(summary.saldoFinalComFuturos)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Entradas + Futuros - Saídas
+              </span>
+            </div>
+          </div>
+
+          {/* EUR Conversion Summary */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-ireland-orange/10 rounded-lg p-4 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-ireland-orange">
+                  <Euro className="h-4 w-4" />
+                  <span className="text-xs font-medium uppercase tracking-wide">Saldo em EUR</span>
+                </div>
+                <span className="font-mono text-xl font-bold text-ireland-orange">
+                  {formatEUR(summary.saldoAposCambioEUR)}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Saldo Final Previsto
+                </span>
+              </div>
+              <div className="bg-future-light rounded-lg p-4 flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-future">
+                  <Euro className="h-4 w-4" />
+                  <span className="text-xs font-medium uppercase tracking-wide">EUR com Futuros</span>
+                </div>
+                <span className="font-mono text-xl font-bold text-future">
+                  {formatEUR(summary.saldoFinalComFuturos / summary.taxaCambio)}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Taxa: 1 EUR = R$ {summary.taxaCambio.toFixed(2)}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}
