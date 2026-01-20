@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      expense_categories: {
+        Row: {
+          categoria: string
+          created_at: string
+          falta_pagar: number
+          id: string
+          pago: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          falta_pagar?: number
+          id?: string
+          pago?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          falta_pagar?: number
+          id?: string
+          pago?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      income_entries: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          pessoa: string
+          status: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          pessoa?: string
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          pessoa?: string
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      investments: {
+        Row: {
+          categoria: string
+          created_at: string
+          id: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
