@@ -258,6 +258,13 @@ export const useFinancialData = () => {
     metaEntradas: number;
   }) => {
     try {
+      // Update local state IMMEDIATELY and ATOMICALLY before DB operations
+      // This ensures UI shows all new values at the same time
+      setIncomeEntries(data.incomeEntries);
+      setExpenseCategories(data.expenseCategories);
+      setInvestments(data.investments);
+      setMetaEntradas(data.metaEntradas);
+
       // Delete all existing data first
       await Promise.all([
         supabase.from('income_entries').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
@@ -265,7 +272,13 @@ export const useFinancialData = () => {
         supabase.from('investments').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
       ]);
 
-      // Insert new data
+      // Insert new data and get the real IDs back
+      let newIncomeEntries: IncomeEntry[] = [];
+      let newExpenseCategories: ExpenseCategory[] = [];
+      let newInvestments: Investment[] = [];
+
+      const insertPromises: Promise<void>[] = [];
+
       if (data.incomeEntries.length > 0) {
         const incomeData = data.incomeEntries.map(e => ({
           valor: e.valor,
@@ -274,7 +287,20 @@ export const useFinancialData = () => {
           pessoa: e.pessoa,
           status: e.status,
         }));
-        await supabase.from('income_entries').insert(incomeData);
+        const incomePromise = (async () => {
+          const { data: inserted } = await supabase.from('income_entries').insert(incomeData).select();
+          if (inserted) {
+            newIncomeEntries = inserted.map(e => ({
+              id: e.id,
+              valor: Number(e.valor),
+              descricao: e.descricao,
+              data: e.data,
+              pessoa: e.pessoa as 'Gabriel' | 'Myrelle',
+              status: e.status as 'Entrada' | 'Futuros',
+            }));
+          }
+        })();
+        insertPromises.push(incomePromise);
       }
 
       if (data.expenseCategories.length > 0) {
@@ -284,7 +310,19 @@ export const useFinancialData = () => {
           pago: c.pago,
           falta_pagar: c.faltaPagar,
         }));
-        await supabase.from('expense_categories').insert(expenseData);
+        const expensePromise = (async () => {
+          const { data: inserted } = await supabase.from('expense_categories').insert(expenseData).select();
+          if (inserted) {
+            newExpenseCategories = inserted.map(c => ({
+              id: c.id,
+              categoria: c.categoria,
+              total: Number(c.total),
+              pago: Number(c.pago),
+              faltaPagar: Number(c.falta_pagar),
+            }));
+          }
+        })();
+        insertPromises.push(expensePromise);
       }
 
       if (data.investments.length > 0) {
@@ -292,20 +330,41 @@ export const useFinancialData = () => {
           categoria: i.categoria,
           valor: i.valor,
         }));
-        await supabase.from('investments').insert(investData);
+        const investPromise = (async () => {
+          const { data: inserted } = await supabase.from('investments').insert(investData).select();
+          if (inserted) {
+            newInvestments = inserted.map(i => ({
+              id: i.id,
+              categoria: i.categoria,
+              valor: Number(i.valor),
+            }));
+          }
+        })();
+        insertPromises.push(investPromise);
       }
 
       // Update meta
-      await supabase
-        .from('app_settings')
-        .upsert({ key: 'meta_entradas', value: data.metaEntradas }, { onConflict: 'key' });
+      const metaPromise = (async () => {
+        await supabase
+          .from('app_settings')
+          .upsert({ key: 'meta_entradas', value: data.metaEntradas }, { onConflict: 'key' });
+      })();
+      insertPromises.push(metaPromise);
 
-      // Refetch data
-      await fetchData();
+      // Wait for all inserts to complete
+      await Promise.all(insertPromises);
+
+      // Update state with real IDs from database (atomically)
+      setIncomeEntries(newIncomeEntries.length > 0 ? newIncomeEntries : []);
+      setExpenseCategories(newExpenseCategories.length > 0 ? newExpenseCategories : []);
+      setInvestments(newInvestments.length > 0 ? newInvestments : []);
+
       toast.success('Dados importados com sucesso!');
     } catch (error) {
       console.error('Error importing data:', error);
       toast.error('Erro ao importar dados');
+      // Refetch on error to restore correct state
+      await fetchData();
     }
   }, [fetchData]);
 
