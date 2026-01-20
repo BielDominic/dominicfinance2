@@ -107,10 +107,11 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
   };
 
   const getFilterLabel = () => {
+    const now = new Date();
     switch (dateFilter) {
       case 'all': return 'Todos';
-      case 'thisMonth': return format(today, 'MMM yyyy', { locale: ptBR });
-      case 'nextMonth': return format(addMonths(today, 1), 'MMM yyyy', { locale: ptBR });
+      case 'thisMonth': return format(now, 'MMM yyyy', { locale: ptBR });
+      case 'nextMonth': return format(addMonths(now, 1), 'MMM yyyy', { locale: ptBR });
       case 'next3Months': return 'Próx. 3 meses';
       default: return 'Todos';
     }
