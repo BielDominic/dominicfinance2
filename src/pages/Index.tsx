@@ -8,6 +8,9 @@ import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
 import { InvestmentsTable, Investment } from '@/components/InvestmentsTable';
 import { IncomeEntry, ExpenseCategory, FinancialSummary as FinancialSummaryType } from '@/types/financial';
+import { Button } from '@/components/ui/button';
+import { Save, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { 
   initialIncomeEntries, 
   initialExpenseCategories, 
@@ -21,15 +24,39 @@ const initialInvestments: Investment[] = [
   { id: '4', categoria: 'C6 Bank', valor: 1500 },
 ];
 
+const STORAGE_KEY = 'financial-data-ireland';
+
+const loadFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error('Error loading data:', e);
+  }
+  return null;
+};
+
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('financial-auth') === 'true';
   });
-  const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>(initialIncomeEntries);
-  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(initialExpenseCategories);
+  
+  const [savedData] = useState(() => loadFromStorage());
+  
+  const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>(
+    savedData?.incomeEntries || initialIncomeEntries
+  );
+  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(
+    savedData?.expenseCategories || initialExpenseCategories
+  );
   const [summary] = useState<FinancialSummaryType>(initialSummary);
-  const [metaEntradas, setMetaEntradas] = useState(35000);
-  const [investments, setInvestments] = useState<Investment[]>(initialInvestments);
+  const [metaEntradas, setMetaEntradas] = useState(savedData?.metaEntradas || 35000);
+  const [investments, setInvestments] = useState<Investment[]>(
+    savedData?.investments || initialInvestments
+  );
+  const [isSaving, setIsSaving] = useState(false);
 
   // Calculate totals from income entries
   const calculatedTotals = useMemo(() => {
@@ -38,6 +65,29 @@ const Index = () => {
     const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
     return { totalEntradas, totalSaidas, totalPago };
   }, [incomeEntries, expenseCategories]);
+
+  const handleSaveData = useCallback(() => {
+    setIsSaving(true);
+    try {
+      const dataToSave = {
+        incomeEntries,
+        expenseCategories,
+        metaEntradas,
+        investments,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+      toast.success('Dados salvos com sucesso!', {
+        description: 'Todas as informações foram armazenadas.',
+      });
+    } catch (e) {
+      toast.error('Erro ao salvar dados', {
+        description: 'Tente novamente.',
+      });
+    } finally {
+      setTimeout(() => setIsSaving(false), 1000);
+    }
+  }, [incomeEntries, expenseCategories, metaEntradas, investments]);
 
   const handleUpdateIncomeEntry = useCallback((id: string, updates: Partial<IncomeEntry>) => {
     setIncomeEntries(prev => 
@@ -166,6 +216,28 @@ const Index = () => {
           saldoFinal={summary.saldoFinalPrevisto} 
           saldoAtual={summary.saldoAtual}
         />
+
+        {/* Save Button - Fixed */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            size="lg"
+            onClick={handleSaveData}
+            disabled={isSaving}
+            className="gap-2 shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+          >
+            {isSaving ? (
+              <>
+                <Check className="h-5 w-5" />
+                Salvo!
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5" />
+                Salvar Dados
+              </>
+            )}
+          </Button>
+        </div>
 
         {/* Footer */}
         <footer className="text-center py-6 text-sm text-muted-foreground">
