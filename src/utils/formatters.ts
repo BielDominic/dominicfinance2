@@ -7,16 +7,68 @@ export const formatCurrency = (value: number, currency: 'BRL' | 'EUR' = 'BRL'): 
   }).format(value);
 };
 
-export const formatDate = (dateString: string | null | undefined): string => {
-  if (!dateString || dateString.trim() === '') return '—';
+// Parse any date format and return a valid Date object or null
+const parseAnyDate = (value: string | number | null | undefined): Date | null => {
+  if (value === null || value === undefined) return null;
   
-  try {
-    const date = new Date(dateString + 'T00:00:00');
-    
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return '—';
+  // Handle Excel serial date numbers
+  if (typeof value === 'number') {
+    // Excel serial date: days since 1900-01-01 (with Excel's leap year bug)
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + value * 86400000);
+    return isNaN(date.getTime()) ? null : date;
+  }
+  
+  const str = String(value).trim();
+  if (!str || str === '—' || str === '-') return null;
+  
+  // Try ISO format first: YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const date = new Date(str + 'T00:00:00');
+    if (!isNaN(date.getTime())) return date;
+  }
+  
+  // Try DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
+  const dmyMatch = str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (dmyMatch) {
+    const [, day, month, yearStr] = dmyMatch;
+    const year = yearStr.length === 2 ? 2000 + parseInt(yearStr) : parseInt(yearStr);
+    const date = new Date(year, parseInt(month) - 1, parseInt(day));
+    if (!isNaN(date.getTime())) return date;
+  }
+  
+  // Try MM/DD/YYYY (American format) - only if day > 12
+  const mdyMatch = str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (mdyMatch) {
+    const [, first, second, yearStr] = mdyMatch;
+    // If first number > 12, it's definitely a day (DD/MM/YYYY already handled above)
+    // If second number > 12, try MM/DD/YYYY
+    if (parseInt(second) > 12) {
+      const year = yearStr.length === 2 ? 2000 + parseInt(yearStr) : parseInt(yearStr);
+      const date = new Date(year, parseInt(first) - 1, parseInt(second));
+      if (!isNaN(date.getTime())) return date;
     }
+  }
+  
+  // Try YYYY/MM/DD
+  const ymdMatch = str.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+  if (ymdMatch) {
+    const [, year, month, day] = ymdMatch;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    if (!isNaN(date.getTime())) return date;
+  }
+  
+  // Try native Date parsing as last resort
+  const nativeDate = new Date(str);
+  if (!isNaN(nativeDate.getTime())) return nativeDate;
+  
+  return null;
+};
+
+export const formatDate = (dateString: string | number | null | undefined): string => {
+  try {
+    const date = parseAnyDate(dateString);
+    if (!date) return '—';
     
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -34,20 +86,17 @@ export const parseCurrencyInput = (value: string): number => {
   return isNaN(parsed) ? 0 : parsed;
 };
 
-export const parseDateInput = (value: string): string | null => {
-  if (!value || value === '—') return null;
-  
-  // Try to parse DD/MM/YYYY format
-  const parts = value.split('/');
-  if (parts.length === 3) {
-    const [day, month, year] = parts;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+export const parseDateInput = (value: string | number | null | undefined): string | null => {
+  try {
+    const date = parseAnyDate(value);
+    if (!date) return null;
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch {
+    return null;
   }
-  
-  // Try ISO format
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
-  }
-  
-  return null;
 };
