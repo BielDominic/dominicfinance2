@@ -1,20 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Edit2, Check, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Calendar, Edit2 } from 'lucide-react';
 import { format, differenceInDays, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import confetti from 'canvas-confetti';
 
 interface DayCounterProps {
   targetDate: string;
   onDateChange: (date: string) => void;
-  label?: string;
+  title: string;
+  onTitleChange: (title: string) => void;
 }
 
-export function DayCounter({ targetDate, onDateChange, label = 'Contagem' }: DayCounterProps) {
+export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: DayCounterProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState(title);
+  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+  const confettiRef = useRef<boolean>(false);
+  
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
     if (!targetDate) return undefined;
     try {
@@ -24,6 +32,10 @@ export function DayCounter({ targetDate, onDateChange, label = 'Contagem' }: Day
       return undefined;
     }
   });
+
+  useEffect(() => {
+    setTitleInput(title);
+  }, [title]);
 
   useEffect(() => {
     if (!targetDate) {
@@ -43,6 +55,49 @@ export function DayCounter({ targetDate, onDateChange, label = 'Contagem' }: Day
   const today = new Date();
   const daysRemaining = selectedDate ? differenceInDays(selectedDate, today) : null;
 
+  // Trigger confetti when daysRemaining is 0
+  useEffect(() => {
+    if (daysRemaining === 0 && !confettiRef.current) {
+      confettiRef.current = true;
+      // Fire confetti multiple times for a celebratory effect
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+      function randomInRange(min: number, max: number) {
+        return Math.random() * (max - min) + min;
+      }
+
+      const interval: ReturnType<typeof setInterval> = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        
+        // Irish colors: green, white, orange
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+          colors: ['#16a34a', '#ffffff', '#f97316']
+        });
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+          colors: ['#16a34a', '#ffffff', '#f97316']
+        });
+      }, 250);
+
+      return () => clearInterval(interval);
+    } else if (daysRemaining !== 0) {
+      confettiRef.current = false;
+    }
+  }, [daysRemaining]);
+
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
@@ -51,30 +106,54 @@ export function DayCounter({ targetDate, onDateChange, label = 'Contagem' }: Day
     }
   };
 
-  const getCounterText = () => {
-    if (daysRemaining === null) return 'Definir data';
-    if (daysRemaining === 0) return 'Hoje!';
-    if (daysRemaining === 1) return '1 dia';
-    if (daysRemaining > 0) return `${daysRemaining} dias`;
-    if (daysRemaining === -1) return 'Há 1 dia';
-    return `Há ${Math.abs(daysRemaining)} dias`;
+  const handleTitleSubmit = () => {
+    onTitleChange(titleInput);
+    setIsEditingTitle(false);
   };
 
   const getCounterColor = () => {
     if (daysRemaining === null) return 'text-muted-foreground';
-    if (daysRemaining === 0) return 'text-future';
+    if (daysRemaining === 0) return 'text-ireland-green';
     if (daysRemaining > 0) return 'text-income';
     return 'text-expense';
   };
 
   return (
     <div className="flex flex-col items-center gap-3">
+      {/* Editable title */}
+      <div className="flex items-center gap-2">
+        {isEditingTitle ? (
+          <Input
+            value={titleInput}
+            onChange={(e) => setTitleInput(e.target.value)}
+            onBlur={handleTitleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleTitleSubmit();
+              if (e.key === 'Escape') {
+                setTitleInput(title);
+                setIsEditingTitle(false);
+              }
+            }}
+            className="text-lg sm:text-xl font-bold text-ireland-green text-center uppercase tracking-wide bg-transparent border-ireland-green/30 max-w-xs"
+            autoFocus
+          />
+        ) : (
+          <button
+            onClick={() => setIsEditingTitle(true)}
+            className="text-lg sm:text-xl font-bold text-ireland-green uppercase tracking-wide hover:underline cursor-pointer"
+          >
+            {title}
+          </button>
+        )}
+      </div>
+
       {/* Big counter display */}
       <div className="flex items-center gap-4">
         <div className="flex flex-col items-center">
           <span className={cn(
             'font-mono font-black text-4xl sm:text-5xl md:text-6xl tracking-tight',
-            getCounterColor()
+            getCounterColor(),
+            daysRemaining === 0 && 'animate-pulse'
           )}>
             {daysRemaining !== null ? Math.abs(daysRemaining) : '—'}
           </span>
@@ -82,7 +161,7 @@ export function DayCounter({ targetDate, onDateChange, label = 'Contagem' }: Day
             {daysRemaining === null 
               ? 'dias' 
               : daysRemaining === 0 
-                ? 'HOJE!' 
+                ? '🎉 HOJE! 🎉' 
                 : daysRemaining > 0 
                   ? 'dias restantes'
                   : 'dias atrás'}

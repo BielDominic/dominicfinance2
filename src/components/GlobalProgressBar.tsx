@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, Target, Goal, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Goal, ChevronDown, ChevronUp, Wallet, Sparkles } from 'lucide-react';
 import { formatCurrency, parseCurrencyInput } from '@/utils/formatters';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -36,8 +36,11 @@ export function GlobalProgressBar({
   }, [totalEntradas, metaEntradas]);
 
   const saldoDisponivel = totalEntradas - totalSaidas;
+  const saldoComFuturos = totalEntradas + totalFuturos - totalSaidas;
   const faltaDepositar = totalSaidas - totalEntradas;
   const faltaDepositarComFuturos = totalSaidas - (totalEntradas + totalFuturos);
+  const totalAPagar = totalSaidas - totalPago;
+  const totalAPagarComFuturos = totalAPagar - totalFuturos;
 
   const handleMetaSubmit = () => {
     const value = parseCurrencyInput(metaInput);
@@ -159,8 +162,8 @@ export function GlobalProgressBar({
             </div>
           </div>
 
-          {/* Stats - Mobile Responsive Grid */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          {/* Stats Row 1 - Main indicators */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
             <div className="text-center p-2 sm:px-4 sm:py-3 bg-income-light rounded-lg">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Total Entradas</p>
               <p className="font-mono font-bold text-income text-xs sm:text-base">{formatCurrency(totalEntradas)}</p>
@@ -174,13 +177,55 @@ export function GlobalProgressBar({
                 <TrendingUp className="h-3 w-3 text-highlight" />
                 <p className="text-[10px] sm:text-xs text-muted-foreground">Saldo</p>
               </div>
-              <p className="font-mono font-bold text-highlight text-xs sm:text-base">{formatCurrency(saldoDisponivel)}</p>
+              <p className={cn(
+                "font-mono font-bold text-xs sm:text-base",
+                saldoDisponivel >= 0 ? 'text-highlight' : 'text-expense'
+              )}>{formatCurrency(saldoDisponivel)}</p>
+            </div>
+            <div className="text-center p-2 sm:px-4 sm:py-3 bg-future-light rounded-lg">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Sparkles className="h-3 w-3 text-future" />
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Com Futuros</p>
+              </div>
+              <p className={cn(
+                "font-mono font-bold text-xs sm:text-base",
+                saldoComFuturos >= 0 ? 'text-future' : 'text-expense'
+              )}>{formatCurrency(saldoComFuturos)}</p>
+            </div>
+          </div>
+
+          {/* Stats Row 2 - Total a pagar indicators */}
+          <div className="mt-3 pt-3 border-t border-border">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+              <div className="text-center p-3 sm:p-4 bg-expense-light rounded-lg border border-expense/20">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingDown className="h-3 w-3 text-expense" />
+                  <p className="text-xs text-muted-foreground">Total a Pagar</p>
+                </div>
+                <p className="font-mono font-bold text-expense text-lg sm:text-xl">{formatCurrency(totalAPagar)}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Despesas não pagas</p>
+              </div>
+              <div className="text-center p-3 sm:p-4 bg-future-light rounded-lg border border-future/20">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Wallet className="h-3 w-3 text-future" />
+                  <p className="text-xs text-muted-foreground">A Pagar (com Futuros)</p>
+                </div>
+                <p className={cn(
+                  "font-mono font-bold text-lg sm:text-xl",
+                  totalAPagarComFuturos > 0 ? 'text-future' : 'text-income'
+                )}>
+                  {totalAPagarComFuturos > 0 
+                    ? formatCurrency(totalAPagarComFuturos)
+                    : formatCurrency(Math.abs(totalAPagarComFuturos)) + ' ✓'}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">Falta - Futuros</p>
+              </div>
             </div>
           </div>
 
           {/* Falta Depositar Section */}
           {faltaDepositar > 0 && (
-            <div className="mt-4 pt-4 border-t border-border">
+            <div className="mt-3 pt-3 border-t border-border">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 <div className="text-center p-3 sm:p-4 bg-expense-light rounded-lg border border-expense/20">
                   <p className="text-xs text-muted-foreground mb-1">Falta Depositar</p>
