@@ -50,6 +50,7 @@ const Index = () => {
     handleTaxaCambioChange,
     handleSpreadChange,
     handleTargetDateChange,
+    handleCounterTitleChange,
   } = useFinancialData();
 
   // Handle dark mode change (local only)
@@ -192,7 +193,8 @@ const Index = () => {
             <DayCounter 
               targetDate={appConfig.targetDate}
               onDateChange={handleTargetDateChange}
-              label="Dias para viagem"
+              title={appConfig.counterTitle}
+              onTitleChange={handleCounterTitleChange}
             />
           </div>
         </div>

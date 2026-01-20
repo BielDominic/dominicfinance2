@@ -10,6 +10,7 @@ interface AppConfig {
   spread: number;
   darkMode: boolean;
   targetDate: string;
+  counterTitle: string;
 }
 
 export const useFinancialData = () => {
@@ -28,6 +29,7 @@ export const useFinancialData = () => {
     spread: 0,
     darkMode: false,
     targetDate: '',
+    counterTitle: 'Contagem para Irlanda',
   });
 
   // Fetch app config from database
@@ -47,6 +49,7 @@ export const useFinancialData = () => {
           spread: configMap['spread'] ? parseFloat(configMap['spread']) : prev.spread,
           darkMode: configMap['dark_mode'] === 'true',
           targetDate: configMap['target_date'] || prev.targetDate,
+          counterTitle: configMap['counter_title'] || prev.counterTitle,
         }));
       }
     } catch (error) {
@@ -195,6 +198,11 @@ export const useFinancialData = () => {
   const handleTargetDateChange = useCallback(async (targetDate: string) => {
     setAppConfig(prev => ({ ...prev, targetDate }));
     await updateAppConfig('target_date', targetDate);
+  }, [updateAppConfig]);
+
+  const handleCounterTitleChange = useCallback(async (counterTitle: string) => {
+    setAppConfig(prev => ({ ...prev, counterTitle }));
+    await updateAppConfig('counter_title', counterTitle);
   }, [updateAppConfig]);
 
   // Income entry handlers
@@ -500,5 +508,6 @@ export const useFinancialData = () => {
     handleSpreadChange,
     handleDarkModeChange,
     handleTargetDateChange,
+    handleCounterTitleChange,
   };
 };
