@@ -3,7 +3,6 @@ import {
   TrendingDown, 
   Wallet, 
   CreditCard, 
-  PiggyBank, 
   Target,
   Euro,
   CheckCircle2,
@@ -52,12 +51,6 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
           value={summary.totalAPagar}
           icon={CreditCard}
           variant="negative"
-        />
-        <SummaryCard
-          label="Total Antecipado"
-          value={summary.totalAntecipado}
-          icon={PiggyBank}
-          variant="highlight"
         />
         <SummaryCard
           label="Total Futuros"
