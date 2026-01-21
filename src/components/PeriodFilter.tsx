@@ -98,17 +98,18 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
   ];
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <div className="flex rounded-lg border border-border overflow-hidden bg-background">
-        <div className="flex items-center px-2 bg-muted/50 border-r border-border">
-          <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+      {/* Filter buttons - scrollable on mobile */}
+      <div className="flex rounded-lg border border-border overflow-x-auto bg-background max-w-full">
+        <div className="flex items-center px-1.5 sm:px-2 bg-muted/50 border-r border-border shrink-0">
+          <Filter className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-muted-foreground" />
         </div>
         {filterOptions.map((option) => (
           <button
             key={option.type}
             onClick={() => handleTypeChange(option.type)}
             className={cn(
-              'px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap',
+              'px-1.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap shrink-0',
               value.type === option.type
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted text-muted-foreground'
@@ -125,9 +126,9 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
           <Button 
             variant={value.type === 'custom' ? 'default' : 'outline'} 
             size="sm" 
-            className="h-8 gap-1 text-xs"
+            className="h-7 sm:h-8 gap-1 text-[10px] sm:text-xs px-2 sm:px-3"
           >
-            <Calendar className="h-3.5 w-3.5" />
+            <Calendar className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
             <span className="hidden sm:inline">
               {value.type === 'custom' ? getFilterLabel() : 'Período'}
             </span>
@@ -145,15 +146,16 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
         </PopoverContent>
       </Popover>
 
-      {/* Clear Button */}
+      {/* Clear Button - Always visible with text on mobile */}
       {value.type !== 'all' && (
         <Button
-          variant="ghost"
+          variant="destructive"
           size="sm"
           onClick={clearFilter}
-          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          className="h-7 sm:h-8 px-2 sm:px-3 gap-1 text-[10px] sm:text-xs"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3 sm:h-4 w-3 sm:w-4" />
+          <span>Limpar</span>
         </Button>
       )}
     </div>
