@@ -38,9 +38,9 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
   const displayCategories = useMemo(() => {
     let baseList = periodFilter.type === 'all' ? categories : filteredCategories;
     
-    // Filter by person - also include entries marked as "Ambos" when filtering by a specific person
+    // Filter by person
     if (filterPerson !== 'all') {
-      baseList = baseList.filter(c => c.pessoa === filterPerson || c.pessoa === 'Ambos');
+      baseList = baseList.filter(c => c.pessoa === filterPerson);
     }
     
     // Separate new/empty entries (total === 0 and empty categoria) to show at top

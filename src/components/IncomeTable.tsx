@@ -45,9 +45,9 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
   const getFilteredAndSortedEntries = (status: 'Entrada' | 'Futuros') => {
     let result = periodFilteredEntries.filter(e => e.status === status);
 
-    // Filter by person - also include entries marked as "Ambos" when filtering by a specific person
+    // Filter by person
     if (filterPerson !== 'all') {
-      result = result.filter(e => e.pessoa === filterPerson || e.pessoa === 'Ambos');
+      result = result.filter(e => e.pessoa === filterPerson);
     }
 
     // Separate new/empty entries (valor === 0 and empty descricao) to show at top
