@@ -1,11 +1,19 @@
 import { useState, useMemo } from 'react';
-import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays, X } from 'lucide-react';
-import { ExpenseCategory } from '@/types/financial';
+import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays, X, User } from 'lucide-react';
+import { ExpenseCategory, Person } from '@/types/financial';
 import { formatCurrency, parseCurrencyInput, formatDate, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
 import { ProgressBar } from './ProgressBar';
+import { PersonBadge } from './PersonBadge';
 import { Button } from '@/components/ui/button';
 import { PeriodFilter, PeriodFilterValue, filterExpensesByPeriod } from '@/components/PeriodFilter';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface ExpenseTableProps {
@@ -18,6 +26,7 @@ interface ExpenseTableProps {
 export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDeleteCategory }: ExpenseTableProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
+  const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
 
   // Filter categories by period (using vencimento date)
   const filteredCategories = useMemo(() => 
@@ -27,14 +36,19 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
 
   // Use filtered categories for display, with new/empty entries at the top
   const displayCategories = useMemo(() => {
-    const baseList = periodFilter.type === 'all' ? categories : filteredCategories;
+    let baseList = periodFilter.type === 'all' ? categories : filteredCategories;
+    
+    // Filter by person
+    if (filterPerson !== 'all') {
+      baseList = baseList.filter(c => c.pessoa === filterPerson);
+    }
     
     // Separate new/empty entries (total === 0 and empty categoria) to show at top
     const newEntries = baseList.filter(c => c.total === 0 && !c.categoria);
     const existingEntries = baseList.filter(c => c.total !== 0 || c.categoria);
     
     return [...newEntries, ...existingEntries];
-  }, [categories, filteredCategories, periodFilter.type]);
+  }, [categories, filteredCategories, periodFilter.type, filterPerson]);
   
   const totals = displayCategories.reduce(
     (acc, cat) => ({
@@ -121,16 +135,23 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-2">
-        <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
-        <div className="font-mono text-sm">
-          <EditableCell
-            value={category.vencimento ? formatDate(category.vencimento) : ''}
-            onChange={(v) => handleDateChange(category.id, v)}
-            type="date"
-            placeholder="Vencimento..."
-          />
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="flex items-center gap-3">
+          <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+          <div className="font-mono text-sm">
+            <EditableCell
+              value={category.vencimento ? formatDate(category.vencimento) : ''}
+              onChange={(v) => handleDateChange(category.id, v)}
+              type="date"
+              placeholder="Vencimento..."
+            />
+          </div>
         </div>
+        <PersonBadge 
+          person={category.pessoa} 
+          editable 
+          onChange={(pessoa) => onUpdateCategory(category.id, { pessoa })}
+        />
       </div>
       
       <ProgressBar value={category.pago} max={category.total} />
@@ -163,10 +184,38 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
           </button>
           
           {isExpanded && (
-            <Button onClick={onAddCategory} size="sm" className="h-9">
-              <Plus className="h-4 w-4 mr-1" />
-              Adicionar
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Filter by Person */}
+              <Select value={filterPerson} onValueChange={(v) => setFilterPerson(v as Person | 'all')}>
+                <SelectTrigger className="w-[130px] h-8 sm:h-9 text-xs sm:text-sm">
+                  <User className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1.5 sm:mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Pessoa" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border shadow-md z-50">
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Gabriel">Gabriel</SelectItem>
+                  <SelectItem value="Myrelle">Myrelle</SelectItem>
+                  <SelectItem value="Ambos">Ambos</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {filterPerson !== 'all' && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setFilterPerson('all')}
+                  className="h-7 sm:h-8 px-2 sm:px-3 gap-1 text-[10px] sm:text-xs"
+                >
+                  <X className="h-3 sm:h-4 w-3 sm:w-4" />
+                  <span>Limpar</span>
+                </Button>
+              )}
+
+              <Button onClick={onAddCategory} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+                <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1" />
+                Adicionar
+              </Button>
+            </div>
           )}
         </div>
         
@@ -234,6 +283,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                 <th className="text-right p-3 whitespace-nowrap">Pago (R$)</th>
                 <th className="text-right p-3 whitespace-nowrap">Falta (R$)</th>
                 <th className="text-left p-3 whitespace-nowrap">Vencimento</th>
+                <th className="text-left p-3">Pessoa</th>
                 <th className="text-left p-3 w-32">Progresso</th>
                 <th className="text-center p-3 w-10"></th>
               </tr>
@@ -288,6 +338,13 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                     />
                   </td>
                   <td className="p-3">
+                    <PersonBadge 
+                      person={category.pessoa} 
+                      editable 
+                      onChange={(pessoa) => onUpdateCategory(category.id, { pessoa })}
+                    />
+                  </td>
+                  <td className="p-3">
                     <ProgressBar value={category.pago} max={category.total} />
                   </td>
                   <td className="p-3 text-center">
@@ -304,7 +361,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
               ))}
               {displayCategories.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="p-8 text-center text-muted-foreground">
                     Nenhuma categoria encontrada
                   </td>
                 </tr>
@@ -316,6 +373,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                 <td className="p-3 text-right font-mono">{formatCurrency(totals.total)}</td>
                 <td className="p-3 text-right font-mono text-income">{formatCurrency(totals.pago)}</td>
                 <td className="p-3 text-right font-mono text-expense">{formatCurrency(totals.faltaPagar)}</td>
+                <td className="p-3"></td>
                 <td className="p-3"></td>
                 <td className="p-3">
                   <ProgressBar value={totals.pago} max={totals.total} />

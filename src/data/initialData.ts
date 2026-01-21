@@ -34,11 +34,11 @@ export const initialIncomeEntries: IncomeEntry[] = [
 ];
 
 export const initialExpenseCategories: ExpenseCategory[] = [
-  { id: '1', categoria: 'Passagens Pernada 1', total: 7825.86, pago: 1883.00, faltaPagar: 5942.86, metaOrcamento: null, vencimento: null, notas: null },
-  { id: '2', categoria: 'Passagens Pernada 2', total: 2227.00, pago: 2227.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null },
-  { id: '3', categoria: 'Hospedagem', total: 1100.00, pago: 1100.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null },
-  { id: '4', categoria: 'Seguro Viagem', total: 200.00, pago: 200.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null },
-  { id: '5', categoria: 'ETA', total: 220.00, pago: 220.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null },
+  { id: '1', categoria: 'Passagens Pernada 1', total: 7825.86, pago: 1883.00, faltaPagar: 5942.86, metaOrcamento: null, vencimento: null, notas: null, pessoa: 'Ambos' },
+  { id: '2', categoria: 'Passagens Pernada 2', total: 2227.00, pago: 2227.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null, pessoa: 'Ambos' },
+  { id: '3', categoria: 'Hospedagem', total: 1100.00, pago: 1100.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null, pessoa: 'Ambos' },
+  { id: '4', categoria: 'Seguro Viagem', total: 200.00, pago: 200.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null, pessoa: 'Ambos' },
+  { id: '5', categoria: 'ETA', total: 220.00, pago: 220.00, faltaPagar: 0, metaOrcamento: null, vencimento: null, notas: null, pessoa: 'Ambos' },
 ];
 
 export const initialSummary: FinancialSummary = {

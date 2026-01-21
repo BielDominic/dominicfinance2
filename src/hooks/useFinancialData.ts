@@ -90,6 +90,7 @@ export const useFinancialData = () => {
           metaOrcamento: (c as any).meta_orcamento ? Number((c as any).meta_orcamento) : null,
           vencimento: (c as any).vencimento || null,
           notas: (c as any).notas || null,
+          pessoa: ((c as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
         })));
       }
 
@@ -262,6 +263,7 @@ export const useFinancialData = () => {
     if (updates.total !== undefined) dbUpdates.total = updates.total;
     if (updates.pago !== undefined) dbUpdates.pago = updates.pago;
     if (updates.faltaPagar !== undefined) dbUpdates.falta_pagar = updates.faltaPagar;
+    if (updates.pessoa !== undefined) dbUpdates.pessoa = updates.pessoa;
 
     const { error } = await supabase.from('expense_categories').update(dbUpdates).eq('id', id);
     if (error) console.error('Error updating expense category:', error);
@@ -273,6 +275,7 @@ export const useFinancialData = () => {
       total: 0,
       pago: 0,
       falta_pagar: 0,
+      pessoa: 'Ambos',
     };
 
     const { data, error } = await supabase.from('expense_categories').insert(newCategory).select().single();
@@ -289,6 +292,7 @@ export const useFinancialData = () => {
         metaOrcamento: (data as any).meta_orcamento ? Number((data as any).meta_orcamento) : null,
         vencimento: (data as any).vencimento || null,
         notas: (data as any).notas || null,
+        pessoa: ((data as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
       }, ...prev]);
     }
   }, []);
@@ -433,6 +437,7 @@ export const useFinancialData = () => {
               metaOrcamento: (c as any).meta_orcamento ? Number((c as any).meta_orcamento) : null,
               vencimento: (c as any).vencimento || null,
               notas: (c as any).notas || null,
+              pessoa: ((c as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
             }));
           }
         })();

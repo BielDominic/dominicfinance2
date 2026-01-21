@@ -1,4 +1,4 @@
-export type Person = 'Gabriel' | 'Myrelle';
+export type Person = 'Gabriel' | 'Myrelle' | 'Ambos';
 export type EntryStatus = 'Entrada' | 'Futuros';
 export type EntryTag = 'urgente' | 'opcional' | 'confirmado' | 'pendente' | 'recorrente';
 
@@ -22,6 +22,7 @@ export interface ExpenseCategory {
   metaOrcamento: number | null;
   vencimento: string | null;
   notas: string | null;
+  pessoa: Person;
 }
 
 export interface Investment {
