@@ -375,6 +375,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="Gabriel">Gabriel</SelectItem>
                   <SelectItem value="Myrelle">Myrelle</SelectItem>
+                  <SelectItem value="Ambos">Ambos</SelectItem>
                 </SelectContent>
               </Select>
 

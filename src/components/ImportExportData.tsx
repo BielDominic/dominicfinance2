@@ -209,6 +209,7 @@ export function ImportExportData({
               metaOrcamento: safeParseNumber(row['Meta Orçamento']) || null,
               vencimento: safeParseString(row['Vencimento']) || null,
               notas: safeParseString(row['Notas']) || null,
+              pessoa: (safeParseString(row['Pessoa']) || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
             };
             parsedExpenses.push(expense);
           } catch (rowError) {

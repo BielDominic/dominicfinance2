@@ -29,13 +29,14 @@ export function PersonBadge({ person, className, editable = false, onChange }: P
             className={cn(
               'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
               person === 'Gabriel' && 'bg-primary/10 text-primary',
-              person === 'Myrelle' && 'bg-accent text-accent-foreground'
+              person === 'Myrelle' && 'bg-accent text-accent-foreground',
+              person === 'Ambos' && 'bg-muted text-muted-foreground'
             )}
           >
             {person}
           </span>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-popover border shadow-md z-50">
           <SelectItem value="Gabriel">
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
               Gabriel
@@ -44,6 +45,11 @@ export function PersonBadge({ person, className, editable = false, onChange }: P
           <SelectItem value="Myrelle">
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-accent-foreground">
               Myrelle
+            </span>
+          </SelectItem>
+          <SelectItem value="Ambos">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
+              Ambos
             </span>
           </SelectItem>
         </SelectContent>
@@ -57,6 +63,7 @@ export function PersonBadge({ person, className, editable = false, onChange }: P
         'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
         person === 'Gabriel' && 'bg-primary/10 text-primary',
         person === 'Myrelle' && 'bg-accent text-accent-foreground',
+        person === 'Ambos' && 'bg-muted text-muted-foreground',
         className
       )}
     >

@@ -71,6 +71,7 @@ export type Database = {
           meta_orcamento: number | null
           notas: string | null
           pago: number
+          pessoa: string | null
           total: number
           updated_at: string
           vencimento: string | null
@@ -83,6 +84,7 @@ export type Database = {
           meta_orcamento?: number | null
           notas?: string | null
           pago?: number
+          pessoa?: string | null
           total?: number
           updated_at?: string
           vencimento?: string | null
@@ -95,6 +97,7 @@ export type Database = {
           meta_orcamento?: number | null
           notas?: string | null
           pago?: number
+          pessoa?: string | null
           total?: number
           updated_at?: string
           vencimento?: string | null
