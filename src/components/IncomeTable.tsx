@@ -50,8 +50,12 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
       result = result.filter(e => e.pessoa === filterPerson);
     }
 
-    // Sort
-    result.sort((a, b) => {
+    // Separate new/empty entries (valor === 0 and empty descricao) to show at top
+    const newEntries = result.filter(e => e.valor === 0 && !e.descricao);
+    const existingEntries = result.filter(e => e.valor !== 0 || e.descricao);
+
+    // Sort existing entries
+    existingEntries.sort((a, b) => {
       let comparison = 0;
       
       switch (sortField) {
@@ -71,7 +75,8 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
-    return result;
+    // Return with new entries at the top
+    return [...newEntries, ...existingEntries];
   };
 
   const entradasEntries = useMemo(() => getFilteredAndSortedEntries('Entrada'), [entries, filterPerson, sortField, sortDirection, periodFilter]);
@@ -362,19 +367,31 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
             <div className="flex flex-wrap items-center gap-2">
               {/* Filter by Person */}
               <Select value={filterPerson} onValueChange={(v) => setFilterPerson(v as Person | 'all')}>
-                <SelectTrigger className="w-[130px] h-9">
-                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectTrigger className="w-[130px] h-8 sm:h-9 text-xs sm:text-sm">
+                  <User className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1.5 sm:mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Pessoa" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover border shadow-md z-50">
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="Gabriel">Gabriel</SelectItem>
                   <SelectItem value="Myrelle">Myrelle</SelectItem>
                 </SelectContent>
               </Select>
 
-              <Button onClick={() => onAddEntry(activeTab)} size="sm" className="h-9">
-                <Plus className="h-4 w-4 mr-1" />
+              {filterPerson !== 'all' && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setFilterPerson('all')}
+                  className="h-7 sm:h-8 px-2 sm:px-3 gap-1 text-[10px] sm:text-xs"
+                >
+                  <X className="h-3 sm:h-4 w-3 sm:w-4" />
+                  <span>Limpar</span>
+                </Button>
+              )}
+
+              <Button onClick={() => onAddEntry(activeTab)} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+                <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1" />
                 Adicionar
               </Button>
             </div>

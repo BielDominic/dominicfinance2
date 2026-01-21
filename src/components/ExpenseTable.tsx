@@ -25,8 +25,16 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
     [categories, periodFilter]
   );
 
-  // Use filtered categories for display
-  const displayCategories = periodFilter.type === 'all' ? categories : filteredCategories;
+  // Use filtered categories for display, with new/empty entries at the top
+  const displayCategories = useMemo(() => {
+    const baseList = periodFilter.type === 'all' ? categories : filteredCategories;
+    
+    // Separate new/empty entries (total === 0 and empty categoria) to show at top
+    const newEntries = baseList.filter(c => c.total === 0 && !c.categoria);
+    const existingEntries = baseList.filter(c => c.total !== 0 || c.categoria);
+    
+    return [...newEntries, ...existingEntries];
+  }, [categories, filteredCategories, periodFilter.type]);
   
   const totals = displayCategories.reduce(
     (acc, cat) => ({

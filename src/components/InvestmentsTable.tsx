@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PiggyBank, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,13 @@ export function InvestmentsTable({
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Separate new/empty entries (valor === 0 and empty categoria) to show at top
+  const displayInvestments = useMemo(() => {
+    const newEntries = investments.filter(i => i.valor === 0 && !i.categoria);
+    const existingEntries = investments.filter(i => i.valor !== 0 || i.categoria);
+    return [...newEntries, ...existingEntries];
+  }, [investments]);
 
   const totalInvestido = investments.reduce((sum, inv) => sum + inv.valor, 0);
 
@@ -100,7 +107,7 @@ export function InvestmentsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {investments.map((investment) => (
+              {displayInvestments.map((investment) => (
                 <TableRow key={investment.id} className="group">
                   <TableCell>
                     {editingCell?.id === investment.id && editingCell?.field === 'categoria' ? (
