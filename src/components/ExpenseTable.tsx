@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays, X, User } from 'lucide-react';
 import { ExpenseCategory, Person } from '@/types/financial';
 import { formatCurrency, parseCurrencyInput, formatDate, parseDateInput } from '@/utils/formatters';
@@ -30,8 +30,84 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
   const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
   
-  // Confirmation dialog state (only for delete)
+  // Track pending (unconfirmed) entries
+  const [pendingEntries, setPendingEntries] = useState<Set<string>>(new Set());
+  
+  // Confirmation dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string; categoria: string }>({ open: false, id: '', categoria: '' });
+  const [addConfirm, setAddConfirm] = useState<{ open: boolean; id: string; category: ExpenseCategory | null }>({ open: false, id: '', category: null });
+  
+  // Track previous categories to detect newly completed ones
+  const prevCategoriesRef = useRef<Map<string, ExpenseCategory>>(new Map());
+
+  // Check if a category is complete (has total > 0 and categoria name)
+  const isCategoryComplete = (category: ExpenseCategory) => {
+    return category.total > 0 && category.categoria && category.categoria.trim() !== '';
+  };
+
+  // Monitor pending entries for completion
+  useEffect(() => {
+    categories.forEach(category => {
+      const isPending = pendingEntries.has(category.id);
+      
+      // If category is pending and now complete, show confirmation
+      if (isPending && isCategoryComplete(category)) {
+        setAddConfirm({ open: true, id: category.id, category });
+      }
+    });
+    
+    // Update previous categories reference
+    const newMap = new Map<string, ExpenseCategory>();
+    categories.forEach(c => newMap.set(c.id, { ...c }));
+    prevCategoriesRef.current = newMap;
+  }, [categories, pendingEntries]);
+
+  // When categories change, check if there's a new empty entry to track
+  useEffect(() => {
+    categories.forEach(category => {
+      if (category.total === 0 && !category.categoria && !pendingEntries.has(category.id)) {
+        const isNew = !prevCategoriesRef.current.has(category.id);
+        if (isNew) {
+          setPendingEntries(prev => new Set(prev).add(category.id));
+        }
+      }
+    });
+  }, [categories]);
+
+  const handleAddNewCategory = () => {
+    onAddCategory();
+    setTimeout(() => {
+      const newCategory = categories.find(c => c.total === 0 && !c.categoria);
+      if (newCategory) {
+        setPendingEntries(prev => new Set(prev).add(newCategory.id));
+      }
+    }, 100);
+  };
+
+  const confirmCategory = (id: string) => {
+    setPendingEntries(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+    toast({
+      title: "Saída confirmada! ✓",
+      description: "A categoria foi adicionada com sucesso.",
+    });
+  };
+
+  const cancelCategory = (id: string) => {
+    setPendingEntries(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+    onDeleteCategory(id);
+    toast({
+      title: "Saída cancelada",
+      description: "A categoria foi removida.",
+    });
+  };
 
   // Filter categories by period (using vencimento date)
   const filteredCategories = useMemo(() => 
@@ -48,12 +124,12 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
       baseList = baseList.filter(c => c.pessoa === filterPerson || c.pessoa === 'Ambos');
     }
     
-    // Separate new/empty entries (total === 0 and empty categoria) to show at top
-    const newEntries = baseList.filter(c => c.total === 0 && !c.categoria);
-    const existingEntries = baseList.filter(c => c.total !== 0 || c.categoria);
+    // Separate pending/new entries to show at top
+    const newEntries = baseList.filter(c => pendingEntries.has(c.id) || (c.total === 0 && !c.categoria));
+    const existingEntries = baseList.filter(c => !pendingEntries.has(c.id) && (c.total !== 0 || c.categoria));
     
     return [...newEntries, ...existingEntries];
-  }, [categories, filteredCategories, periodFilter.type, filterPerson]);
+  }, [categories, filteredCategories, periodFilter.type, filterPerson, pendingEntries]);
   
   const totals = displayCategories.reduce(
     (acc, cat) => ({
@@ -217,13 +293,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
               )}
 
               <Button 
-                onClick={() => {
-                  onAddCategory();
-                  toast({
-                    title: "Nova saída",
-                    description: "Preencha os dados da nova categoria.",
-                  });
-                }} 
+                onClick={handleAddNewCategory} 
                 size="sm" 
                 className="h-8 sm:h-9 text-xs sm:text-sm"
               >
@@ -415,6 +485,27 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
             description: `"${deleteConfirm.categoria}" foi removida com sucesso.`,
           });
           setDeleteConfirm({ open: false, id: '', categoria: '' });
+        }}
+      />
+
+      <ConfirmDialog
+        open={addConfirm.open}
+        onOpenChange={(open) => {
+          if (!open) {
+            cancelCategory(addConfirm.id);
+          }
+          setAddConfirm({ ...addConfirm, open });
+        }}
+        title="Confirmar Saída"
+        description={addConfirm.category 
+          ? `Confirmar a adição de "${addConfirm.category.categoria}" no valor de ${formatCurrency(addConfirm.category.total)}?`
+          : 'Confirmar a adição desta categoria?'
+        }
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          confirmCategory(addConfirm.id);
+          setAddConfirm({ open: false, id: '', category: null });
         }}
       />
     </div>
