@@ -6,6 +6,7 @@ import { ExpenseTable } from '@/components/ExpenseTable';
 import { ExpenseCharts } from '@/components/ExpenseCharts';
 import { EvolutionChart } from '@/components/EvolutionChart';
 import { FinancialSummary } from '@/components/FinancialSummary';
+import { PersonSummary } from '@/components/PersonSummary';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
 import { InvestmentsTable } from '@/components/InvestmentsTable';
@@ -230,6 +231,9 @@ const Index = () => {
           onAddInvestment={handleAddInvestment}
           onDeleteInvestment={handleDeleteInvestment}
         />
+
+        {/* Person Summary */}
+        <PersonSummary incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
 
         {/* Summary Section */}
         <FinancialSummary summary={summary} />
