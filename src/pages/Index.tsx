@@ -7,6 +7,8 @@ import { ExpenseCharts } from '@/components/ExpenseCharts';
 import { EvolutionChart } from '@/components/EvolutionChart';
 import { FinancialSummary } from '@/components/FinancialSummary';
 import { PersonSummary } from '@/components/PersonSummary';
+import { UpcomingDueDates } from '@/components/UpcomingDueDates';
+import { FinancialAssistant } from '@/components/FinancialAssistant';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
 import { InvestmentsTable } from '@/components/InvestmentsTable';
@@ -191,6 +193,9 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Upcoming Due Dates */}
+        <UpcomingDueDates expenseCategories={expenseCategories} />
+
         {/* Global Progress Bar */}
         <GlobalProgressBar 
           totalEntradas={calculatedTotals.totalEntradas}
@@ -237,6 +242,15 @@ const Index = () => {
 
         {/* Summary Section */}
         <FinancialSummary summary={summary} />
+
+        {/* AI Financial Assistant */}
+        <FinancialAssistant 
+          incomeEntries={incomeEntries}
+          expenseCategories={expenseCategories}
+          investments={investments}
+          summary={summary}
+          metaEntradas={metaEntradas}
+        />
 
         {/* Currency Converter */}
         <CurrencyConverter 

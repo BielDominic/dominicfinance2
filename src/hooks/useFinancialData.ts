@@ -264,6 +264,9 @@ export const useFinancialData = () => {
     if (updates.pago !== undefined) dbUpdates.pago = updates.pago;
     if (updates.faltaPagar !== undefined) dbUpdates.falta_pagar = updates.faltaPagar;
     if (updates.pessoa !== undefined) dbUpdates.pessoa = updates.pessoa;
+    if (updates.vencimento !== undefined) dbUpdates.vencimento = updates.vencimento;
+    if (updates.metaOrcamento !== undefined) dbUpdates.meta_orcamento = updates.metaOrcamento;
+    if (updates.notas !== undefined) dbUpdates.notas = updates.notas;
 
     const { error } = await supabase.from('expense_categories').update(dbUpdates).eq('id', id);
     if (error) console.error('Error updating expense category:', error);
