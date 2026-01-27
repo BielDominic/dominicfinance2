@@ -30,9 +30,8 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
   const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
   
-  // Confirmation dialog states
+  // Confirmation dialog state (only for delete)
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string; categoria: string }>({ open: false, id: '', categoria: '' });
-  const [addConfirm, setAddConfirm] = useState(false);
 
   // Filter categories by period (using vencimento date)
   const filteredCategories = useMemo(() => 
@@ -217,7 +216,17 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                 </Button>
               )}
 
-              <Button onClick={() => setAddConfirm(true)} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+              <Button 
+                onClick={() => {
+                  onAddCategory();
+                  toast({
+                    title: "Nova saída",
+                    description: "Preencha os dados da nova categoria.",
+                  });
+                }} 
+                size="sm" 
+                className="h-8 sm:h-9 text-xs sm:text-sm"
+              >
                 <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1" />
                 Adicionar
               </Button>
@@ -406,22 +415,6 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
             description: `"${deleteConfirm.categoria}" foi removida com sucesso.`,
           });
           setDeleteConfirm({ open: false, id: '', categoria: '' });
-        }}
-      />
-
-      <ConfirmDialog
-        open={addConfirm}
-        onOpenChange={setAddConfirm}
-        title="Adicionar Saída"
-        description="Deseja adicionar uma nova categoria de despesa?"
-        confirmText="Adicionar"
-        onConfirm={() => {
-          onAddCategory();
-          toast({
-            title: "Categoria adicionada",
-            description: "Nova categoria criada. Preencha os dados.",
-          });
-          setAddConfirm(false);
         }}
       />
     </div>

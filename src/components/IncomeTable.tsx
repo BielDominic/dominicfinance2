@@ -38,9 +38,8 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
   const [isExpanded, setIsExpanded] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
   
-  // Confirmation dialog states
+  // Confirmation dialog state (only for delete)
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string; descricao: string }>({ open: false, id: '', descricao: '' });
-  const [addConfirm, setAddConfirm] = useState<{ open: boolean; status: 'Entrada' | 'Futuros' }>({ open: false, status: 'Entrada' });
 
   // Filter entries by period first
   const periodFilteredEntries = useMemo(() => 
@@ -397,7 +396,17 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
                 </Button>
               )}
 
-              <Button onClick={() => setAddConfirm({ open: true, status: activeTab })} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+              <Button 
+                onClick={() => {
+                  onAddEntry(activeTab);
+                  toast({
+                    title: activeTab === 'Entrada' ? "Nova entrada" : "Novo futuro",
+                    description: "Preencha os dados do novo registro.",
+                  });
+                }} 
+                size="sm" 
+                className="h-8 sm:h-9 text-xs sm:text-sm"
+              >
                 <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1" />
                 Adicionar
               </Button>
@@ -482,25 +491,6 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
           setDeleteConfirm({ open: false, id: '', descricao: '' });
         }}
       />
-
-      <ConfirmDialog
-        open={addConfirm.open}
-        onOpenChange={(open) => setAddConfirm({ ...addConfirm, open })}
-        title={addConfirm.status === 'Entrada' ? "Adicionar Entrada" : "Adicionar Futuro"}
-        description={addConfirm.status === 'Entrada' 
-          ? "Deseja adicionar um novo registro de entrada confirmada?"
-          : "Deseja adicionar um novo registro de entrada futura (prevista)?"}
-        confirmText="Adicionar"
-        onConfirm={() => {
-          onAddEntry(addConfirm.status);
-          toast({
-            title: addConfirm.status === 'Entrada' ? "Entrada adicionada" : "Futuro adicionado",
-            description: "Novo registro criado. Preencha os dados.",
-          });
-          setAddConfirm({ open: false, status: 'Entrada' });
-        }}
-      />
     </div>
   );
 }
-
