@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { ArrowUpDown, Plus, User, CalendarDays, Sparkles, Trash2, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { ArrowUpDown, Plus, User, CalendarDays, Sparkles, Trash2, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
 import { IncomeEntry, Person, EntryStatus } from '@/types/financial';
 import { formatCurrency, formatDate, parseCurrencyInput, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
@@ -38,8 +38,40 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
   const [isExpanded, setIsExpanded] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
   
-  // Confirmation dialog state (only for delete)
+  // Track pending (unconfirmed) entries
+  const [pendingEntries, setPendingEntries] = useState<Set<string>>(new Set());
+  
+  // Confirmation dialog states
   const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string; descricao: string }>({ open: false, id: '', descricao: '' });
+  const [addConfirm, setAddConfirm] = useState<{ open: boolean; id: string; entry: IncomeEntry | null }>({ open: false, id: '', entry: null });
+  
+  // Track previous entries to detect newly completed ones
+  const prevEntriesRef = useRef<Map<string, IncomeEntry>>(new Map());
+
+  // Check if an entry is complete (has valor > 0, descricao, and data)
+  const isEntryComplete = (entry: IncomeEntry) => {
+    return entry.valor > 0 && entry.descricao && entry.descricao.trim() !== '' && entry.data;
+  };
+
+  // Monitor pending entries for completion
+  useEffect(() => {
+    const prevEntries = prevEntriesRef.current;
+    
+    entries.forEach(entry => {
+      const prev = prevEntries.get(entry.id);
+      const isPending = pendingEntries.has(entry.id);
+      
+      // If entry is pending and now complete, show confirmation
+      if (isPending && isEntryComplete(entry)) {
+        setAddConfirm({ open: true, id: entry.id, entry });
+      }
+    });
+    
+    // Update previous entries reference
+    const newMap = new Map<string, IncomeEntry>();
+    entries.forEach(e => newMap.set(e.id, { ...e }));
+    prevEntriesRef.current = newMap;
+  }, [entries, pendingEntries]);
 
   // Filter entries by period first
   const periodFilteredEntries = useMemo(() => 
@@ -55,9 +87,9 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
       result = result.filter(e => e.pessoa === filterPerson || e.pessoa === 'Ambos');
     }
 
-    // Separate new/empty entries (valor === 0 and empty descricao) to show at top
-    const newEntries = result.filter(e => e.valor === 0 && !e.descricao);
-    const existingEntries = result.filter(e => e.valor !== 0 || e.descricao);
+    // Separate pending/new entries (in pendingEntries set OR empty) to show at top
+    const newEntries = result.filter(e => pendingEntries.has(e.id) || (e.valor === 0 && !e.descricao));
+    const existingEntries = result.filter(e => !pendingEntries.has(e.id) && (e.valor !== 0 || e.descricao));
 
     // Sort existing entries
     existingEntries.sort((a, b) => {
@@ -84,8 +116,8 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
     return [...newEntries, ...existingEntries];
   };
 
-  const entradasEntries = useMemo(() => getFilteredAndSortedEntries('Entrada'), [entries, filterPerson, sortField, sortDirection, periodFilter]);
-  const futurosEntries = useMemo(() => getFilteredAndSortedEntries('Futuros'), [entries, filterPerson, sortField, sortDirection, periodFilter]);
+  const entradasEntries = useMemo(() => getFilteredAndSortedEntries('Entrada'), [entries, filterPerson, sortField, sortDirection, periodFilter, pendingEntries]);
+  const futurosEntries = useMemo(() => getFilteredAndSortedEntries('Futuros'), [entries, filterPerson, sortField, sortDirection, periodFilter, pendingEntries]);
 
   const totalEntradas = useMemo(() => entradasEntries.reduce((sum, e) => sum + e.valor, 0), [entradasEntries]);
   const totalFuturos = useMemo(() => futurosEntries.reduce((sum, e) => sum + e.valor, 0), [futurosEntries]);
@@ -98,6 +130,33 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
       setSortDirection('asc');
     }
   };
+
+  const handleAddNewEntry = (status: 'Entrada' | 'Futuros') => {
+    // Create a temporary ID to track the new entry
+    const tempId = `temp-${Date.now()}`;
+    onAddEntry(status);
+    
+    // Find the newly added entry (it will be the one with valor=0 and empty descricao)
+    setTimeout(() => {
+      const newEntry = entries.find(e => e.valor === 0 && !e.descricao && e.status === status);
+      if (newEntry) {
+        setPendingEntries(prev => new Set(prev).add(newEntry.id));
+      }
+    }, 100);
+  };
+
+  // When entries change, check if there's a new empty entry to track
+  useEffect(() => {
+    entries.forEach(entry => {
+      if (entry.valor === 0 && !entry.descricao && !pendingEntries.has(entry.id)) {
+        // This might be a new entry - add it to pending
+        const isNew = !prevEntriesRef.current.has(entry.id);
+        if (isNew) {
+          setPendingEntries(prev => new Set(prev).add(entry.id));
+        }
+      }
+    });
+  }, [entries]);
 
   const handleValueChange = (id: string, newValue: string) => {
     const parsed = parseCurrencyInput(newValue);
@@ -114,6 +173,31 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
     if (checked) {
       onUpdateEntry(id, { status: 'Entrada' });
     }
+  };
+
+  const confirmEntry = (id: string) => {
+    setPendingEntries(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+    toast({
+      title: "Entrada confirmada! ✓",
+      description: "O registro foi adicionado com sucesso.",
+    });
+  };
+
+  const cancelEntry = (id: string) => {
+    setPendingEntries(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+    onDeleteEntry(id);
+    toast({
+      title: "Entrada cancelada",
+      description: "O registro foi removido.",
+    });
   };
 
   // Mobile card view for each entry
@@ -397,13 +481,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
               )}
 
               <Button 
-                onClick={() => {
-                  onAddEntry(activeTab);
-                  toast({
-                    title: activeTab === 'Entrada' ? "Nova entrada" : "Novo futuro",
-                    description: "Preencha os dados do novo registro.",
-                  });
-                }} 
+                onClick={() => handleAddNewEntry(activeTab)} 
                 size="sm" 
                 className="h-8 sm:h-9 text-xs sm:text-sm"
               >
@@ -489,6 +567,28 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
             description: `"${deleteConfirm.descricao}" foi removido com sucesso.`,
           });
           setDeleteConfirm({ open: false, id: '', descricao: '' });
+        }}
+      />
+
+      <ConfirmDialog
+        open={addConfirm.open}
+        onOpenChange={(open) => {
+          if (!open) {
+            // If closing without action, cancel the entry
+            cancelEntry(addConfirm.id);
+          }
+          setAddConfirm({ ...addConfirm, open });
+        }}
+        title="Confirmar Registro"
+        description={addConfirm.entry 
+          ? `Confirmar a adição de "${addConfirm.entry.descricao}" no valor de ${formatCurrency(addConfirm.entry.valor)}?`
+          : 'Confirmar a adição deste registro?'
+        }
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        onConfirm={() => {
+          confirmEntry(addConfirm.id);
+          setAddConfirm({ open: false, id: '', entry: null });
         }}
       />
     </div>
