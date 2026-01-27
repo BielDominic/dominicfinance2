@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { RefreshCw, Euro, TrendingUp, Percent, ChevronDown, ChevronUp } from 'lucide-react';
+import { RefreshCw, Euro, TrendingUp, Percent, ChevronDown, ChevronUp, Wifi, WifiOff, Loader2, Check } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CurrencyConverterProps {
   saldoFinal: number;
@@ -27,6 +30,7 @@ export function CurrencyConverter({
   className 
 }: CurrencyConverterProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { rate: liveRate, lastUpdated, isLoading: isLoadingRate, error: rateError, refetch } = useExchangeRate('EUR', 'BRL');
   
   // Taxa efetiva = taxa base + spread
   const effectiveRate = exchangeRate * (1 + spread / 100);
@@ -37,11 +41,24 @@ export function CurrencyConverter({
 
   const spreadPresets = [0, 1, 2, 3, 4, 5];
 
+  const handleUseLiveRate = () => {
+    if (liveRate > 0) {
+      onExchangeRateChange(parseFloat(liveRate.toFixed(4)));
+    }
+  };
+
+  const isUsingLiveRate = liveRate > 0 && Math.abs(exchangeRate - liveRate) < 0.01;
+
+  const formatLastUpdated = (date: Date | null) => {
+    if (!date) return '';
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className={cn('financial-card overflow-hidden animate-fade-in', className)}>
       {/* Header */}
       <div className="p-4 border-b border-border bg-muted/30">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity text-left"
@@ -63,20 +80,83 @@ export function CurrencyConverter({
           </button>
           
           {isExpanded && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">1 EUR =</span>
-              <div className="relative">
-                <Input
-                  type="number"
-                  value={exchangeRate}
-                  onChange={(e) => onExchangeRateChange(parseFloat(e.target.value) || 0)}
-                  className="w-24 h-9 font-mono text-right pr-8"
-                  step="0.01"
-                  min="0"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  R$
-                </span>
+            <div className="flex items-center gap-3 flex-wrap justify-end">
+              {/* Live Rate Indicator */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={cn(
+                      'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
+                      liveRate > 0 && !rateError
+                        ? 'bg-ireland-green/10 text-ireland-green'
+                        : 'bg-destructive/10 text-destructive'
+                    )}>
+                      {isLoadingRate ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : liveRate > 0 && !rateError ? (
+                        <Wifi className="h-3 w-3" />
+                      ) : (
+                        <WifiOff className="h-3 w-3" />
+                      )}
+                      <span>
+                        {isLoadingRate 
+                          ? 'Buscando...' 
+                          : liveRate > 0 
+                            ? `Tempo real: R$ ${liveRate.toFixed(4)}`
+                            : 'Offline'
+                        }
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {lastUpdated 
+                      ? `Atualizado às ${formatLastUpdated(lastUpdated)}`
+                      : rateError || 'Cotação em tempo real via Frankfurter API'
+                    }
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Use Live Rate Button */}
+              {liveRate > 0 && !isUsingLiveRate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUseLiveRate}
+                  className="gap-1.5 text-xs h-8"
+                >
+                  <Check className="h-3 w-3" />
+                  Usar cotação atual
+                </Button>
+              )}
+
+              {/* Refresh Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={refetch}
+                disabled={isLoadingRate}
+                className="h-8 w-8"
+              >
+                <RefreshCw className={cn('h-4 w-4', isLoadingRate && 'animate-spin')} />
+              </Button>
+
+              {/* Manual Input */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground hidden sm:inline">1 EUR =</span>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    value={exchangeRate}
+                    onChange={(e) => onExchangeRateChange(parseFloat(e.target.value) || 0)}
+                    className="w-24 h-9 font-mono text-right pr-8"
+                    step="0.01"
+                    min="0"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    R$
+                  </span>
+                </div>
               </div>
             </div>
           )}
