@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PeriodFilter, PeriodFilterValue, filterByPeriod } from '@/components/PeriodFilter';
+import { ConfirmDialog } from './ConfirmDialog';
+import { toast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -35,6 +37,10 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
   const [activeTab, setActiveTab] = useState<'Entrada' | 'Futuros'>('Entrada');
   const [isExpanded, setIsExpanded] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
+  
+  // Confirmation dialog states
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string; descricao: string }>({ open: false, id: '', descricao: '' });
+  const [addConfirm, setAddConfirm] = useState<{ open: boolean; status: 'Entrada' | 'Futuros' }>({ open: false, status: 'Entrada' });
 
   // Filter entries by period first
   const periodFilteredEntries = useMemo(() => 
@@ -144,7 +150,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-expense hover:bg-expense/10 shrink-0"
-            onClick={() => onDeleteEntry(entry.id)}
+            onClick={() => setDeleteConfirm({ open: true, id: entry.id, descricao: entry.descricao || 'este registro' })}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -302,7 +308,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-expense hover:bg-expense/10"
-                      onClick={() => onDeleteEntry(entry.id)}
+                      onClick={() => setDeleteConfirm({ open: true, id: entry.id, descricao: entry.descricao || 'este registro' })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -391,7 +397,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
                 </Button>
               )}
 
-              <Button onClick={() => onAddEntry(activeTab)} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+              <Button onClick={() => setAddConfirm({ open: true, status: activeTab })} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
                 <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1" />
                 Adicionar
               </Button>
@@ -458,6 +464,42 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
           </TabsContent>
         </Tabs>
       )}
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm({ ...deleteConfirm, open })}
+        title="Remover Registro"
+        description={`Tem certeza que deseja remover "${deleteConfirm.descricao}"? Esta ação não pode ser desfeita.`}
+        confirmText="Remover"
+        variant="destructive"
+        onConfirm={() => {
+          onDeleteEntry(deleteConfirm.id);
+          toast({
+            title: "Registro removido",
+            description: `"${deleteConfirm.descricao}" foi removido com sucesso.`,
+          });
+          setDeleteConfirm({ open: false, id: '', descricao: '' });
+        }}
+      />
+
+      <ConfirmDialog
+        open={addConfirm.open}
+        onOpenChange={(open) => setAddConfirm({ ...addConfirm, open })}
+        title={addConfirm.status === 'Entrada' ? "Adicionar Entrada" : "Adicionar Futuro"}
+        description={addConfirm.status === 'Entrada' 
+          ? "Deseja adicionar um novo registro de entrada confirmada?"
+          : "Deseja adicionar um novo registro de entrada futura (prevista)?"}
+        confirmText="Adicionar"
+        onConfirm={() => {
+          onAddEntry(addConfirm.status);
+          toast({
+            title: addConfirm.status === 'Entrada' ? "Entrada adicionada" : "Futuro adicionado",
+            description: "Novo registro criado. Preencha os dados.",
+          });
+          setAddConfirm({ open: false, status: 'Entrada' });
+        }}
+      />
     </div>
   );
 }

@@ -7,6 +7,8 @@ import { ProgressBar } from './ProgressBar';
 import { PersonBadge } from './PersonBadge';
 import { Button } from '@/components/ui/button';
 import { PeriodFilter, PeriodFilterValue, filterExpensesByPeriod } from '@/components/PeriodFilter';
+import { ConfirmDialog } from './ConfirmDialog';
+import { toast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -27,6 +29,10 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
   const [isExpanded, setIsExpanded] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
   const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
+  
+  // Confirmation dialog states
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string; categoria: string }>({ open: false, id: '', categoria: '' });
+  const [addConfirm, setAddConfirm] = useState(false);
 
   // Filter categories by period (using vencimento date)
   const filteredCategories = useMemo(() => 
@@ -97,7 +103,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
           variant="ghost"
           size="icon"
           className="h-8 w-8 text-muted-foreground hover:text-expense hover:bg-expense/10 shrink-0"
-          onClick={() => onDeleteCategory(category.id)}
+          onClick={() => setDeleteConfirm({ open: true, id: category.id, categoria: category.categoria || 'esta categoria' })}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -211,7 +217,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                 </Button>
               )}
 
-              <Button onClick={onAddCategory} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+              <Button onClick={() => setAddConfirm(true)} size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
                 <Plus className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1" />
                 Adicionar
               </Button>
@@ -352,7 +358,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-expense hover:bg-expense/10"
-                      onClick={() => onDeleteCategory(category.id)}
+                      onClick={() => setDeleteConfirm({ open: true, id: category.id, categoria: category.categoria || 'esta categoria' })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -384,6 +390,40 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
           </table>
         </div>
       )}
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) => setDeleteConfirm({ ...deleteConfirm, open })}
+        title="Remover Categoria"
+        description={`Tem certeza que deseja remover "${deleteConfirm.categoria}"? Esta ação não pode ser desfeita.`}
+        confirmText="Remover"
+        variant="destructive"
+        onConfirm={() => {
+          onDeleteCategory(deleteConfirm.id);
+          toast({
+            title: "Categoria removida",
+            description: `"${deleteConfirm.categoria}" foi removida com sucesso.`,
+          });
+          setDeleteConfirm({ open: false, id: '', categoria: '' });
+        }}
+      />
+
+      <ConfirmDialog
+        open={addConfirm}
+        onOpenChange={setAddConfirm}
+        title="Adicionar Saída"
+        description="Deseja adicionar uma nova categoria de despesa?"
+        confirmText="Adicionar"
+        onConfirm={() => {
+          onAddCategory();
+          toast({
+            title: "Categoria adicionada",
+            description: "Nova categoria criada. Preencha os dados.",
+          });
+          setAddConfirm(false);
+        }}
+      />
     </div>
   );
 }

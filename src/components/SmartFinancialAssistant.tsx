@@ -13,12 +13,23 @@ import {
   Lightbulb,
   PiggyBank,
   Euro,
-  RefreshCw
+  RefreshCw,
+  Wallet,
+  BarChart3,
+  Clock,
+  Flame,
+  Shield,
+  Plane,
+  Users,
+  CreditCard,
+  CalendarClock,
+  AlertCircle,
+  Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { IncomeEntry, ExpenseCategory, Investment, FinancialSummary } from '@/types/financial';
 import { formatCurrency } from '@/utils/formatters';
-import { differenceInDays, parseISO, isValid, format } from 'date-fns';
+import { differenceInDays, parseISO, isValid, format, differenceInMonths, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +48,7 @@ interface Insight {
   title: string;
   description: string;
   value?: string;
+  priority?: number;
 }
 
 export function SmartFinancialAssistant({ 
@@ -64,6 +76,7 @@ export function SmartFinancialAssistant({
         title: 'Meta Atingida! 🎉',
         description: `Parabéns! Vocês ultrapassaram a meta de entradas em ${(metaProgress - 100).toFixed(1)}%`,
         value: formatCurrency(summary.totalEntradas),
+        priority: 1,
       });
     } else if (metaProgress >= 80) {
       result.push({
@@ -72,6 +85,7 @@ export function SmartFinancialAssistant({
         title: 'Quase lá!',
         description: `Faltam apenas ${formatCurrency(metaEntradas - summary.totalEntradas)} para atingir a meta`,
         value: `${metaProgress.toFixed(1)}%`,
+        priority: 2,
       });
     } else if (metaProgress >= 50) {
       result.push({
@@ -80,6 +94,7 @@ export function SmartFinancialAssistant({
         title: 'Progresso na Meta',
         description: `Vocês já alcançaram metade da meta. Continuem assim!`,
         value: `${metaProgress.toFixed(1)}%`,
+        priority: 3,
       });
     } else {
       result.push({
@@ -88,10 +103,11 @@ export function SmartFinancialAssistant({
         title: 'Meta de Entradas',
         description: `Faltam ${formatCurrency(metaEntradas - summary.totalEntradas)} para atingir a meta`,
         value: `${metaProgress.toFixed(1)}%`,
+        priority: 2,
       });
     }
 
-    // 2. Overdue payments
+    // 2. Overdue payments (HIGHEST PRIORITY)
     const overduePayments = expenseCategories.filter(c => {
       if (!c.vencimento || c.faltaPagar <= 0) return false;
       const dueDate = parseISO(c.vencimento);
@@ -100,12 +116,18 @@ export function SmartFinancialAssistant({
 
     if (overduePayments.length > 0) {
       const totalOverdue = overduePayments.reduce((sum, c) => sum + c.faltaPagar, 0);
+      const oldestOverdue = overduePayments.reduce((oldest, c) => {
+        const days = Math.abs(differenceInDays(parseISO(c.vencimento!), today));
+        return days > oldest.days ? { days, categoria: c.categoria } : oldest;
+      }, { days: 0, categoria: '' });
+      
       result.push({
         type: 'danger',
         icon: <AlertTriangle className="h-5 w-5" />,
-        title: `${overduePayments.length} Pagamento${overduePayments.length > 1 ? 's' : ''} Atrasado${overduePayments.length > 1 ? 's' : ''}!`,
-        description: overduePayments.map(c => c.categoria || 'Sem nome').join(', '),
+        title: `🚨 ${overduePayments.length} Pagamento${overduePayments.length > 1 ? 's' : ''} Atrasado${overduePayments.length > 1 ? 's' : ''}!`,
+        description: `${overduePayments.map(c => c.categoria || 'Sem nome').join(', ')}. Mais antigo: ${oldestOverdue.days} dias`,
         value: formatCurrency(totalOverdue),
+        priority: 0,
       });
     }
 
@@ -123,9 +145,10 @@ export function SmartFinancialAssistant({
       result.push({
         type: 'warning',
         icon: <Calendar className="h-5 w-5" />,
-        title: `${urgentPayments.length} Vencimento${urgentPayments.length > 1 ? 's' : ''} Próximo${urgentPayments.length > 1 ? 's' : ''}`,
+        title: `⏰ ${urgentPayments.length} Vencimento${urgentPayments.length > 1 ? 's' : ''} Próximo${urgentPayments.length > 1 ? 's' : ''}`,
         description: `Pagamentos nos próximos 7 dias: ${urgentPayments.map(c => c.categoria || 'Sem nome').join(', ')}`,
         value: formatCurrency(totalUrgent),
+        priority: 1,
       });
     }
 
@@ -134,17 +157,19 @@ export function SmartFinancialAssistant({
       result.push({
         type: 'success',
         icon: <TrendingUp className="h-5 w-5" />,
-        title: 'Saldo Positivo Previsto',
+        title: 'Saldo Positivo Previsto ✓',
         description: 'Ótimo! As entradas cobrem todas as despesas planejadas.',
         value: formatCurrency(summary.saldoFinalPrevisto),
+        priority: 3,
       });
     } else if (summary.saldoFinalPrevisto < 0) {
       result.push({
         type: 'danger',
         icon: <TrendingDown className="h-5 w-5" />,
-        title: 'Atenção: Saldo Negativo',
+        title: '⚠️ Atenção: Saldo Negativo',
         description: 'As despesas superam as entradas. Revise os gastos ou busque entradas adicionais.',
         value: formatCurrency(summary.saldoFinalPrevisto),
+        priority: 0,
       });
     }
 
@@ -156,6 +181,7 @@ export function SmartFinancialAssistant({
         title: 'Entradas Futuras Previstas',
         description: 'Com as entradas futuras, o saldo final será ainda melhor!',
         value: formatCurrency(summary.saldoFinalComFuturos),
+        priority: 4,
       });
     }
 
@@ -165,9 +191,10 @@ export function SmartFinancialAssistant({
       result.push({
         type: 'success',
         icon: <CheckCircle2 className="h-5 w-5" />,
-        title: 'Pagamentos Quase Completos',
+        title: 'Pagamentos Quase Completos! 🎯',
         description: `${paymentProgress.toFixed(0)}% das despesas já foram pagas!`,
         value: formatCurrency(summary.totalPago),
+        priority: 3,
       });
     } else if (paymentProgress >= 50) {
       result.push({
@@ -176,6 +203,7 @@ export function SmartFinancialAssistant({
         title: 'Progresso nos Pagamentos',
         description: `Metade das despesas já pagas. Faltam ${formatCurrency(summary.totalAPagar)}`,
         value: `${paymentProgress.toFixed(0)}%`,
+        priority: 4,
       });
     }
 
@@ -184,32 +212,57 @@ export function SmartFinancialAssistant({
       result.push({
         type: 'info',
         icon: <Euro className="h-5 w-5" />,
-        title: 'Saldo em Euros',
+        title: 'Saldo em Euros 🇪🇺',
         description: `Com a taxa atual (1 EUR = R$ ${summary.taxaCambio.toFixed(2)}), seu saldo será aproximadamente:`,
         value: `€${summary.saldoAposCambioEUR.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        priority: 5,
       });
     }
 
-    // 8. Days until trip
+    // 8. Days until trip with detailed planning
     if (targetDate) {
       const tripDate = parseISO(targetDate);
       if (isValid(tripDate)) {
         const daysUntilTrip = differenceInDays(tripDate, today);
+        const monthsUntilTrip = differenceInMonths(tripDate, today);
+        
         if (daysUntilTrip > 0) {
-          const monthsUntilTrip = Math.floor(daysUntilTrip / 30);
-          const weeksUntilTrip = Math.floor(daysUntilTrip / 7);
-          
-          // Calculate suggested monthly savings
           const remainingToSave = summary.totalAPagar;
+          
+          // Weekly savings calculation
+          const weeksUntilTrip = Math.floor(daysUntilTrip / 7);
+          const weeklySavingNeeded = weeksUntilTrip > 0 ? remainingToSave / weeksUntilTrip : remainingToSave;
+          
+          // Monthly savings calculation
           const monthlySavingNeeded = monthsUntilTrip > 0 ? remainingToSave / monthsUntilTrip : remainingToSave;
           
-          if (monthsUntilTrip > 0 && remainingToSave > 0) {
+          if (remainingToSave > 0 && monthsUntilTrip > 0) {
             result.push({
               type: 'tip',
-              icon: <Lightbulb className="h-5 w-5" />,
-              title: 'Sugestão de Economia',
-              description: `Economize ${formatCurrency(monthlySavingNeeded)} por mês para quitar tudo até a viagem em ${format(tripDate, "MMMM 'de' yyyy", { locale: ptBR })}`,
-              value: `${daysUntilTrip} dias`,
+              icon: <CalendarClock className="h-5 w-5" />,
+              title: `📅 ${daysUntilTrip} dias para a viagem`,
+              description: `Economize ${formatCurrency(monthlySavingNeeded)}/mês ou ${formatCurrency(weeklySavingNeeded)}/semana para quitar tudo até ${format(tripDate, "dd/MM/yyyy")}`,
+              value: `${monthsUntilTrip} meses`,
+              priority: 2,
+            });
+          }
+          
+          // Milestone alerts
+          if (daysUntilTrip === 30) {
+            result.push({
+              type: 'warning',
+              icon: <Flame className="h-5 w-5" />,
+              title: '🔥 Último mês antes da viagem!',
+              description: 'Falta apenas 1 mês! Hora de finalizar os preparativos.',
+              priority: 1,
+            });
+          } else if (daysUntilTrip <= 7) {
+            result.push({
+              type: 'warning',
+              icon: <Plane className="h-5 w-5" />,
+              title: '✈️ Viagem na próxima semana!',
+              description: 'Confira se tudo está pago e preparado para a viagem!',
+              priority: 0,
             });
           }
         }
@@ -221,48 +274,146 @@ export function SmartFinancialAssistant({
     const myrelleEntries = incomeEntries.filter(e => e.pessoa === 'Myrelle' && e.status === 'Entrada');
     const gabrielTotal = gabrielEntries.reduce((sum, e) => sum + e.valor, 0);
     const myrelleTotal = myrelleEntries.reduce((sum, e) => sum + e.valor, 0);
+    const ambosTotal = incomeEntries.filter(e => e.pessoa === 'Ambos' && e.status === 'Entrada').reduce((sum, e) => sum + e.valor, 0);
     
     if (gabrielTotal > 0 && myrelleTotal > 0) {
       const diff = Math.abs(gabrielTotal - myrelleTotal);
       const total = gabrielTotal + myrelleTotal;
       const diffPercent = (diff / total) * 100;
       
-      if (diffPercent > 30) {
-        const higher = gabrielTotal > myrelleTotal ? 'Gabriel' : 'Myrelle';
-        result.push({
-          type: 'info',
-          icon: <TrendingUp className="h-5 w-5" />,
-          title: 'Contribuição por Pessoa',
-          description: `${higher} contribuiu mais até agora. Diferença de ${formatCurrency(diff)}`,
-          value: `${diffPercent.toFixed(0)}% diferença`,
-        });
-      }
+      const gabrielPercent = (gabrielTotal / total) * 100;
+      const myrellePercent = (myrelleTotal / total) * 100;
+      
+      result.push({
+        type: 'info',
+        icon: <Users className="h-5 w-5" />,
+        title: '👥 Contribuição Individual',
+        description: `Gabriel: ${gabrielPercent.toFixed(0)}% (${formatCurrency(gabrielTotal)}) • Myrelle: ${myrellePercent.toFixed(0)}% (${formatCurrency(myrelleTotal)})`,
+        value: ambosTotal > 0 ? `+${formatCurrency(ambosTotal)} compartilhado` : undefined,
+        priority: 5,
+      });
     }
 
     // 10. Investment tracking
     const totalInvestments = investments.reduce((sum, i) => sum + i.valor, 0);
     if (totalInvestments > 0) {
+      const investmentPercent = ((totalInvestments / summary.totalEntradas) * 100).toFixed(0);
       result.push({
         type: 'success',
         icon: <PiggyBank className="h-5 w-5" />,
-        title: 'Reservas e Investimentos',
-        description: `Vocês têm reservas distribuídas em ${investments.length} categoria${investments.length > 1 ? 's' : ''}`,
+        title: '💰 Reservas e Investimentos',
+        description: `Vocês têm reservas em ${investments.length} categoria${investments.length > 1 ? 's' : ''}. Isso representa ${investmentPercent}% das entradas.`,
         value: formatCurrency(totalInvestments),
+        priority: 4,
       });
     }
 
-    // 11. Tips based on situation
+    // 11. Expense categories analysis
+    const categoriesWithBudget = expenseCategories.filter(c => c.metaOrcamento && c.metaOrcamento > 0);
+    const overBudgetCategories = categoriesWithBudget.filter(c => c.total > (c.metaOrcamento || 0));
+    if (overBudgetCategories.length > 0) {
+      const totalOverBudget = overBudgetCategories.reduce((sum, c) => sum + (c.total - (c.metaOrcamento || 0)), 0);
+      result.push({
+        type: 'warning',
+        icon: <BarChart3 className="h-5 w-5" />,
+        title: '📊 Orçamento Excedido',
+        description: `${overBudgetCategories.length} categoria${overBudgetCategories.length > 1 ? 's ultrapassaram' : ' ultrapassou'} o orçamento: ${overBudgetCategories.map(c => c.categoria).join(', ')}`,
+        value: `+${formatCurrency(totalOverBudget)}`,
+        priority: 2,
+      });
+    }
+
+    // 12. Large upcoming expenses alert
+    const largeExpenses = expenseCategories.filter(c => c.faltaPagar > 1000);
+    if (largeExpenses.length > 0) {
+      const largest = largeExpenses.reduce((max, c) => c.faltaPagar > max.faltaPagar ? c : max, largeExpenses[0]);
+      result.push({
+        type: 'info',
+        icon: <CreditCard className="h-5 w-5" />,
+        title: '💳 Despesas Significativas',
+        description: `${largeExpenses.length} despesa${largeExpenses.length > 1 ? 's' : ''} acima de R$ 1.000. Maior: ${largest.categoria || 'Sem nome'}`,
+        value: formatCurrency(largest.faltaPagar),
+        priority: 4,
+      });
+    }
+
+    // 13. Fully paid categories celebration
+    const fullyPaidCategories = expenseCategories.filter(c => c.total > 0 && c.faltaPagar === 0);
+    if (fullyPaidCategories.length > 0 && fullyPaidCategories.length >= 3) {
+      result.push({
+        type: 'success',
+        icon: <Star className="h-5 w-5" />,
+        title: '⭐ Categorias Quitadas!',
+        description: `${fullyPaidCategories.length} categorias 100% pagas: ${fullyPaidCategories.slice(0, 3).map(c => c.categoria).join(', ')}${fullyPaidCategories.length > 3 ? '...' : ''}`,
+        priority: 4,
+      });
+    }
+
+    // 14. Emergency fund recommendation
     if (result.filter(r => r.type === 'danger').length === 0 && summary.saldoFinalPrevisto > 1000) {
+      const emergencyFund = summary.saldoFinalPrevisto * 0.15;
       result.push({
         type: 'tip',
-        icon: <Lightbulb className="h-5 w-5" />,
-        title: 'Dica: Reserva de Emergência',
-        description: 'Considere manter 10-20% do saldo como reserva para imprevistos na viagem',
-        value: formatCurrency(summary.saldoFinalPrevisto * 0.15),
+        icon: <Shield className="h-5 w-5" />,
+        title: '🛡️ Reserva de Emergência',
+        description: 'Considere manter 15% do saldo como reserva para imprevistos na viagem',
+        value: formatCurrency(emergencyFund),
+        priority: 6,
       });
     }
 
-    return result;
+    // 15. No due dates warning
+    const categoriesWithoutDueDate = expenseCategories.filter(c => !c.vencimento && c.faltaPagar > 0);
+    if (categoriesWithoutDueDate.length > 3) {
+      result.push({
+        type: 'tip',
+        icon: <AlertCircle className="h-5 w-5" />,
+        title: '📝 Organize as Datas',
+        description: `${categoriesWithoutDueDate.length} despesas sem vencimento definido. Adicione datas para melhor controle!`,
+        priority: 5,
+      });
+    }
+
+    // 16. Cash flow projection
+    if (summary.totalAPagar > 0 && summary.saldoAtual > 0) {
+      const coverageRatio = (summary.saldoAtual / summary.totalAPagar) * 100;
+      if (coverageRatio >= 100) {
+        result.push({
+          type: 'success',
+          icon: <Wallet className="h-5 w-5" />,
+          title: '💵 Cobertura Total',
+          description: 'O saldo atual cobre 100% das despesas pendentes!',
+          value: `${coverageRatio.toFixed(0)}%`,
+          priority: 3,
+        });
+      } else if (coverageRatio >= 50) {
+        result.push({
+          type: 'info',
+          icon: <Wallet className="h-5 w-5" />,
+          title: '💵 Cobertura Parcial',
+          description: `O saldo atual cobre ${coverageRatio.toFixed(0)}% das despesas pendentes`,
+          value: formatCurrency(summary.saldoAtual),
+          priority: 4,
+        });
+      }
+    }
+
+    // 17. Pending future entries reminder
+    const pendingFutures = incomeEntries.filter(e => e.status === 'Futuros');
+    if (pendingFutures.length > 0) {
+      const totalPendingFutures = pendingFutures.reduce((sum, e) => sum + e.valor, 0);
+      result.push({
+        type: 'tip',
+        icon: <Clock className="h-5 w-5" />,
+        title: '⏳ Entradas Pendentes',
+        description: `${pendingFutures.length} entrada${pendingFutures.length > 1 ? 's' : ''} futura${pendingFutures.length > 1 ? 's' : ''} aguardando confirmação`,
+        value: formatCurrency(totalPendingFutures),
+        priority: 5,
+      });
+    }
+
+    // Sort by priority (lower number = higher priority)
+    return result.sort((a, b) => (a.priority || 5) - (b.priority || 5));
   }, [incomeEntries, expenseCategories, investments, summary, metaEntradas, targetDate, refreshKey]);
 
   const getTypeStyles = (type: Insight['type']) => {
@@ -282,6 +433,7 @@ export function SmartFinancialAssistant({
 
   const successCount = insights.filter(i => i.type === 'success').length;
   const warningCount = insights.filter(i => i.type === 'warning' || i.type === 'danger').length;
+  const tipCount = insights.filter(i => i.type === 'tip').length;
 
   return (
     <div className="financial-card overflow-hidden animate-fade-in">
@@ -302,15 +454,16 @@ export function SmartFinancialAssistant({
                 <Bot className="h-5 w-5 text-primary" />
                 <Sparkles className="h-3 w-3 text-yellow-500 absolute -top-1 -right-1" />
               </div>
-              Assistente Financeiro
+              Assistente Financeiro Inteligente
               <span className="text-xs font-normal bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full ml-2">
                 ∞ Sem limites
               </span>
             </h2>
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
+            <p className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
               {insights.length} insights • 
               <span className="text-emerald-600 dark:text-emerald-400">{successCount} positivos</span> • 
-              <span className="text-orange-600 dark:text-orange-400">{warningCount} alertas</span>
+              <span className="text-orange-600 dark:text-orange-400">{warningCount} alertas</span> •
+              <span className="text-purple-600 dark:text-purple-400">{tipCount} dicas</span>
             </p>
           </div>
           <Button
