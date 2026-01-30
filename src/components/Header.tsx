@@ -124,8 +124,7 @@ export function Header({
               <span className="text-muted-foreground">
 
             </span>
-              <span className="px-2 py-1 bg-ireland-orange-light text-ireland-orange rounded-md font-medium">
-            </span>
+              
             </div>
             
             {onDarkModeChange && <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />}
