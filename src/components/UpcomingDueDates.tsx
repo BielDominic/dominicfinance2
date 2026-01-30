@@ -7,9 +7,10 @@ import {
   Clock,
   CheckCircle2
 } from 'lucide-react';
-import { ExpenseCategory } from '@/types/financial';
+import { ExpenseCategory, Currency } from '@/types/financial';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import { PersonBadge } from './PersonBadge';
+import { formatCurrencyWithSymbol } from './CurrencySelect';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, isValid } from 'date-fns';
 
@@ -23,6 +24,7 @@ interface DueItem {
   faltaPagar: number;
   vencimento: string;
   pessoa: ExpenseCategory['pessoa'];
+  moeda: Currency;
   daysUntilDue: number;
   status: 'overdue' | 'urgent' | 'soon' | 'normal';
 }
@@ -53,6 +55,7 @@ export function UpcomingDueDates({ expenseCategories }: UpcomingDueDatesProps) {
           faltaPagar: c.faltaPagar,
           vencimento: c.vencimento!,
           pessoa: c.pessoa,
+          moeda: c.moeda || 'BRL',
           daysUntilDue,
           status,
         };
@@ -173,7 +176,7 @@ export function UpcomingDueDates({ expenseCategories }: UpcomingDueDatesProps) {
                   <PersonBadge person={item.pessoa} />
                   <div className="text-right">
                     <p className="font-mono font-bold text-lg">
-                      {formatCurrency(item.faltaPagar)}
+                      {formatCurrencyWithSymbol(item.faltaPagar, item.moeda)}
                     </p>
                     <p className={cn(
                       "text-xs font-medium",
