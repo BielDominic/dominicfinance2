@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import { IncomeEntry, ExpenseCategory, Investment, Person, EntryStatus } from '@/types/financial';
+import { IncomeEntry, ExpenseCategory, Investment, Person, EntryStatus, Currency } from '@/types/financial';
 import { formatDate, parseDateInput } from '@/utils/formatters';
 
 interface ImportExportDataProps {
@@ -147,6 +147,14 @@ export function ImportExportData({
         return 'Gabriel';
       };
 
+      // Helper to normalize currency
+      const normalizeCurrency = (value: any): Currency => {
+        const raw = safeParseString(value, '').toUpperCase().trim();
+        if (raw === 'EUR' || raw === '€') return 'EUR';
+        if (raw === 'USD' || raw === '$') return 'USD';
+        return 'BRL';
+      };
+
       // Helper to parse income entries from a sheet
       const parseIncomeSheet = (sheetName: string, status: EntryStatus) => {
         try {
@@ -171,6 +179,7 @@ export function ImportExportData({
                 status,
                 tags: [],
                 notas: null,
+                moeda: normalizeCurrency(row['Moeda']),
               };
               parsedIncome.push(entry);
             } catch (rowError) {
@@ -210,6 +219,7 @@ export function ImportExportData({
               vencimento: safeParseString(row['Vencimento']) || null,
               notas: safeParseString(row['Notas']) || null,
               pessoa: (safeParseString(row['Pessoa']) || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
+              moeda: normalizeCurrency(row['Moeda']),
             };
             parsedExpenses.push(expense);
           } catch (rowError) {
@@ -236,6 +246,7 @@ export function ImportExportData({
               id: isValidUuid ? uuid : `import-inv-${Date.now()}-${index}`,
               categoria: safeParseString(row['Categoria']),
               valor: safeParseNumber(row['Valor']),
+              moeda: normalizeCurrency(row['Moeda']),
             };
             parsedInvestments.push(investment);
           } catch (rowError) {

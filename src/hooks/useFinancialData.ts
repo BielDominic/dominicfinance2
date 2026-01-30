@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
+import { IncomeEntry, ExpenseCategory, Investment, Currency } from '@/types/financial';
 import { toast } from 'sonner';
 
 interface AppConfig {
@@ -77,6 +77,7 @@ export const useFinancialData = () => {
           status: e.status as 'Entrada' | 'Futuros',
           tags: (e as any).tags || [],
           notas: (e as any).notas || null,
+          moeda: ((e as any).moeda || 'BRL') as Currency,
         })));
       }
 
@@ -91,6 +92,7 @@ export const useFinancialData = () => {
           vencimento: (c as any).vencimento || null,
           notas: (c as any).notas || null,
           pessoa: ((c as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
+          moeda: ((c as any).moeda || 'BRL') as Currency,
         })));
       }
 
@@ -99,6 +101,7 @@ export const useFinancialData = () => {
           id: i.id,
           categoria: i.categoria,
           valor: Number(i.valor),
+          moeda: ((i as any).moeda || 'BRL') as Currency,
         })));
       }
 
@@ -216,6 +219,7 @@ export const useFinancialData = () => {
     if (updates.data !== undefined) dbUpdates.data = updates.data;
     if (updates.pessoa !== undefined) dbUpdates.pessoa = updates.pessoa;
     if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.moeda !== undefined) dbUpdates.moeda = updates.moeda;
 
     const { error } = await supabase.from('income_entries').update(dbUpdates).eq('id', id);
     if (error) console.error('Error updating income entry:', error);
@@ -244,6 +248,7 @@ export const useFinancialData = () => {
         status: data.status as 'Entrada' | 'Futuros',
         tags: (data as any).tags || [],
         notas: (data as any).notas || null,
+        moeda: ((data as any).moeda || 'BRL') as Currency,
       }, ...prev]);
     }
   }, []);
@@ -267,6 +272,7 @@ export const useFinancialData = () => {
     if (updates.vencimento !== undefined) dbUpdates.vencimento = updates.vencimento;
     if (updates.metaOrcamento !== undefined) dbUpdates.meta_orcamento = updates.metaOrcamento;
     if (updates.notas !== undefined) dbUpdates.notas = updates.notas;
+    if (updates.moeda !== undefined) dbUpdates.moeda = updates.moeda;
 
     const { error } = await supabase.from('expense_categories').update(dbUpdates).eq('id', id);
     if (error) console.error('Error updating expense category:', error);
@@ -296,6 +302,7 @@ export const useFinancialData = () => {
         vencimento: (data as any).vencimento || null,
         notas: (data as any).notas || null,
         pessoa: ((data as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
+        moeda: ((data as any).moeda || 'BRL') as Currency,
       }, ...prev]);
     }
   }, []);
@@ -313,6 +320,7 @@ export const useFinancialData = () => {
     const dbUpdates: Record<string, unknown> = {};
     if (updates.categoria !== undefined) dbUpdates.categoria = updates.categoria;
     if (updates.valor !== undefined) dbUpdates.valor = updates.valor;
+    if (updates.moeda !== undefined) dbUpdates.moeda = updates.moeda;
 
     const { error } = await supabase.from('investments').update(dbUpdates).eq('id', id);
     if (error) console.error('Error updating investment:', error);
@@ -333,6 +341,7 @@ export const useFinancialData = () => {
         id: data.id,
         categoria: data.categoria,
         valor: Number(data.valor),
+        moeda: ((data as any).moeda || 'BRL') as Currency,
       }, ...prev]);
     }
   }, []);
@@ -415,6 +424,7 @@ export const useFinancialData = () => {
               status: e.status as 'Entrada' | 'Futuros',
               tags: (e as any).tags || [],
               notas: (e as any).notas || null,
+              moeda: ((e as any).moeda || 'BRL') as Currency,
             }));
           }
         })();
@@ -441,6 +451,7 @@ export const useFinancialData = () => {
               vencimento: (c as any).vencimento || null,
               notas: (c as any).notas || null,
               pessoa: ((c as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
+              moeda: ((c as any).moeda || 'BRL') as Currency,
             }));
           }
         })();
@@ -459,6 +470,7 @@ export const useFinancialData = () => {
               id: i.id,
               categoria: i.categoria,
               valor: Number(i.valor),
+              moeda: ((i as any).moeda || 'BRL') as Currency,
             }));
           }
         })();

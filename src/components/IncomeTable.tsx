@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { ArrowUpDown, Plus, User, CalendarDays, Sparkles, Trash2, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
-import { IncomeEntry, Person, EntryStatus } from '@/types/financial';
+import { IncomeEntry, Person, EntryStatus, Currency } from '@/types/financial';
 import { formatCurrency, formatDate, parseCurrencyInput, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
 import { StatusBadge } from './StatusBadge';
 import { PersonBadge } from './PersonBadge';
+import { CurrencySelect, formatCurrencyWithSymbol } from './CurrencySelect';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -219,11 +220,16 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
               />
             )}
             <div className={cn(
-              'font-mono font-medium rounded px-2 py-1',
+              'font-mono font-medium rounded px-2 py-1 flex items-center gap-1',
               'bg-highlight-light text-highlight-foreground'
             )}>
+              <CurrencySelect
+                value={entry.moeda || 'BRL'}
+                onChange={(moeda) => onUpdateEntry(entry.id, { moeda })}
+                compact
+              />
               <EditableCell
-                value={formatCurrency(entry.valor)}
+                value={formatCurrencyWithSymbol(entry.valor, entry.moeda || 'BRL').replace(/^[R$€\$\s]+/, '')}
                 onChange={(v) => handleValueChange(entry.id, v)}
                 type="currency"
               />
@@ -347,11 +353,16 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
                   )}
                   <td className="p-3">
                     <div className={cn(
-                      'font-mono font-medium rounded px-2 py-1 inline-block',
+                      'font-mono font-medium rounded px-2 py-1 inline-flex items-center gap-1',
                       'bg-highlight-light text-highlight-foreground'
                     )}>
+                      <CurrencySelect
+                        value={entry.moeda || 'BRL'}
+                        onChange={(moeda) => onUpdateEntry(entry.id, { moeda })}
+                        compact
+                      />
                       <EditableCell
-                        value={formatCurrency(entry.valor)}
+                        value={formatCurrencyWithSymbol(entry.valor, entry.moeda || 'BRL').replace(/^[R$€\$\s]+/, '')}
                         onChange={(v) => handleValueChange(entry.id, v)}
                         type="currency"
                       />
