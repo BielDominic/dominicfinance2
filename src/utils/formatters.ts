@@ -81,9 +81,38 @@ export const formatDate = (dateString: string | number | null | undefined): stri
 };
 
 export const parseCurrencyInput = (value: string): number => {
-  const cleaned = value.replace(/[^\d,.-]/g, '').replace(',', '.');
-  const parsed = parseFloat(cleaned);
-  return isNaN(parsed) ? 0 : parsed;
+  // Remove currency symbols and text (R$, $, €, USD, EUR, BRL, etc.)
+  const cleaned = value
+    .replace(/[A-Za-z$€£¥₹₽₿]+/g, '') // Remove currency symbols and letters
+    .replace(/\s+/g, '') // Remove spaces
+    .trim();
+  
+  // Handle different decimal separators
+  // If has both . and ,: determine which is decimal separator
+  if (cleaned.includes('.') && cleaned.includes(',')) {
+    // Last separator is the decimal one
+    const lastDot = cleaned.lastIndexOf('.');
+    const lastComma = cleaned.lastIndexOf(',');
+    if (lastComma > lastDot) {
+      // Comma is decimal separator (Brazilian/European format: 1.234,56)
+      return parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) || 0;
+    } else {
+      // Dot is decimal separator (US format: 1,234.56)
+      return parseFloat(cleaned.replace(/,/g, '')) || 0;
+    }
+  } else if (cleaned.includes(',')) {
+    // Only comma: could be decimal or thousands separator
+    // If there are exactly 2 digits after comma, treat as decimal
+    const parts = cleaned.split(',');
+    if (parts.length === 2 && parts[1].length <= 2) {
+      return parseFloat(cleaned.replace(',', '.')) || 0;
+    }
+    // Otherwise treat as thousands separator
+    return parseFloat(cleaned.replace(/,/g, '')) || 0;
+  }
+  
+  // Only dots or no separators
+  return parseFloat(cleaned.replace(/,/g, '')) || 0;
 };
 
 export const parseDateInput = (value: string | number | null | undefined): string | null => {
