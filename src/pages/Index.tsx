@@ -13,9 +13,10 @@ import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { PasswordScreen } from '@/components/PasswordScreen';
 import { InvestmentsTable } from '@/components/InvestmentsTable';
 import { DayCounter } from '@/components/DayCounter';
+import { GlobalSearch } from '@/components/GlobalSearch';
+import { AIChatModal } from '@/components/AIChatModal';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
-import { Button } from '@/components/ui/button';
-import { Save, Check, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -132,7 +133,9 @@ const Index = () => {
       </div>;
   }
   return <div className="min-h-screen bg-background">
-      <Header onLogout={handleLogout} incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} metaEntradas={metaEntradas} onImportData={handleImportData} title={appConfig.headerTitle} subtitle={appConfig.headerSubtitle} onTitleChange={handleTitleChange} onSubtitleChange={handleSubtitleChange} darkMode={darkMode} onDarkModeChange={handleDarkModeChange} />
+      <Header onLogout={handleLogout} incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} metaEntradas={metaEntradas} onImportData={handleImportData} title={appConfig.headerTitle} subtitle={appConfig.headerSubtitle} onTitleChange={handleTitleChange} onSubtitleChange={handleSubtitleChange} darkMode={darkMode} onDarkModeChange={handleDarkModeChange}>
+        <GlobalSearch incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} />
+      </Header>
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Day Counter - Ireland Theme Section */}
@@ -196,17 +199,16 @@ const Index = () => {
         {/* Currency Converter */}
         <CurrencyConverter saldoFinal={summary.saldoFinalPrevisto} saldoFinalComFuturos={summary.saldoFinalComFuturos} saldoAtual={summary.saldoAtual} exchangeRate={appConfig.taxaCambio} onExchangeRateChange={handleTaxaCambioChange} spread={appConfig.spread} onSpreadChange={handleSpreadChange} />
 
-        {/* Sync Indicator - Fixed */}
+        {/* AI Assistant Chat - Fixed */}
         <div className="fixed bottom-6 right-6 z-50">
-          <Button size="lg" onClick={handleSaveData} disabled={isSaving} className="gap-2 shadow-lg bg-ireland-green hover:bg-ireland-green/90 text-white px-6">
-            {isSaving ? <>
-                <Check className="h-5 w-5" />
-                Sincronizado!
-              </> : <>
-                <Save className="h-5 w-5" />
-                Sincronizar
-              </>}
-          </Button>
+          <AIChatModal
+            incomeEntries={incomeEntries}
+            expenseCategories={expenseCategories}
+            investments={investments}
+            summary={summary}
+            metaEntradas={metaEntradas}
+            targetDate={appConfig.targetDate}
+          />
         </div>
 
         {/* Footer */}

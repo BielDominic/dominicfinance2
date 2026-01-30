@@ -23,6 +23,7 @@ interface HeaderProps {
   onSubtitleChange?: (subtitle: string) => void;
   darkMode?: boolean;
   onDarkModeChange?: (value: boolean) => void;
+  children?: React.ReactNode;
 }
 export function Header({
   onLogout,
@@ -36,7 +37,8 @@ export function Header({
   onTitleChange,
   onSubtitleChange,
   darkMode = false,
-  onDarkModeChange
+  onDarkModeChange,
+  children
 }: HeaderProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
@@ -126,6 +128,8 @@ export function Header({
             </span>
               
             </div>
+            
+            {children}
             
             {onDarkModeChange && <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />}
             
