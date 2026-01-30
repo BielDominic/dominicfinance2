@@ -121,9 +121,7 @@ export function Header({
           </div>
           
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {/* Children (GlobalSearch) always visible */}
-            <div className="flex items-center">{children}</div>
-            
+            {/* Children (GlobalSearch) */}
             {children}
             
             {onDarkModeChange && <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />}
