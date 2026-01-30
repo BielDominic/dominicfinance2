@@ -120,13 +120,12 @@ export function Header({
           
           <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="px-2 py-1 bg-income-light text-income rounded-md font-medium">
-                Gabriel
-              </span>
-              <span className="text-muted-foreground">&</span>
+              
+              <span className="text-muted-foreground">
+
+            </span>
               <span className="px-2 py-1 bg-ireland-orange-light text-ireland-orange rounded-md font-medium">
-                Myrelle
-              </span>
+            </span>
             </div>
             
             {onDarkModeChange && <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />}
