@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { ExpenseCategory } from '@/types/financial';
+import { ExpenseCategory, Currency } from '@/types/financial';
 import { formatCurrency } from '@/utils/formatters';
+import { formatCurrencyWithSymbol } from './CurrencySelect';
 import { PieChart as PieChartIcon, BarChart3, ChevronDown, ChevronUp, CalendarDays, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -87,6 +88,7 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
       total: cat.total,
       pago: cat.pago,
       falta: cat.faltaPagar,
+      moeda: cat.moeda || 'BRL',
       color: COLORS[index % COLORS.length],
     }));
 
@@ -120,13 +122,14 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const moeda = data.moeda || 'BRL';
       return (
         <div className="bg-popover border border-border rounded-lg shadow-lg p-3 text-sm">
           <p className="font-semibold text-foreground">{data.name}</p>
           <div className="mt-1 space-y-1 text-muted-foreground">
-            <p>Total: <span className="font-mono text-foreground">{formatCurrency(data.total)}</span></p>
-            <p>Pago: <span className="font-mono text-income">{formatCurrency(data.pago)}</span></p>
-            <p>Falta: <span className="font-mono text-expense">{formatCurrency(data.falta)}</span></p>
+            <p>Total: <span className="font-mono text-foreground">{formatCurrencyWithSymbol(data.total, moeda)}</span></p>
+            <p>Pago: <span className="font-mono text-income">{formatCurrencyWithSymbol(data.pago, moeda)}</span></p>
+            <p>Falta: <span className="font-mono text-expense">{formatCurrencyWithSymbol(data.falta, moeda)}</span></p>
           </div>
         </div>
       );

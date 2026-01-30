@@ -460,7 +460,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
               ))}
               {displayCategories.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-8 text-center text-muted-foreground">
                     Nenhuma categoria encontrada
                   </td>
                 </tr>
@@ -469,6 +469,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
             <tfoot>
               <tr className="bg-muted/50 font-semibold">
                 <td className="p-3">Total</td>
+                <td className="p-3"></td>
                 <td className="p-3 text-right font-mono">{formatCurrency(totals.total)}</td>
                 <td className="p-3 text-right font-mono text-income">{formatCurrency(totals.pago)}</td>
                 <td className="p-3 text-right font-mono text-expense">{formatCurrency(totals.faltaPagar)}</td>

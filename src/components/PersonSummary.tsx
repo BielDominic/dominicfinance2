@@ -8,8 +8,9 @@ import {
   ChevronUp,
   User
 } from 'lucide-react';
-import { IncomeEntry, ExpenseCategory, Person } from '@/types/financial';
+import { IncomeEntry, ExpenseCategory, Person, Currency } from '@/types/financial';
 import { formatCurrency } from '@/utils/formatters';
+import { formatCurrencyWithSymbol } from './CurrencySelect';
 
 interface PersonSummaryProps {
   incomeEntries: IncomeEntry[];
