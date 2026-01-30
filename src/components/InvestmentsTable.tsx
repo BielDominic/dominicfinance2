@@ -3,7 +3,8 @@ import { PiggyBank, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency, parseCurrencyInput } from '@/utils/formatters';
-import { Investment } from '@/types/financial';
+import { Investment, Currency } from '@/types/financial';
+import { CurrencySelect, formatCurrencyWithSymbol } from './CurrencySelect';
 import {
   Table,
   TableBody,
@@ -101,8 +102,9 @@ export function InvestmentsTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[60%]">Categoria / Local</TableHead>
-                <TableHead className="text-right">Valor (R$)</TableHead>
+                <TableHead className="w-[50%]">Categoria / Local</TableHead>
+                <TableHead className="w-[80px]">Moeda</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -128,6 +130,13 @@ export function InvestmentsTable({
                       </span>
                     )}
                   </TableCell>
+                  <TableCell>
+                    <CurrencySelect
+                      value={investment.moeda || 'BRL'}
+                      onChange={(moeda) => onUpdateInvestment(investment.id, { moeda })}
+                      compact
+                    />
+                  </TableCell>
                   <TableCell className="text-right">
                     {editingCell?.id === investment.id && editingCell?.field === 'valor' ? (
                       <Input
@@ -143,7 +152,7 @@ export function InvestmentsTable({
                         onClick={() => handleStartEdit(investment.id, 'valor', investment.valor)}
                         className="cursor-pointer hover:bg-muted px-2 py-1 rounded font-mono font-semibold text-ireland-green"
                       >
-                        {formatCurrency(investment.valor)}
+                        {formatCurrencyWithSymbol(investment.valor, investment.moeda || 'BRL')}
                       </span>
                     )}
                   </TableCell>
@@ -161,7 +170,7 @@ export function InvestmentsTable({
               ))}
               {investments.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                     Nenhuma aplicação cadastrada. Clique em "Adicionar" para começar.
                   </TableCell>
                 </TableRow>

@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays, X, User } from 'lucide-react';
-import { ExpenseCategory, Person } from '@/types/financial';
+import { ExpenseCategory, Person, Currency } from '@/types/financial';
 import { formatCurrency, parseCurrencyInput, formatDate, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
 import { ProgressBar } from './ProgressBar';
 import { PersonBadge } from './PersonBadge';
+import { CurrencySelect, formatCurrencyWithSymbol } from './CurrencySelect';
 import { Button } from '@/components/ui/button';
 import { PeriodFilter, PeriodFilterValue, filterExpensesByPeriod } from '@/components/PeriodFilter';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -187,9 +188,14 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
       <div className="grid grid-cols-3 gap-2 mb-3 text-sm">
         <div>
           <p className="text-muted-foreground text-xs mb-1">Total</p>
-          <div className="font-mono">
+          <div className="font-mono flex items-center gap-1">
+            <CurrencySelect
+              value={category.moeda || 'BRL'}
+              onChange={(moeda) => onUpdateCategory(category.id, { moeda })}
+              compact
+            />
             <EditableCell
-              value={formatCurrency(category.total)}
+              value={formatCurrencyWithSymbol(category.total, category.moeda || 'BRL').replace(/^[R$€\$\s]+/, '')}
               onChange={(v) => handleValueChange(category.id, 'total', v)}
               type="currency"
             />
@@ -199,7 +205,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
           <p className="text-muted-foreground text-xs mb-1">Pago</p>
           <div className="font-mono text-income">
             <EditableCell
-              value={formatCurrency(category.pago)}
+              value={formatCurrencyWithSymbol(category.pago, category.moeda || 'BRL').replace(/^[R$€\$\s]+/, '')}
               onChange={(v) => handleValueChange(category.id, 'pago', v)}
               type="currency"
             />
@@ -211,7 +217,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
             "font-mono font-semibold",
             category.faltaPagar > 0 ? 'text-expense' : 'text-income'
           )}>
-            {formatCurrency(category.faltaPagar)}
+            {formatCurrencyWithSymbol(category.faltaPagar, category.moeda || 'BRL')}
           </p>
         </div>
       </div>
@@ -364,9 +370,10 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
             <thead>
               <tr className="table-header">
                 <th className="text-left p-3">Categoria</th>
-                <th className="text-right p-3 whitespace-nowrap">Total (R$)</th>
-                <th className="text-right p-3 whitespace-nowrap">Pago (R$)</th>
-                <th className="text-right p-3 whitespace-nowrap">Falta (R$)</th>
+                <th className="text-left p-3 whitespace-nowrap">Moeda</th>
+                <th className="text-right p-3 whitespace-nowrap">Total</th>
+                <th className="text-right p-3 whitespace-nowrap">Pago</th>
+                <th className="text-right p-3 whitespace-nowrap">Falta</th>
                 <th className="text-left p-3 whitespace-nowrap">Vencimento</th>
                 <th className="text-left p-3">Pessoa</th>
                 <th className="text-left p-3 w-32">Progresso</th>
@@ -389,9 +396,16 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                       placeholder="Nome da categoria..."
                     />
                   </td>
+                  <td className="p-3">
+                    <CurrencySelect
+                      value={category.moeda || 'BRL'}
+                      onChange={(moeda) => onUpdateCategory(category.id, { moeda })}
+                      compact
+                    />
+                  </td>
                   <td className="p-3 text-right font-mono">
                     <EditableCell
-                      value={formatCurrency(category.total)}
+                      value={formatCurrencyWithSymbol(category.total, category.moeda || 'BRL').replace(/^[R$€\$\s]+/, '')}
                       onChange={(v) => handleValueChange(category.id, 'total', v)}
                       type="currency"
                       className="text-right"
@@ -400,7 +414,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                   <td className="p-3 text-right font-mono">
                     <span className="text-income">
                       <EditableCell
-                        value={formatCurrency(category.pago)}
+                        value={formatCurrencyWithSymbol(category.pago, category.moeda || 'BRL').replace(/^[R$€\$\s]+/, '')}
                         onChange={(v) => handleValueChange(category.id, 'pago', v)}
                         type="currency"
                         className="text-right"
@@ -411,7 +425,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                     <span className={cn(
                       category.faltaPagar > 0 ? 'text-expense font-semibold' : 'text-income'
                     )}>
-                      {formatCurrency(category.faltaPagar)}
+                      {formatCurrencyWithSymbol(category.faltaPagar, category.moeda || 'BRL')}
                     </span>
                   </td>
                   <td className="p-3 font-mono text-sm">

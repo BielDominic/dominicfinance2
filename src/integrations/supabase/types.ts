@@ -69,6 +69,7 @@ export type Database = {
           falta_pagar: number
           id: string
           meta_orcamento: number | null
+          moeda: string | null
           notas: string | null
           pago: number
           pessoa: string | null
@@ -82,6 +83,7 @@ export type Database = {
           falta_pagar?: number
           id?: string
           meta_orcamento?: number | null
+          moeda?: string | null
           notas?: string | null
           pago?: number
           pessoa?: string | null
@@ -95,6 +97,7 @@ export type Database = {
           falta_pagar?: number
           id?: string
           meta_orcamento?: number | null
+          moeda?: string | null
           notas?: string | null
           pago?: number
           pessoa?: string | null
@@ -110,6 +113,7 @@ export type Database = {
           data: string
           descricao: string
           id: string
+          moeda: string | null
           notas: string | null
           pessoa: string
           status: string
@@ -122,6 +126,7 @@ export type Database = {
           data?: string
           descricao?: string
           id?: string
+          moeda?: string | null
           notas?: string | null
           pessoa?: string
           status?: string
@@ -134,6 +139,7 @@ export type Database = {
           data?: string
           descricao?: string
           id?: string
+          moeda?: string | null
           notas?: string | null
           pessoa?: string
           status?: string
@@ -148,6 +154,7 @@ export type Database = {
           categoria: string
           created_at: string
           id: string
+          moeda: string | null
           updated_at: string
           valor: number
         }
@@ -155,6 +162,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           id?: string
+          moeda?: string | null
           updated_at?: string
           valor?: number
         }
@@ -162,6 +170,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           id?: string
+          moeda?: string | null
           updated_at?: string
           valor?: number
         }
