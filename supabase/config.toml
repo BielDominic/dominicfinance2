@@ -1,7 +1,1 @@
-project_id = "yrvznsbxgdqqbomtornc"
-
-[functions.financial-assistant]
-verify_jwt = false
-
-[functions.ai-chat]
-verify_jwt = false
+project_id = "hvklqihptowwuoibbvqb"
