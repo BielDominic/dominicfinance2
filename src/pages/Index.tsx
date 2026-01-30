@@ -17,7 +17,6 @@ import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Button } from '@/components/ui/button';
 import { Save, Check, Loader2 } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
-
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem('financial-auth') === 'true';
@@ -27,7 +26,6 @@ const Index = () => {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('financial-dark-mode') === 'true';
   });
-
   const {
     incomeEntries,
     expenseCategories,
@@ -53,7 +51,7 @@ const Index = () => {
     handleTaxaCambioChange,
     handleSpreadChange,
     handleTargetDateChange,
-    handleCounterTitleChange,
+    handleCounterTitleChange
   } = useFinancialData();
 
   // Handle dark mode change (local only)
@@ -73,12 +71,14 @@ const Index = () => {
 
   // Calculate totals from income entries (only confirmed entries, not "Futuros")
   const calculatedTotals = useMemo(() => {
-    const totalEntradas = incomeEntries
-      .filter(e => e.status === 'Entrada')
-      .reduce((sum, e) => sum + e.valor, 0);
+    const totalEntradas = incomeEntries.filter(e => e.status === 'Entrada').reduce((sum, e) => sum + e.valor, 0);
     const totalSaidas = expenseCategories.reduce((sum, c) => sum + c.total, 0);
     const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
-    return { totalEntradas, totalSaidas, totalPago };
+    return {
+      totalEntradas,
+      totalSaidas,
+      totalPago
+    };
   }, [incomeEntries, expenseCategories]);
 
   // Apply dark mode on change (local per user)
@@ -89,17 +89,12 @@ const Index = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
-  
+
   // Taxa efetiva com spread
   const taxaEfetiva = appConfig.taxaCambio * (1 + appConfig.spread / 100);
-  
   const summary: FinancialSummaryType = useMemo(() => {
-    const totalEntradas = incomeEntries
-      .filter(e => e.status === 'Entrada')
-      .reduce((sum, e) => sum + e.valor, 0);
-    const totalFuturos = incomeEntries
-      .filter(e => e.status === 'Futuros')
-      .reduce((sum, e) => sum + e.valor, 0);
+    const totalEntradas = incomeEntries.filter(e => e.status === 'Entrada').reduce((sum, e) => sum + e.valor, 0);
+    const totalFuturos = incomeEntries.filter(e => e.status === 'Futuros').reduce((sum, e) => sum + e.valor, 0);
     const totalSaidas = expenseCategories.reduce((sum, c) => sum + c.total, 0);
     const totalPago = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
     const totalAPagar = totalSaidas - totalPago;
@@ -107,7 +102,6 @@ const Index = () => {
     const saldoFinalComFuturos = totalEntradas + totalFuturos - totalSaidas;
     const saldoAtual = totalEntradas - totalPago;
     const saldoAposCambioEUR = saldoFinalPrevisto / taxaEfetiva;
-
     return {
       totalEntradas,
       totalSaidas,
@@ -119,46 +113,26 @@ const Index = () => {
       saldoFinalComFuturos,
       saldoAtual,
       saldoAposCambioEUR,
-      taxaCambio: taxaEfetiva,
+      taxaCambio: taxaEfetiva
     };
   }, [incomeEntries, expenseCategories, taxaEfetiva]);
-
   const handleLogout = useCallback(() => {
     sessionStorage.removeItem('financial-auth');
     setIsAuthenticated(false);
   }, []);
-
   if (!isAuthenticated) {
     return <PasswordScreen onSuccess={() => setIsAuthenticated(true)} />;
   }
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-ireland-green mx-auto" />
           <p className="text-muted-foreground">Carregando dados...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
-      <Header 
-        onLogout={handleLogout}
-        incomeEntries={incomeEntries}
-        expenseCategories={expenseCategories}
-        investments={investments}
-        metaEntradas={metaEntradas}
-        onImportData={handleImportData}
-        title={appConfig.headerTitle}
-        subtitle={appConfig.headerSubtitle}
-        onTitleChange={handleTitleChange}
-        onSubtitleChange={handleSubtitleChange}
-        darkMode={darkMode}
-        onDarkModeChange={handleDarkModeChange}
-      />
+  return <div className="min-h-screen bg-background">
+      <Header onLogout={handleLogout} incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} metaEntradas={metaEntradas} onImportData={handleImportData} title={appConfig.headerTitle} subtitle={appConfig.headerSubtitle} onTitleChange={handleTitleChange} onSubtitleChange={handleSubtitleChange} darkMode={darkMode} onDarkModeChange={handleDarkModeChange} />
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Day Counter - Ireland Theme Section */}
@@ -184,12 +158,7 @@ const Index = () => {
               <div className="w-3 h-3 rounded-full bg-ireland-orange" />
             </div>
             
-            <DayCounter 
-              targetDate={appConfig.targetDate}
-              onDateChange={handleTargetDateChange}
-              title={appConfig.counterTitle}
-              onTitleChange={handleCounterTitleChange}
-            />
+            <DayCounter targetDate={appConfig.targetDate} onDateChange={handleTargetDateChange} title={appConfig.counterTitle} onTitleChange={handleCounterTitleChange} />
           </div>
         </div>
 
@@ -197,30 +166,13 @@ const Index = () => {
         <UpcomingDueDates expenseCategories={expenseCategories} />
 
         {/* Global Progress Bar */}
-        <GlobalProgressBar 
-          totalEntradas={calculatedTotals.totalEntradas}
-          totalSaidas={calculatedTotals.totalSaidas}
-          totalPago={calculatedTotals.totalPago}
-          totalFuturos={summary.totalFuturos}
-          metaEntradas={metaEntradas}
-          onMetaChange={handleMetaChange}
-        />
+        <GlobalProgressBar totalEntradas={calculatedTotals.totalEntradas} totalSaidas={calculatedTotals.totalSaidas} totalPago={calculatedTotals.totalPago} totalFuturos={summary.totalFuturos} metaEntradas={metaEntradas} onMetaChange={handleMetaChange} />
 
         {/* Income and Expenses - Stacked Layout */}
         <div className="space-y-6">
-          <IncomeTable
-            entries={incomeEntries}
-            onUpdateEntry={handleUpdateIncomeEntry}
-            onAddEntry={handleAddIncomeEntry}
-            onDeleteEntry={handleDeleteIncomeEntry}
-          />
+          <IncomeTable entries={incomeEntries} onUpdateEntry={handleUpdateIncomeEntry} onAddEntry={handleAddIncomeEntry} onDeleteEntry={handleDeleteIncomeEntry} />
           
-          <ExpenseTable
-            categories={expenseCategories}
-            onUpdateCategory={handleUpdateExpenseCategory}
-            onAddCategory={handleAddExpenseCategory}
-            onDeleteCategory={handleDeleteExpenseCategory}
-          />
+          <ExpenseTable categories={expenseCategories} onUpdateCategory={handleUpdateExpenseCategory} onAddCategory={handleAddExpenseCategory} onDeleteCategory={handleDeleteExpenseCategory} />
         </div>
 
         {/* Expense Charts */}
@@ -230,12 +182,7 @@ const Index = () => {
         <EvolutionChart incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
 
         {/* Investments Section */}
-        <InvestmentsTable
-          investments={investments}
-          onUpdateInvestment={handleUpdateInvestment}
-          onAddInvestment={handleAddInvestment}
-          onDeleteInvestment={handleDeleteInvestment}
-        />
+        <InvestmentsTable investments={investments} onUpdateInvestment={handleUpdateInvestment} onAddInvestment={handleAddInvestment} onDeleteInvestment={handleDeleteInvestment} />
 
         {/* Person Summary */}
         <PersonSummary incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
@@ -244,60 +191,32 @@ const Index = () => {
         <FinancialSummary summary={summary} />
 
         {/* Smart Financial Assistant (No limits) */}
-        <SmartFinancialAssistant 
-          incomeEntries={incomeEntries}
-          expenseCategories={expenseCategories}
-          investments={investments}
-          summary={summary}
-          metaEntradas={metaEntradas}
-          targetDate={appConfig.targetDate}
-        />
+        <SmartFinancialAssistant incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} summary={summary} metaEntradas={metaEntradas} targetDate={appConfig.targetDate} />
 
         {/* Currency Converter */}
-        <CurrencyConverter 
-          saldoFinal={summary.saldoFinalPrevisto}
-          saldoFinalComFuturos={summary.saldoFinalComFuturos}
-          saldoAtual={summary.saldoAtual}
-          exchangeRate={appConfig.taxaCambio}
-          onExchangeRateChange={handleTaxaCambioChange}
-          spread={appConfig.spread}
-          onSpreadChange={handleSpreadChange}
-        />
+        <CurrencyConverter saldoFinal={summary.saldoFinalPrevisto} saldoFinalComFuturos={summary.saldoFinalComFuturos} saldoAtual={summary.saldoAtual} exchangeRate={appConfig.taxaCambio} onExchangeRateChange={handleTaxaCambioChange} spread={appConfig.spread} onSpreadChange={handleSpreadChange} />
 
         {/* Sync Indicator - Fixed */}
         <div className="fixed bottom-6 right-6 z-50">
-          <Button
-            size="lg"
-            onClick={handleSaveData}
-            disabled={isSaving}
-            className="gap-2 shadow-lg bg-ireland-green hover:bg-ireland-green/90 text-white px-6"
-          >
-            {isSaving ? (
-              <>
+          <Button size="lg" onClick={handleSaveData} disabled={isSaving} className="gap-2 shadow-lg bg-ireland-green hover:bg-ireland-green/90 text-white px-6">
+            {isSaving ? <>
                 <Check className="h-5 w-5" />
                 Sincronizado!
-              </>
-            ) : (
-              <>
+              </> : <>
                 <Save className="h-5 w-5" />
                 Sincronizar
-              </>
-            )}
+              </>}
           </Button>
         </div>
 
         {/* Footer */}
         <footer className="text-center py-6 text-sm text-muted-foreground">
-          <p>
-            🇮🇪 Planejamento Financeiro • Viagem Irlanda 2025/2026 • Gabriel & Myrelle
-          </p>
+          <p>Domic Planejamento Financeiro - Developed by Gabriel Carvalho</p>
           <p className="mt-1 text-xs">
             Todos os valores são editáveis • Alterações sincronizam automaticamente
           </p>
         </footer>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
