@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { ImportExportData } from '@/components/ImportExportData';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
-
 interface HeaderProps {
   onLogout?: () => void;
   incomeEntries?: IncomeEntry[];
@@ -25,8 +24,7 @@ interface HeaderProps {
   darkMode?: boolean;
   onDarkModeChange?: (value: boolean) => void;
 }
-
-export function Header({ 
+export function Header({
   onLogout,
   incomeEntries = [],
   expenseCategories = [],
@@ -38,7 +36,7 @@ export function Header({
   onTitleChange,
   onSubtitleChange,
   darkMode = false,
-  onDarkModeChange,
+  onDarkModeChange
 }: HeaderProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
@@ -49,38 +47,30 @@ export function Header({
   useEffect(() => {
     setTitleInput(title);
   }, [title]);
-
   useEffect(() => {
     setSubtitleInput(subtitle);
   }, [subtitle]);
-
   const handleLogout = () => {
     localStorage.removeItem('financial-auth');
     onLogout?.();
   };
-
   const handleSaveTitle = () => {
     onTitleChange?.(titleInput);
     setIsEditingTitle(false);
   };
-
   const handleSaveSubtitle = () => {
     onSubtitleChange?.(subtitleInput);
     setIsEditingSubtitle(false);
   };
-
   const handleCancelTitle = () => {
     setTitleInput(title);
     setIsEditingTitle(false);
   };
-
   const handleCancelSubtitle = () => {
     setSubtitleInput(subtitle);
     setIsEditingSubtitle(false);
   };
-
-  return (
-    <header className="bg-card border-b border-border sticky top-0 z-50">
+  return <header className="bg-card border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -89,68 +79,42 @@ export function Header({
             </div>
             <div className="min-w-0 flex-1">
               {/* Editable Title */}
-              {isEditingTitle ? (
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <Input
-                    value={titleInput}
-                    onChange={(e) => setTitleInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveTitle();
-                      if (e.key === 'Escape') handleCancelTitle();
-                    }}
-                    className="h-7 sm:h-8 text-sm sm:text-lg font-bold w-full max-w-[200px] sm:max-w-[280px]"
-                    autoFocus
-                  />
+              {isEditingTitle ? <div className="flex items-center gap-1 sm:gap-2">
+                  <Input value={titleInput} onChange={e => setTitleInput(e.target.value)} onKeyDown={e => {
+                if (e.key === 'Enter') handleSaveTitle();
+                if (e.key === 'Escape') handleCancelTitle();
+              }} className="h-7 sm:h-8 text-sm sm:text-lg font-bold w-full max-w-[200px] sm:max-w-[280px]" autoFocus />
                   <Button size="icon" variant="ghost" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" onClick={handleSaveTitle}>
                     <Check className="h-3 w-3 sm:h-4 sm:w-4 text-income" />
                   </Button>
                   <Button size="icon" variant="ghost" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" onClick={handleCancelTitle}>
                     <X className="h-3 w-3 sm:h-4 sm:w-4 text-expense" />
                   </Button>
-                </div>
-              ) : (
-                <h1 
-                  className="text-sm sm:text-xl font-bold tracking-tight flex items-center gap-1 sm:gap-2 group cursor-pointer flex-wrap"
-                  onClick={() => setIsEditingTitle(true)}
-                >
+                </div> : <h1 className="text-sm sm:text-xl font-bold tracking-tight flex items-center gap-1 sm:gap-2 group cursor-pointer flex-wrap" onClick={() => setIsEditingTitle(true)}>
                   <span className="truncate max-w-[120px] sm:max-w-none">{title}</span>
                   <Pencil className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                   <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-ireland-orange-light text-ireland-orange rounded-full font-medium whitespace-nowrap flex-shrink-0">
-                    🇮🇪 Irlanda
+                    Irlanda
                   </span>
-                </h1>
-              )}
+                </h1>}
               
               {/* Editable Subtitle */}
-              {isEditingSubtitle ? (
-                <div className="flex items-center gap-1 sm:gap-2 mt-1">
-                  <Input
-                    value={subtitleInput}
-                    onChange={(e) => setSubtitleInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSaveSubtitle();
-                      if (e.key === 'Escape') handleCancelSubtitle();
-                    }}
-                    className="h-6 sm:h-7 text-xs sm:text-sm w-full max-w-[150px] sm:max-w-[200px]"
-                    autoFocus
-                  />
+              {isEditingSubtitle ? <div className="flex items-center gap-1 sm:gap-2 mt-1">
+                  <Input value={subtitleInput} onChange={e => setSubtitleInput(e.target.value)} onKeyDown={e => {
+                if (e.key === 'Enter') handleSaveSubtitle();
+                if (e.key === 'Escape') handleCancelSubtitle();
+              }} className="h-6 sm:h-7 text-xs sm:text-sm w-full max-w-[150px] sm:max-w-[200px]" autoFocus />
                   <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" onClick={handleSaveSubtitle}>
                     <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-income" />
                   </Button>
                   <Button size="icon" variant="ghost" className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" onClick={handleCancelSubtitle}>
                     <X className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-expense" />
                   </Button>
-                </div>
-              ) : (
-                <p 
-                  className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 group cursor-pointer"
-                  onClick={() => setIsEditingSubtitle(true)}
-                >
+                </div> : <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 group cursor-pointer" onClick={() => setIsEditingSubtitle(true)}>
                   <Plane className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
                   <span className="truncate">{subtitle}</span>
                   <Pencil className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                </p>
-              )}
+                </p>}
             </div>
           </div>
           
@@ -165,34 +129,16 @@ export function Header({
               </span>
             </div>
             
-            {onDarkModeChange && (
-              <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />
-            )}
+            {onDarkModeChange && <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />}
             
-            {onImportData && (
-              <ImportExportData
-                incomeEntries={incomeEntries}
-                expenseCategories={expenseCategories}
-                investments={investments}
-                metaEntradas={metaEntradas}
-                onImportData={onImportData}
-              />
-            )}
+            {onImportData && <ImportExportData incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} metaEntradas={metaEntradas} onImportData={onImportData} />}
             
-            {onLogout && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleLogout}
-                className="gap-1 sm:gap-2 text-muted-foreground hover:text-expense h-8 px-2 sm:px-3"
-              >
+            {onLogout && <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1 sm:gap-2 text-muted-foreground hover:text-expense h-8 px-2 sm:px-3">
                 <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Sair</span>
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 }
