@@ -116,8 +116,8 @@ export function GlobalSearch({ incomeEntries, expenseCategories, investments }: 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-          <Search className="h-5 w-5" />
+        <Button variant="outline" size="icon" className="h-9 w-9 border-primary/30 hover:border-primary hover:bg-primary/10">
+          <Search className="h-5 w-5 text-primary" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] p-0 gap-0">

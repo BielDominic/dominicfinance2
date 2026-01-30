@@ -120,14 +120,9 @@ export function Header({
             </div>
           </div>
           
-          <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
-            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-              
-              <span className="text-muted-foreground">
-
-            </span>
-              
-            </div>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* Children (GlobalSearch) always visible */}
+            <div className="flex items-center">{children}</div>
             
             {children}
             
