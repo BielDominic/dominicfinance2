@@ -4,6 +4,10 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+@import url("https://fonts.googleapis.com/css2?family=Inter&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap");
+
 @layer base {
   :root {
     --background: 145 20% 97%;
@@ -34,7 +38,7 @@
     --input: 145 15% 88%;
     --ring: 145 63% 32%;
 
-    --radius: 0.75rem;
+    --radius: 1.5rem;
 
     /* Irish flag colors */
     --ireland-green: 145 63% 32%;
@@ -67,6 +71,10 @@
     --sidebar-accent-foreground: 145 25% 10%;
     --sidebar-border: 145 15% 91%;
     --sidebar-ring: 145 63% 32%;
+    --shadow-sm: 0px 1px 1.5px 0px hsla(215, 20%, 65%, 0.03);
+    --shadow: 0px 1px 3px 0px hsla(215, 20%, 65%, 0.03);
+    --shadow-md: 0px 1px 4.5px 0px hsla(215, 20%, 65%, 0.03);
+    --shadow-lg: 0px 1px 7.5px 0px hsla(215, 20%, 65%, 0.03);
   }
 
   .dark {
@@ -122,6 +130,11 @@
     --sidebar-accent-foreground: 220 15% 90%;
     --sidebar-border: 220 20% 18%;
     --sidebar-ring: 217 91% 60%;
+    --shadow-sm: 0px 1px 1.5px 0px hsla(215, 20%, 65%, 0.03);
+    --shadow: 0px 1px 3px 0px hsla(215, 20%, 65%, 0.03);
+    --shadow-md: 0px 1px 4.5px 0px hsla(215, 20%, 65%, 0.03);
+    --shadow-lg: 0px 1px 7.5px 0px hsla(215, 20%, 65%, 0.03);
+    --radius: 1.5rem;
   }
 }
 
