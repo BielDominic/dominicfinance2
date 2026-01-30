@@ -211,10 +211,8 @@ const Index = () => {
 
         {/* Footer */}
         <footer className="text-center py-6 text-sm text-muted-foreground">
-          <p>Dominic Planejamento Financeiro - Developed by Gabriel Carvalho</p>
-          <p className="mt-1 text-xs">
-            Todos os valores são editáveis • Alterações sincronizam automaticamente
-          </p>
+          <p>Dominic Planejamento Financeiro - Developed by Gabriel Carvalho </p>
+          
         </footer>
       </main>
     </div>;
