@@ -339,100 +339,100 @@ export function UserDetailModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-hidden p-3 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-2 ring-primary/20">
+            <DialogTitle className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-2 ring-primary/20 flex-shrink-0">
                 {user.avatar_url ? (
                   <img src={user.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
                 ) : (
-                  <User className="h-7 w-7 text-primary" />
+                  <User className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 )}
               </div>
-              <div className="flex-1">
-                <p className="text-xl font-bold">{user.display_name || user.username}</p>
-                <p className="text-sm text-muted-foreground font-normal">@{user.username}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-base sm:text-xl font-bold truncate">{user.display_name || user.username}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground font-normal truncate">@{user.username}</p>
               </div>
-              <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="ml-auto text-sm px-3 py-1">
-                {user.role === 'admin' ? '👑 Admin' : '👤 Usuário'}
+              <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className="ml-auto text-[10px] sm:text-sm px-2 sm:px-3 py-0.5 sm:py-1 flex-shrink-0">
+                {user.role === 'admin' ? '👑' : '👤'}<span className="hidden sm:inline ml-1">{user.role === 'admin' ? 'Admin' : 'Usuário'}</span>
               </Badge>
             </DialogTitle>
           </DialogHeader>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="flex items-center justify-center py-8 sm:py-12">
+              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <Tabs defaultValue="info" className="mt-4">
-              <TabsList className="grid grid-cols-4 w-full">
-                <TabsTrigger value="info" className="gap-1">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Informações</span>
+            <Tabs defaultValue="info" className="mt-3 sm:mt-4">
+              <TabsList className="grid grid-cols-4 w-full h-8 sm:h-10">
+                <TabsTrigger value="info" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
+                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Info</span>
                 </TabsTrigger>
-                <TabsTrigger value="permissions" className="gap-1">
-                  <Shield className="h-4 w-4" />
+                <TabsTrigger value="permissions" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Permissões</span>
                 </TabsTrigger>
-                <TabsTrigger value="activity" className="gap-1">
-                  <Activity className="h-4 w-4" />
+                <TabsTrigger value="activity" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
+                  <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Atividade</span>
                 </TabsTrigger>
-                <TabsTrigger value="stats" className="gap-1">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="hidden sm:inline">Estatísticas</span>
+                <TabsTrigger value="stats" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Stats</span>
                 </TabsTrigger>
               </TabsList>
 
               {/* Info Tab - EXPANDED */}
-              <TabsContent value="info" className="mt-4">
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-4">
+              <TabsContent value="info" className="mt-3 sm:mt-4">
+                <ScrollArea className="h-[350px] sm:h-[400px] pr-2 sm:pr-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* Basic Info */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <Card className="border-muted">
-                        <CardContent className="p-4 space-y-1">
-                          <p className="text-xs text-muted-foreground flex items-center gap-2">
-                            <User className="h-3 w-3" /> Nome de Usuário
+                        <CardContent className="p-2.5 sm:p-4 space-y-0.5 sm:space-y-1">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 sm:gap-2">
+                            <User className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Usuário
                           </p>
-                          <p className="font-semibold">{user.username}</p>
+                          <p className="font-semibold text-xs sm:text-base truncate">{user.username}</p>
                         </CardContent>
                       </Card>
                       <Card className="border-muted">
-                        <CardContent className="p-4 space-y-1">
-                          <p className="text-xs text-muted-foreground flex items-center gap-2">
-                            <User className="h-3 w-3" /> Nome de Exibição
+                        <CardContent className="p-2.5 sm:p-4 space-y-0.5 sm:space-y-1">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 sm:gap-2">
+                            <User className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Exibição
                           </p>
-                          <p className="font-semibold">{user.display_name || '—'}</p>
+                          <p className="font-semibold text-xs sm:text-base truncate">{user.display_name || '—'}</p>
                         </CardContent>
                       </Card>
                     </div>
 
                     {/* Personal Info */}
                     <Card className="border-muted">
-                      <CardContent className="p-4 space-y-1">
-                        <p className="text-xs text-muted-foreground flex items-center gap-2">
-                          <UserCircle className="h-3 w-3" /> Nome Completo
+                      <CardContent className="p-2.5 sm:p-4 space-y-0.5 sm:space-y-1">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 sm:gap-2">
+                          <UserCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Nome Completo
                         </p>
-                        <p className="font-semibold">{user.full_name || '—'}</p>
+                        <p className="font-semibold text-xs sm:text-base">{user.full_name || '—'}</p>
                       </CardContent>
                     </Card>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <Card className="border-muted">
-                        <CardContent className="p-4 space-y-1">
-                          <p className="text-xs text-muted-foreground flex items-center gap-2">
-                            <Phone className="h-3 w-3" /> Telefone
+                        <CardContent className="p-2.5 sm:p-4 space-y-0.5 sm:space-y-1">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 sm:gap-2">
+                            <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Telefone
                           </p>
-                          <p className="font-semibold">{user.phone || '—'}</p>
+                          <p className="font-semibold text-xs sm:text-base truncate">{user.phone || '—'}</p>
                         </CardContent>
                       </Card>
                       <Card className="border-muted">
-                        <CardContent className="p-4 space-y-1">
-                          <p className="text-xs text-muted-foreground flex items-center gap-2">
-                            <MapPin className="h-3 w-3" /> Cidade
+                        <CardContent className="p-2.5 sm:p-4 space-y-0.5 sm:space-y-1">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 sm:gap-2">
+                            <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Cidade
                           </p>
-                          <p className="font-semibold">{user.city || '—'}</p>
+                          <p className="font-semibold text-xs sm:text-base truncate">{user.city || '—'}</p>
                         </CardContent>
                       </Card>
                     </div>
