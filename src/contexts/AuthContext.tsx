@@ -130,27 +130,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign in with username and password
   const signIn = useCallback(async (username: string, password: string) => {
     try {
-      // Find profile by username to get the associated email
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_id, email')
-        .eq('username', username.toLowerCase())
-        .single();
+      const normalizedUsername = username.toLowerCase().trim();
 
-      if (profileError || !profileData) {
-        return { error: new Error('Usuário não encontrado') };
+      // Lookup email via backend function (avoids RLS issues pre-auth)
+      const { data: lookupData, error: lookupError } = await supabase.functions.invoke('username-email-lookup', {
+        body: { username: normalizedUsername },
+      });
+
+      if (lookupError || !lookupData?.email) {
+        // Do not reveal whether username exists
+        return { error: new Error('Credenciais inválidas') };
       }
 
-      // Use the email stored in profile, or fallback to legacy format
-      const email = (profileData as any).email || `${username.toLowerCase()}@dominic.app`;
+      const email = String(lookupData.email);
       
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        return { error: new Error('Senha incorreta') };
+        return { error: new Error('Credenciais inválidas') };
       }
 
       return { error: null };
