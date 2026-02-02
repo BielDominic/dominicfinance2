@@ -11,6 +11,9 @@ export interface Profile {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  full_name: string | null;
+  phone: string | null;
+  city: string | null;
 }
 
 export interface UserPermission {
@@ -28,7 +31,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   signIn: (username: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (username: string, email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
+  signUp: (username: string, email: string, password: string, displayName?: string, fullName?: string, phone?: string, city?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasPermission: (sectionKey: string, action: 'view' | 'edit') => boolean;
   refreshPermissions: () => Promise<void>;
@@ -161,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Sign up with username, email and password
-  const signUp = useCallback(async (username: string, email: string, password: string, displayName?: string) => {
+  const signUp = useCallback(async (username: string, email: string, password: string, displayName?: string, fullName?: string, phone?: string, city?: string) => {
     try {
       // Check if username is already taken
       const { data: existingProfile } = await supabase
@@ -185,6 +188,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             username: username.toLowerCase(),
             display_name: displayName || username,
+            full_name: fullName,
+            phone: phone,
+            city: city,
           },
         },
       });
@@ -197,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        // Create profile with email
+        // Create profile with email and additional fields
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -205,6 +211,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             username: username.toLowerCase(),
             display_name: displayName || username,
             email: email.toLowerCase(),
+            full_name: fullName || null,
+            phone: phone || null,
+            city: city || null,
           });
 
         if (profileError) {
