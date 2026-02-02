@@ -24,6 +24,7 @@ export function EvolutionChart({ incomeEntries, expenseCategories }: EvolutionCh
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
   const totalExpenses = expenseCategories.reduce((sum, c) => sum + c.total, 0);
+  const totalPaid = expenseCategories.reduce((sum, c) => sum + c.pago, 0);
   
   const chartData = useMemo(() => {
     // Get all dates from income entries
@@ -94,6 +95,9 @@ export function EvolutionChart({ incomeEntries, expenseCategories }: EvolutionCh
       });
     }
     
+    // Calculate cumulative expenses paid up to each month
+    let cumulativeExpenses = 0;
+    
     return months.map(monthDate => {
       const monthStart = startOfMonth(monthDate);
       const monthEnd = endOfMonth(monthDate);
@@ -118,17 +122,25 @@ export function EvolutionChart({ incomeEntries, expenseCategories }: EvolutionCh
       
       cumulativeIncome += monthIncome;
       
+      // Distribute expenses evenly across past months for visualization
+      const totalMonths = months.filter(m => m <= new Date()).length;
+      const monthIndex = months.indexOf(monthDate) + 1;
       const isFuture = monthDate > new Date();
+      
+      if (!isFuture && totalMonths > 0) {
+        cumulativeExpenses = (totalPaid / totalMonths) * monthIndex;
+      }
       
       return {
         month: format(monthDate, 'MMM yy', { locale: ptBR }),
         entradas: monthIncome,
         acumulado: cumulativeIncome,
+        gastos: cumulativeExpenses,
         saldo: cumulativeIncome - totalExpenses,
         isFuture,
       };
     });
-  }, [incomeEntries, totalExpenses, dateFilter, customRange]);
+  }, [incomeEntries, totalExpenses, totalPaid, dateFilter, customRange]);
   
   const currentBalance = chartData.length > 0 
     ? chartData.filter(d => !(d as any).isFuture).slice(-1)[0]?.saldo ?? 0
@@ -149,6 +161,9 @@ export function EvolutionChart({ incomeEntries, expenseCategories }: EvolutionCh
             </p>
             <p className="text-muted-foreground">
               Acumulado: {formatCurrency(payload[0]?.payload?.acumulado ?? 0)}
+            </p>
+            <p className="text-expense">
+              Gastos: {formatCurrency(payload[0]?.payload?.gastos ?? 0)}
             </p>
             <p className={cn(
               'font-semibold',
@@ -315,6 +330,10 @@ export function EvolutionChart({ incomeEntries, expenseCategories }: EvolutionCh
                     <stop offset="5%" stopColor="hsl(var(--future))" stopOpacity={0.3}/>
                     <stop offset="95%" stopColor="hsl(var(--future))" stopOpacity={0}/>
                   </linearGradient>
+                  <linearGradient id="colorGastos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--expense))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--expense))" stopOpacity={0}/>
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis 
@@ -345,6 +364,15 @@ export function EvolutionChart({ incomeEntries, expenseCategories }: EvolutionCh
                 />
                 <Area
                   type="monotone"
+                  dataKey="gastos"
+                  stroke="hsl(var(--expense))"
+                  fillOpacity={1}
+                  fill="url(#colorGastos)"
+                  strokeWidth={2}
+                  name="Gastos"
+                />
+                <Area
+                  type="monotone"
                   dataKey="saldo"
                   stroke="hsl(var(--income))"
                   fillOpacity={1}
@@ -361,6 +389,10 @@ export function EvolutionChart({ incomeEntries, expenseCategories }: EvolutionCh
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-future" />
               <span className="text-muted-foreground text-xs sm:text-sm">Entradas Acumuladas</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-expense" />
+              <span className="text-muted-foreground text-xs sm:text-sm">Gastos Acumulados</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-income" />

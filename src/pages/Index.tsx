@@ -18,7 +18,8 @@ import { FinancialSnapshots } from '@/components/FinancialSnapshots';
 import { DecisionVault } from '@/components/DecisionVault';
 import { SmartAlerts } from '@/components/SmartAlerts';
 import { DecisionSimulator } from '@/components/DecisionSimulator';
-import { ReadOnlyProvider, ReadOnlyToggle, useReadOnly } from '@/components/ReadOnlyToggle';
+import { ReadOnlyProvider, useReadOnly } from '@/components/ReadOnlyToggle';
+import { CurrencyFilterProvider } from '@/contexts/CurrencyFilterContext';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Loader2 } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
@@ -138,7 +139,6 @@ const IndexContent = () => {
   return <div className="min-h-screen bg-background">
       <Header onLogout={handleLogout} incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} metaEntradas={metaEntradas} onImportData={handleImportData} title={appConfig.headerTitle} subtitle={appConfig.headerSubtitle} onTitleChange={handleTitleChange} onSubtitleChange={handleSubtitleChange} darkMode={darkMode} onDarkModeChange={handleDarkModeChange}>
         <GlobalSearch incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} />
-        <ReadOnlyToggle />
       </Header>
       
       <main className="container mx-auto px-4 py-6 space-y-6">
@@ -238,7 +238,9 @@ const IndexContent = () => {
 const Index = () => {
   return (
     <ReadOnlyProvider>
-      <IndexContent />
+      <CurrencyFilterProvider>
+        <IndexContent />
+      </CurrencyFilterProvider>
     </ReadOnlyProvider>
   );
 };
