@@ -10,7 +10,6 @@ import { PersonSummary } from '@/components/PersonSummary';
 import { UpcomingDueDates } from '@/components/UpcomingDueDates';
 import { SmartFinancialAssistant } from '@/components/SmartFinancialAssistant';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
-import { PasswordScreen } from '@/components/PasswordScreen';
 import { InvestmentsTable } from '@/components/InvestmentsTable';
 import { DayCounter } from '@/components/DayCounter';
 import { GlobalSearch } from '@/components/GlobalSearch';
@@ -18,11 +17,11 @@ import { AIChatModal } from '@/components/AIChatModal';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Loader2 } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
-const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('financial-auth') === 'true';
-  });
+import { useAuth } from '@/contexts/AuthContext';
 
+const Index = () => {
+  const { signOut, profile } = useAuth();
+  
   // Dark mode is local per user (not synchronized)
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('financial-dark-mode') === 'true';
@@ -117,13 +116,11 @@ const Index = () => {
       taxaCambio: taxaEfetiva
     };
   }, [incomeEntries, expenseCategories, taxaEfetiva]);
-  const handleLogout = useCallback(() => {
-    sessionStorage.removeItem('financial-auth');
-    setIsAuthenticated(false);
-  }, []);
-  if (!isAuthenticated) {
-    return <PasswordScreen onSuccess={() => setIsAuthenticated(true)} />;
-  }
+  
+  const handleLogout = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
+  
   if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">

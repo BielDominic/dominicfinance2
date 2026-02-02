@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ImportExportData } from '@/components/ImportExportData';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AdminButton } from '@/components/AdminButton';
+import { useAuth } from '@/contexts/AuthContext';
 import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
 interface HeaderProps {
   onLogout?: () => void;
@@ -123,6 +125,9 @@ export function Header({
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {/* Children (GlobalSearch) */}
             {children}
+            
+            {/* Admin Button - only visible to admins */}
+            <AdminButton />
             
             {onDarkModeChange && <ThemeToggle darkMode={darkMode} onToggle={onDarkModeChange} />}
             

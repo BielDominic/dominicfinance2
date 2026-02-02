@@ -204,10 +204,10 @@ export function AIChatModal({
   };
 
   const quickPrompts = [
-    "Analise minha situação financeira atual",
-    "Quais gastos posso reduzir?",
-    "Como economizar para a viagem?",
+    "Analise minha situação financeira",
+    "Simule: e se eu pagasse tudo hoje?",
     "Quais contas vencem em breve?",
+    "Quanto falta para minha meta?",
   ];
 
   return (
@@ -215,22 +215,22 @@ export function AIChatModal({
       <DialogTrigger asChild>
         <Button 
           size="lg" 
-          className="gap-2 shadow-lg bg-gradient-to-r from-ireland-green to-ireland-green/80 hover:from-ireland-green/90 hover:to-ireland-green/70 text-white px-6"
+          className="gap-2 shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground px-6"
         >
           <Sparkles className="h-5 w-5" />
-          Assistente IA
+          Dominic
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] h-[80vh] max-h-[700px] p-0 flex flex-col gap-0">
-        <DialogHeader className="p-4 border-b bg-gradient-to-r from-ireland-green/10 to-ireland-orange/10">
+        <DialogHeader className="p-4 border-b bg-gradient-to-r from-primary/10 to-ireland-orange/10">
           <DialogTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-full bg-ireland-green/20">
-              <Bot className="h-5 w-5 text-ireland-green" />
+            <div className="p-2 rounded-full bg-primary/20">
+              <Bot className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <span className="text-lg">Assistente Financeiro IA</span>
+              <span className="text-lg">Dominic</span>
               <p className="text-xs text-muted-foreground font-normal">
-                Powered by Lovable AI • Gemini Flash
+                Seu Assistente Financeiro Inteligente
               </p>
             </div>
           </DialogTitle>
@@ -239,13 +239,13 @@ export function AIChatModal({
         <ScrollArea ref={scrollRef} className="flex-1 p-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-6 py-8">
-              <div className="p-4 rounded-full bg-ireland-green/10">
-                <Sparkles className="h-12 w-12 text-ireland-green" />
+              <div className="p-4 rounded-full bg-primary/10">
+                <Sparkles className="h-12 w-12 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="font-semibold text-lg">Olá! Sou seu assistente financeiro</h3>
+                <h3 className="font-semibold text-lg">Olá! Sou o Dominic 👋</h3>
                 <p className="text-sm text-muted-foreground max-w-sm">
-                  Posso analisar seus gastos, sugerir economias e ajudar no planejamento da sua viagem para a Irlanda.
+                  Seu assistente financeiro pessoal. Posso analisar seus dados, identificar padrões, simular cenários e ajudar no planejamento da sua viagem.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
@@ -273,14 +273,14 @@ export function AIChatModal({
                   className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {msg.role === 'assistant' && (
-                    <div className="flex-shrink-0 p-2 rounded-full bg-ireland-green/20 h-fit">
-                      <Bot className="h-4 w-4 text-ireland-green" />
+                    <div className="flex-shrink-0 p-2 rounded-full bg-primary/20 h-fit">
+                      <Bot className="h-4 w-4 text-primary" />
                     </div>
                   )}
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                       msg.role === 'user'
-                        ? 'bg-ireland-green text-white rounded-br-sm'
+                        ? 'bg-primary text-primary-foreground rounded-br-sm'
                         : 'bg-muted rounded-bl-sm'
                     }`}
                   >
@@ -301,8 +301,8 @@ export function AIChatModal({
               ))}
               {isLoading && messages[messages.length - 1]?.role === 'user' && (
                 <div className="flex gap-3 justify-start">
-                  <div className="flex-shrink-0 p-2 rounded-full bg-ireland-green/20 h-fit">
-                    <Bot className="h-4 w-4 text-ireland-green" />
+                  <div className="flex-shrink-0 p-2 rounded-full bg-primary/20 h-fit">
+                    <Bot className="h-4 w-4 text-primary" />
                   </div>
                   <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -337,7 +337,7 @@ export function AIChatModal({
             <Button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="bg-ireland-green hover:bg-ireland-green/90 px-4"
+              className="px-4"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
