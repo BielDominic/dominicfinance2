@@ -1,1 +1,7 @@
 project_id = "eaojxaphkmxgerobxkcc"
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.financial-assistant]
+verify_jwt = false
