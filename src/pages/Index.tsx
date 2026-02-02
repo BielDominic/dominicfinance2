@@ -20,6 +20,7 @@ import { DecisionVault } from '@/components/DecisionVault';
 import { SmartAlerts } from '@/components/SmartAlerts';
 import { DecisionSimulator } from '@/components/DecisionSimulator';
 import { PeopleManager } from '@/components/PeopleManager';
+import { SupportButton } from '@/components/SupportButton';
 import { ReadOnlyProvider, useReadOnly } from '@/components/ReadOnlyToggle';
 import { CurrencyFilterProvider } from '@/contexts/CurrencyFilterContext';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
@@ -257,6 +258,9 @@ const IndexContent = () => {
             targetDate={appConfig.targetDate}
           />
         </div>
+
+        {/* Support Button - Fixed Left */}
+        <SupportButton />
 
         {/* Footer */}
         <footer className="text-center py-6 text-sm text-muted-foreground">
