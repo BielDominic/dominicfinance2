@@ -62,6 +62,7 @@ const SECTIONS = [
   { key: 'assistente', label: 'Assistente IA' },
   { key: 'conversor', label: 'Conversor de Moedas' },
   { key: 'graficos', label: 'Gráficos' },
+  { key: 'decisoes', label: 'Decisões' },
 ];
 
 export default function Admin() {
@@ -147,6 +148,34 @@ export default function Admin() {
       setAuditLogs(logsWithUsernames);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
+    }
+  };
+
+  // Toggle user role (admin/user)
+  const toggleUserRole = async (userId: string, newRole: 'admin' | 'user') => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: newRole })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Log the action
+      await supabase.from('audit_logs').insert({
+        user_id: user?.id,
+        action: 'UPDATE_ROLE',
+        table_name: 'user_roles',
+        record_id: userId,
+        old_values: { role: newRole === 'admin' ? 'user' : 'admin' },
+        new_values: { role: newRole },
+      });
+
+      toast.success(`Usuário ${newRole === 'admin' ? 'promovido a admin' : 'rebaixado para usuário'}`);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error toggling role:', error);
+      toast.error('Erro ao alterar papel do usuário');
     }
   };
 
@@ -337,10 +366,30 @@ export default function Admin() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setSelectedUser(u)}
-                                disabled={u.role === 'admin'}
+                                disabled={u.role === 'admin' && u.id !== user?.id}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
+                              {u.role !== 'admin' ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => toggleUserRole(u.id, 'admin')}
+                                  className="text-xs"
+                                >
+                                  <Shield className="h-3 w-3 mr-1" />
+                                  Tornar Admin
+                                </Button>
+                              ) : u.id !== user?.id && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => toggleUserRole(u.id, 'user')}
+                                  className="text-xs text-muted-foreground"
+                                >
+                                  Remover Admin
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
