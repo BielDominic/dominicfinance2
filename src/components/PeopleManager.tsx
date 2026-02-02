@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 export interface DashboardPerson {
@@ -33,7 +32,6 @@ const COLORS = [
 ];
 
 export function PeopleManager({ onPeopleChange }: PeopleManagerProps) {
-  const { isAdmin } = useAuth();
   const [people, setPeople] = useState<DashboardPerson[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -152,13 +150,12 @@ export function PeopleManager({ onPeopleChange }: PeopleManagerProps) {
             </p>
 
             {/* Add Person Form */}
-            {isAdmin && (
-              <div className="space-y-3">
-                {!isAdding ? (
-                  <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Adicionar Pessoa
-                  </Button>
+            <div className="space-y-3">
+              {!isAdding ? (
+                <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar Pessoa
+                </Button>
                 ) : (
                   <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                     <Input
@@ -192,10 +189,9 @@ export function PeopleManager({ onPeopleChange }: PeopleManagerProps) {
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                )}
               </div>
             )}
+          </div>
 
             {/* People List */}
             {isLoading ? (
@@ -225,7 +221,7 @@ export function PeopleManager({ onPeopleChange }: PeopleManagerProps) {
                       )}
                     </div>
 
-                    {isAdmin && person.name !== 'Ambos' && (
+                    {person.name !== 'Ambos' && (
                       <Button
                         variant="ghost"
                         size="icon"
