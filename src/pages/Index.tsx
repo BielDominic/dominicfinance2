@@ -18,6 +18,7 @@ import { FinancialSnapshots } from '@/components/FinancialSnapshots';
 import { DecisionVault } from '@/components/DecisionVault';
 import { SmartAlerts } from '@/components/SmartAlerts';
 import { DecisionSimulator } from '@/components/DecisionSimulator';
+import { PeopleManager } from '@/components/PeopleManager';
 import { ReadOnlyProvider, useReadOnly } from '@/components/ReadOnlyToggle';
 import { CurrencyFilterProvider } from '@/contexts/CurrencyFilterContext';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
@@ -210,6 +211,9 @@ const IndexContent = () => {
 
         {/* Decision Vault */}
         <DecisionVault />
+
+        {/* People Manager */}
+        <PeopleManager />
 
         {/* Currency Converter */}
         <CurrencyConverter saldoFinal={summary.saldoFinalPrevisto} saldoFinalComFuturos={summary.saldoFinalComFuturos} saldoAtual={summary.saldoAtual} exchangeRate={appConfig.taxaCambio} onExchangeRateChange={handleTaxaCambioChange} spread={appConfig.spread} onSpreadChange={handleSpreadChange} />
