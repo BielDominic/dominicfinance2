@@ -12,6 +12,7 @@ import { SmartFinancialAssistant } from '@/components/SmartFinancialAssistant';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { InvestmentsTable } from '@/components/InvestmentsTable';
 import { DayCounter } from '@/components/DayCounter';
+import { DayCounterSettings, getBackgroundClasses } from '@/components/DayCounterSettings';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { AIChatModal } from '@/components/AIChatModal';
 import { FinancialSnapshots } from '@/components/FinancialSnapshots';
@@ -25,6 +26,7 @@ import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Loader2 } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 const IndexContent = () => {
   const { signOut, profile } = useAuth();
@@ -59,7 +61,8 @@ const IndexContent = () => {
     handleTaxaCambioChange,
     handleSpreadChange,
     handleTargetDateChange,
-    handleCounterTitleChange
+    handleCounterTitleChange,
+    handleCounterBackgroundChange
   } = useFinancialData();
 
   // Handle dark mode change (local only)
@@ -145,28 +148,40 @@ const IndexContent = () => {
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Smart Alerts - Always on top */}
         <SmartAlerts expenseCategories={expenseCategories} incomeEntries={incomeEntries} summary={summary} />
-        {/* Day Counter - Ireland Theme Section */}
-        <div className="relative overflow-hidden rounded-xl border-2 border-ireland-green/30 bg-gradient-to-r from-ireland-green/5 via-white/50 to-ireland-orange/5 dark:from-ireland-green/10 dark:via-card dark:to-ireland-orange/10">
-          {/* Decorative elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-12 -left-12 w-32 h-32 rounded-full bg-ireland-green/10 blur-2xl" />
-            <div className="absolute -bottom-12 -right-12 w-32 h-32 rounded-full bg-ireland-orange/10 blur-2xl" />
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-ireland-green via-white to-ireland-orange" />
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-ireland-green via-white to-ireland-orange" />
-          </div>
+        {/* Day Counter - Customizable Theme Section */}
+        <div className={cn(
+          "relative overflow-hidden rounded-xl border-2 border-primary/20",
+          getBackgroundClasses(appConfig.counterBackground)
+        )}>
+          {/* Decorative elements - only for ireland theme */}
+          {appConfig.counterBackground === 'ireland' && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-12 -left-12 w-32 h-32 rounded-full bg-ireland-green/10 blur-2xl" />
+              <div className="absolute -bottom-12 -right-12 w-32 h-32 rounded-full bg-ireland-orange/10 blur-2xl" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-ireland-green via-white to-ireland-orange" />
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-ireland-green via-white to-ireland-orange" />
+            </div>
+          )}
           
           <div className="relative flex flex-col items-center justify-center p-6 sm:p-8">
-            {/* Irish flag decorative corners */}
-            <div className="absolute top-3 left-3 flex gap-1">
-              <div className="w-3 h-3 rounded-full bg-ireland-green" />
-              <div className="w-3 h-3 rounded-full bg-white border border-border" />
-              <div className="w-3 h-3 rounded-full bg-ireland-orange" />
+            {/* Settings button - top right */}
+            <div className="absolute top-3 right-3">
+              <DayCounterSettings 
+                currentBackground={appConfig.counterBackground}
+                onBackgroundChange={handleCounterBackgroundChange}
+              />
             </div>
-            <div className="absolute top-3 right-3 flex gap-1">
-              <div className="w-3 h-3 rounded-full bg-ireland-green" />
-              <div className="w-3 h-3 rounded-full bg-white border border-border" />
-              <div className="w-3 h-3 rounded-full bg-ireland-orange" />
-            </div>
+
+            {/* Irish flag decorative corners - only for ireland theme */}
+            {appConfig.counterBackground === 'ireland' && (
+              <>
+                <div className="absolute top-3 left-3 flex gap-1">
+                  <div className="w-3 h-3 rounded-full bg-ireland-green" />
+                  <div className="w-3 h-3 rounded-full bg-white border border-border" />
+                  <div className="w-3 h-3 rounded-full bg-ireland-orange" />
+                </div>
+              </>
+            )}
             
             <DayCounter targetDate={appConfig.targetDate} onDateChange={handleTargetDateChange} title={appConfig.counterTitle} onTitleChange={handleCounterTitleChange} />
           </div>

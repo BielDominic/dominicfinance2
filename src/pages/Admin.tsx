@@ -60,6 +60,7 @@ export default function Admin() {
   const [isLoading, setIsLoading] = useState(true);
   const [userToDelete, setUserToDelete] = useState<UserWithProfile | null>(null);
   const [userToView, setUserToView] = useState<UserWithProfile | null>(null);
+  const [showDeleteAllLogsConfirm, setShowDeleteAllLogsConfirm] = useState(false);
 
   // Check if already verified in this session
   useEffect(() => {
@@ -405,10 +406,25 @@ export default function Admin() {
           <TabsContent value="audit">
             <Card>
               <CardHeader>
-                <CardTitle>Logs de Auditoria</CardTitle>
-                <CardDescription>
-                  Histórico completo de ações no sistema
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Logs de Auditoria</CardTitle>
+                    <CardDescription>
+                      Histórico completo de ações no sistema ({auditLogs.length} registros)
+                    </CardDescription>
+                  </div>
+                  {auditLogs.length > 0 && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowDeleteAllLogsConfirm(true)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Limpar Todos
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[500px]">
@@ -479,6 +495,27 @@ export default function Admin() {
         cancelText="Cancelar"
         variant="destructive"
         onConfirm={() => userToDelete && deleteUser(userToDelete)}
+      />
+
+      {/* Delete All Logs Confirmation */}
+      <ConfirmDialog
+        open={showDeleteAllLogsConfirm}
+        onOpenChange={setShowDeleteAllLogsConfirm}
+        title="Limpar Todos os Logs"
+        description={`Tem certeza que deseja remover todos os ${auditLogs.length} logs de auditoria? Esta ação não pode ser desfeita.`}
+        confirmText="Limpar Todos"
+        cancelText="Cancelar"
+        variant="destructive"
+        onConfirm={async () => {
+          try {
+            await supabase.from('audit_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            toast.success('Todos os logs foram removidos');
+            setShowDeleteAllLogsConfirm(false);
+            fetchAuditLogs();
+          } catch (error) {
+            toast.error('Erro ao remover logs');
+          }
+        }}
       />
     </div>
   );

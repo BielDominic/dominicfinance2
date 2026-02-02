@@ -147,6 +147,7 @@ export function AIChatModal({
       const decoder = new TextDecoder();
       let assistantContent = '';
       let textBuffer = '';
+      let toolCalls: any[] = [];
 
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
@@ -170,9 +171,11 @@ export function AIChatModal({
           
           try {
             const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantContent += content;
+            const delta = parsed.choices?.[0]?.delta;
+            
+            // Handle text content
+            if (delta?.content) {
+              assistantContent += delta.content;
               setMessages(prev => {
                 const updated = [...prev];
                 if (updated[updated.length - 1]?.role === 'assistant') {
@@ -181,10 +184,71 @@ export function AIChatModal({
                 return updated;
               });
             }
+            
+            // Handle tool calls
+            if (delta?.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                if (tc.index !== undefined) {
+                  if (!toolCalls[tc.index]) {
+                    toolCalls[tc.index] = { id: tc.id, function: { name: '', arguments: '' } };
+                  }
+                  if (tc.function?.name) {
+                    toolCalls[tc.index].function.name = tc.function.name;
+                  }
+                  if (tc.function?.arguments) {
+                    toolCalls[tc.index].function.arguments += tc.function.arguments;
+                  }
+                }
+              }
+            }
           } catch {
             // Incomplete JSON, put back and wait for more data
             textBuffer = line + '\n' + textBuffer;
             break;
+          }
+        }
+      }
+
+      // Process tool calls if any
+      if (toolCalls.length > 0) {
+        for (const tc of toolCalls) {
+          if (tc?.function?.name && tc?.function?.arguments) {
+            try {
+              const toolArgs = JSON.parse(tc.function.arguments);
+              
+              // Execute the tool call
+              const toolResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                },
+                body: JSON.stringify({
+                  executeToolCall: {
+                    toolName: tc.function.name,
+                    toolArgs,
+                  },
+                }),
+              });
+
+              const result = await toolResponse.json();
+              
+              // Append tool result to the message
+              const resultMessage = result.success 
+                ? `\n\n✅ **${result.message}**` 
+                : `\n\n❌ **${result.message}**`;
+              
+              assistantContent += resultMessage;
+              setMessages(prev => {
+                const updated = [...prev];
+                if (updated[updated.length - 1]?.role === 'assistant') {
+                  updated[updated.length - 1] = { role: 'assistant', content: assistantContent };
+                }
+                return updated;
+              });
+            } catch (toolError) {
+              console.error('Tool call error:', toolError);
+            }
           }
         }
       }
