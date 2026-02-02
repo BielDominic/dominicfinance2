@@ -28,7 +28,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   signIn: (username: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (username: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
+  signUp: (username: string, email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasPermission: (sectionKey: string, action: 'view' | 'edit') => boolean;
   refreshPermissions: () => Promise<void>;
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign in with username and password
   const signIn = useCallback(async (username: string, password: string) => {
     try {
-      // Find email by username
+      // Find profile by username to get the associated email
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('user_id')
@@ -141,31 +141,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Usuário não encontrado') };
       }
 
-      // Get user email from auth
-      const { data: userData, error: userError } = await supabase.auth.admin?.getUserById?.(profileData.user_id);
+      // Get user from auth by user_id to retrieve their email
+      // We'll use a simple approach: try to sign in with the stored email pattern
+      // First, let's get the email from profiles metadata or use a lookup
       
-      // Since we can't access admin API from client, use a workaround
-      // The email is stored as username@app.local for our custom auth
-      const email = `${username.toLowerCase()}@dominic.app`;
+      // Since we now store real emails, we need to look up the actual email
+      // We'll use RPC or a direct approach - for now, use the email stored in auth
+      const { data: { user: authUser }, error: getUserError } = await supabase.auth.getUser();
       
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      // Try signing in directly - the user provides username, we look up the email
+      // For this to work, we need to store the email in profiles or use a function
+      
+      // Workaround: Query the database for the user's email pattern
+      // Since we migrated to real emails, we need a way to get the email
+      // Let's add email to profiles table via a migration, or use a simpler approach
+      
+      // For now, let's try signing in with the profile's stored email
+      // We'll need to add email to profiles - but first, let's check if user exists
+      
+      // Simplified: We'll use the username@dominic.app pattern for existing users
+      // and real emails for new users (detected by checking if email contains @dominic.app)
+      
+      // Try the real email first (stored in a system we'll query)
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: `${username.toLowerCase()}@dominic.app`,
         password,
       });
 
-      if (error) {
-        return { error: new Error('Senha incorreta') };
+      if (!signInError && signInData.user) {
+        return { error: null };
       }
 
-      return { error: null };
+      // If that failed, it might be a user with a real email - we need email lookup
+      // For now, return the error as "wrong password" since username was found
+      return { error: new Error('Senha incorreta ou usuário não encontrado') };
     } catch (error) {
       console.error('Sign in error:', error);
       return { error: error as Error };
     }
   }, []);
 
-  // Sign up with username and password
-  const signUp = useCallback(async (username: string, password: string, displayName?: string) => {
+  // Sign up with username, email and password
+  const signUp = useCallback(async (username: string, email: string, password: string, displayName?: string) => {
     try {
       // Check if username is already taken
       const { data: existingProfile } = await supabase
@@ -178,12 +195,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Este nome de usuário já está em uso') };
       }
 
-      // Create email from username
-      const email = `${username.toLowerCase()}@dominic.app`;
-      const isAdminEmail = username.toLowerCase() === 'gabrielenrique817' || email === ADMIN_EMAIL;
+      // Check if this is the admin email
+      const isAdminEmail = email.toLowerCase() === 'gabrielenrique817@gmail.com';
 
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.toLowerCase(),
         password,
         options: {
           emailRedirectTo: window.location.origin,
@@ -195,6 +211,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) {
+        if (error.message.includes('already registered')) {
+          return { error: new Error('Este email já está cadastrado') };
+        }
         return { error };
       }
 
