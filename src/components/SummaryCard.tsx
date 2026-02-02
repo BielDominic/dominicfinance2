@@ -1,14 +1,29 @@
 import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/utils/formatters';
 import { LucideIcon } from 'lucide-react';
+import { DisplayCurrency } from '@/contexts/CurrencyFilterContext';
 
 interface SummaryCardProps {
   label: string;
   value: number;
   icon?: LucideIcon;
   variant?: 'default' | 'positive' | 'negative' | 'highlight' | 'neutral';
-  currency?: 'BRL' | 'EUR';
+  displayCurrency?: DisplayCurrency;
   className?: string;
+}
+
+const CURRENCY_SYMBOLS: Record<DisplayCurrency, string> = {
+  BRL: 'R$',
+  USD: '$',
+  EUR: '€',
+};
+
+function formatValue(value: number, currency: DisplayCurrency = 'BRL'): string {
+  const symbol = CURRENCY_SYMBOLS[currency];
+  const formatted = new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+  return `${symbol} ${formatted}`;
 }
 
 export function SummaryCard({ 
@@ -16,7 +31,7 @@ export function SummaryCard({
   value, 
   icon: Icon,
   variant = 'default',
-  currency = 'BRL',
+  displayCurrency = 'BRL',
   className 
 }: SummaryCardProps) {
   return (
@@ -42,7 +57,7 @@ export function SummaryCard({
         variant === 'neutral' && 'text-foreground',
         variant === 'default' && 'text-foreground'
       )}>
-        {formatCurrency(value, currency)}
+        {formatValue(value, displayCurrency)}
       </span>
     </div>
   );
