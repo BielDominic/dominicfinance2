@@ -455,6 +455,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_counter_config: {
+        Row: {
+          counter_background: string | null
+          counter_color: string | null
+          counter_icon: string | null
+          counter_title: string | null
+          created_at: string
+          id: string
+          target_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          counter_background?: string | null
+          counter_color?: string | null
+          counter_icon?: string | null
+          counter_title?: string | null
+          created_at?: string
+          id?: string
+          target_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          counter_background?: string | null
+          counter_color?: string | null
+          counter_icon?: string | null
+          counter_title?: string | null
+          created_at?: string
+          id?: string
+          target_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_permissions: {
         Row: {
           can_edit: boolean

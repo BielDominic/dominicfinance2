@@ -15,6 +15,7 @@ import {
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { SummaryCard } from './SummaryCard';
 import { formatCurrency } from '@/utils/formatters';
+import { useCurrencyFilter } from '@/contexts/CurrencyFilterContext';
 
 interface FinancialSummaryProps {
   summary: FinancialSummaryType;
@@ -22,9 +23,22 @@ interface FinancialSummaryProps {
 
 export function FinancialSummary({ summary }: FinancialSummaryProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { displayCurrency, convertValue, formatWithSymbol } = useCurrencyFilter();
   
   const formatEUR = (value: number) => {
     return `€${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  // Convert all values to display currency
+  const convertedSummary = {
+    totalEntradas: convertValue(summary.totalEntradas, 'BRL', summary.taxaCambio),
+    totalSaidas: convertValue(summary.totalSaidas, 'BRL', summary.taxaCambio),
+    totalPago: convertValue(summary.totalPago, 'BRL', summary.taxaCambio),
+    totalAPagar: convertValue(summary.totalAPagar, 'BRL', summary.taxaCambio),
+    totalFuturos: convertValue(summary.totalFuturos, 'BRL', summary.taxaCambio),
+    saldoAtual: convertValue(summary.saldoAtual, 'BRL', summary.taxaCambio),
+    saldoFinalPrevisto: convertValue(summary.saldoFinalPrevisto, 'BRL', summary.taxaCambio),
+    saldoFinalComFuturos: convertValue(summary.saldoFinalComFuturos, 'BRL', summary.taxaCambio),
   };
 
   return (
@@ -58,9 +72,10 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
           <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <SummaryCard
               label="Total de Entradas"
-              value={summary.totalEntradas}
+              value={convertedSummary.totalEntradas}
               icon={TrendingUp}
               variant="positive"
+              displayCurrency={displayCurrency}
             />
             <div className="bg-future-light rounded-lg p-3 sm:p-4 flex flex-col gap-1 ring-2 ring-future/30">
               <div className="flex items-center gap-2 text-future">
@@ -68,7 +83,7 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
                 <span className="text-xs font-medium uppercase tracking-wide">Entradas + Futuros</span>
               </div>
               <span className="font-mono text-lg sm:text-xl font-bold text-future">
-                {formatCurrency(summary.totalEntradas + summary.totalFuturos)}
+                {formatWithSymbol(convertedSummary.totalEntradas + convertedSummary.totalFuturos)}
               </span>
               <span className="text-xs text-muted-foreground">
                 Total combinado
@@ -76,39 +91,45 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
             </div>
             <SummaryCard
               label="Total de Saídas"
-              value={summary.totalSaidas}
+              value={convertedSummary.totalSaidas}
               icon={TrendingDown}
               variant="negative"
+              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Total Pago"
-              value={summary.totalPago}
+              value={convertedSummary.totalPago}
               icon={CheckCircle2}
               variant="positive"
+              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Total a Pagar"
-              value={summary.totalAPagar}
+              value={convertedSummary.totalAPagar}
               icon={CreditCard}
               variant="negative"
+              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Total Futuros"
-              value={summary.totalFuturos}
+              value={convertedSummary.totalFuturos}
               icon={Clock}
               variant="default"
+              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Saldo Atual"
-              value={summary.saldoAtual}
+              value={convertedSummary.saldoAtual}
               icon={Wallet}
               variant="neutral"
+              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Saldo Final Previsto"
-              value={summary.saldoFinalPrevisto}
+              value={convertedSummary.saldoFinalPrevisto}
               icon={Target}
               variant="positive"
+              displayCurrency={displayCurrency}
             />
             <div className="bg-future-light rounded-lg p-3 sm:p-4 flex flex-col gap-1 ring-2 ring-future/30">
               <div className="flex items-center gap-2 text-future">
@@ -116,7 +137,7 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
                 <span className="text-xs font-medium uppercase tracking-wide">Com Futuros</span>
               </div>
               <span className="font-mono text-lg sm:text-xl font-bold text-future">
-                {formatCurrency(summary.saldoFinalComFuturos)}
+                {formatWithSymbol(convertedSummary.saldoFinalComFuturos)}
               </span>
               <span className="text-xs text-muted-foreground">
                 Entradas + Futuros - Saídas

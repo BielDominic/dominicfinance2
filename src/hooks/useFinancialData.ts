@@ -41,7 +41,7 @@ export const useFinancialData = () => {
     counterColor: 'green',
   });
 
-  // Fetch app config from database
+  // Fetch app config from database (global settings)
   const fetchAppConfig = useCallback(async () => {
     try {
       const { data } = await supabase.from('app_config').select('*');
@@ -57,17 +57,49 @@ export const useFinancialData = () => {
           taxaCambio: configMap['taxa_cambio'] ? parseFloat(configMap['taxa_cambio']) : prev.taxaCambio,
           spread: configMap['spread'] ? parseFloat(configMap['spread']) : prev.spread,
           darkMode: configMap['dark_mode'] === 'true',
-          targetDate: configMap['target_date'] || prev.targetDate,
-          counterTitle: configMap['counter_title'] || prev.counterTitle,
-          counterBackground: (configMap['counter_background'] as CounterBackground) || prev.counterBackground,
-          counterIcon: (configMap['counter_icon'] as CounterIcon) || prev.counterIcon,
-          counterColor: (configMap['counter_color'] as CounterColor) || prev.counterColor,
+          // Counter config will come from user-specific table
+          targetDate: prev.targetDate,
+          counterTitle: prev.counterTitle,
+          counterBackground: prev.counterBackground,
+          counterIcon: prev.counterIcon,
+          counterColor: prev.counterColor,
         }));
       }
     } catch (error) {
       console.error('Error fetching app config:', error);
     }
   }, []);
+
+  // Fetch user-specific counter config
+  const fetchUserCounterConfig = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_counter_config')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching user counter config:', error);
+        return;
+      }
+      
+      if (data) {
+        setAppConfig(prev => ({
+          ...prev,
+          targetDate: data.target_date || '',
+          counterTitle: data.counter_title || 'Contagem para Irlanda',
+          counterBackground: (data.counter_background as CounterBackground) || 'ireland',
+          counterIcon: (data.counter_icon as CounterIcon) || 'shamrock',
+          counterColor: (data.counter_color as CounterColor) || 'green',
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching user counter config:', error);
+    }
+  }, [user]);
 
   // Fetch all data from database
   const fetchData = useCallback(async () => {
@@ -132,6 +164,7 @@ export const useFinancialData = () => {
   useEffect(() => {
     fetchData();
     fetchAppConfig();
+    fetchUserCounterConfig();
 
     const incomeChannel = supabase
       .channel('income_entries_changes')
@@ -168,14 +201,22 @@ export const useFinancialData = () => {
       })
       .subscribe();
 
+    const counterChannel = supabase
+      .channel('user_counter_config_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_counter_config' }, () => {
+        fetchUserCounterConfig();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(incomeChannel);
       supabase.removeChannel(expenseChannel);
       supabase.removeChannel(investChannel);
       supabase.removeChannel(settingsChannel);
       supabase.removeChannel(configChannel);
+      supabase.removeChannel(counterChannel);
     };
-  }, [fetchData, fetchAppConfig]);
+  }, [fetchData, fetchAppConfig, fetchUserCounterConfig]);
 
   // Update app config
   const updateAppConfig = useCallback(async (key: string, value: string) => {
@@ -211,30 +252,56 @@ export const useFinancialData = () => {
     await updateAppConfig('dark_mode', darkMode.toString());
   }, [updateAppConfig]);
 
+  // Update user counter config
+  const updateUserCounterConfig = useCallback(async (updates: Record<string, string>) => {
+    if (!user) return;
+    
+    const { data: existing } = await supabase
+      .from('user_counter_config')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (existing) {
+      const { error } = await supabase
+        .from('user_counter_config')
+        .update(updates)
+        .eq('user_id', user.id);
+      
+      if (error) console.error('Error updating user counter config:', error);
+    } else {
+      const { error } = await supabase
+        .from('user_counter_config')
+        .insert({ user_id: user.id, ...updates });
+      
+      if (error) console.error('Error inserting user counter config:', error);
+    }
+  }, [user]);
+
   const handleTargetDateChange = useCallback(async (targetDate: string) => {
     setAppConfig(prev => ({ ...prev, targetDate }));
-    await updateAppConfig('target_date', targetDate);
-  }, [updateAppConfig]);
+    await updateUserCounterConfig({ target_date: targetDate });
+  }, [updateUserCounterConfig]);
 
   const handleCounterTitleChange = useCallback(async (counterTitle: string) => {
     setAppConfig(prev => ({ ...prev, counterTitle }));
-    await updateAppConfig('counter_title', counterTitle);
-  }, [updateAppConfig]);
+    await updateUserCounterConfig({ counter_title: counterTitle });
+  }, [updateUserCounterConfig]);
 
   const handleCounterBackgroundChange = useCallback(async (counterBackground: CounterBackground) => {
     setAppConfig(prev => ({ ...prev, counterBackground }));
-    await updateAppConfig('counter_background', counterBackground);
-  }, [updateAppConfig]);
+    await updateUserCounterConfig({ counter_background: counterBackground });
+  }, [updateUserCounterConfig]);
 
   const handleCounterIconChange = useCallback(async (counterIcon: CounterIcon) => {
     setAppConfig(prev => ({ ...prev, counterIcon }));
-    await updateAppConfig('counter_icon', counterIcon);
-  }, [updateAppConfig]);
+    await updateUserCounterConfig({ counter_icon: counterIcon });
+  }, [updateUserCounterConfig]);
 
   const handleCounterColorChange = useCallback(async (counterColor: CounterColor) => {
     setAppConfig(prev => ({ ...prev, counterColor }));
-    await updateAppConfig('counter_color', counterColor);
-  }, [updateAppConfig]);
+    await updateUserCounterConfig({ counter_color: counterColor });
+  }, [updateUserCounterConfig]);
 
   // Income entry handlers
   const handleUpdateIncomeEntry = useCallback(async (id: string, updates: Partial<IncomeEntry>) => {

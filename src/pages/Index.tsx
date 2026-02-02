@@ -21,11 +21,13 @@ import { SmartAlerts } from '@/components/SmartAlerts';
 import { DecisionSimulator } from '@/components/DecisionSimulator';
 import { PeopleManager } from '@/components/PeopleManager';
 import { SupportButton } from '@/components/SupportButton';
+import { CurrencyFilterSelect } from '@/components/CurrencyFilterSelect';
 import { ReadOnlyProvider, useReadOnly } from '@/components/ReadOnlyToggle';
 import { CurrencyFilterProvider } from '@/contexts/CurrencyFilterContext';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Loader2 } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -149,6 +151,12 @@ const IndexContent = () => {
       </Header>
       
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Currency Filter - Global Display Currency Selector */}
+        <div className="flex items-center justify-end gap-2 px-2">
+          <span className="text-sm text-muted-foreground">Exibir valores em:</span>
+          <CurrencyFilterSelect compact />
+        </div>
+
         {/* Smart Alerts - Always on top */}
         <SmartAlerts expenseCategories={expenseCategories} incomeEntries={incomeEntries} summary={summary} />
         {/* Day Counter - Customizable Theme Section */}
@@ -205,7 +213,7 @@ const IndexContent = () => {
         <UpcomingDueDates expenseCategories={expenseCategories} />
 
         {/* Global Progress Bar */}
-        <GlobalProgressBar totalEntradas={calculatedTotals.totalEntradas} totalSaidas={calculatedTotals.totalSaidas} totalPago={calculatedTotals.totalPago} totalFuturos={summary.totalFuturos} metaEntradas={metaEntradas} onMetaChange={handleMetaChange} />
+        <GlobalProgressBar totalEntradas={calculatedTotals.totalEntradas} totalSaidas={calculatedTotals.totalSaidas} totalPago={calculatedTotals.totalPago} totalFuturos={summary.totalFuturos} metaEntradas={metaEntradas} onMetaChange={handleMetaChange} exchangeRate={taxaEfetiva} />
 
         {/* Income and Expenses - Stacked Layout */}
         <div className="space-y-6">
@@ -272,9 +280,11 @@ const IndexContent = () => {
 };
 
 const Index = () => {
+  const { rate: liveExchangeRate } = useExchangeRate('EUR', 'BRL');
+  
   return (
     <ReadOnlyProvider>
-      <CurrencyFilterProvider>
+      <CurrencyFilterProvider exchangeRate={liveExchangeRate || 6.5}>
         <IndexContent />
       </CurrencyFilterProvider>
     </ReadOnlyProvider>
