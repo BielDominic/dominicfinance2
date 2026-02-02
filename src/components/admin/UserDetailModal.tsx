@@ -7,6 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   User, 
   Shield, 
@@ -26,6 +28,11 @@ import {
   Database,
   Key,
   Globe,
+  Phone,
+  MapPin,
+  UserCircle,
+  Lock,
+  EyeOff,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -41,6 +48,9 @@ interface UserWithProfile {
   created_at: string;
   last_sign_in: string | null;
   avatar_url?: string | null;
+  full_name?: string | null;
+  phone?: string | null;
+  city?: string | null;
 }
 
 interface UserPermission {
@@ -105,6 +115,12 @@ export function UserDetailModal({
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteLogsConfirm, setShowDeleteLogsConfirm] = useState(false);
   const [isDeletingLogs, setIsDeletingLogs] = useState(false);
+  
+  // Password change state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     if (user && open) {
@@ -273,6 +289,51 @@ export function UserDetailModal({
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!user) return;
+    
+    if (!newPassword) {
+      toast.error('Digite a nova senha');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-update-password', {
+        body: {
+          targetUserId: user.id,
+          newPassword: newPassword,
+        },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
+      toast.success('Senha alterada com sucesso');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      toast.error(error.message || 'Erro ao alterar senha');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -343,6 +404,35 @@ export function UserDetailModal({
                             <User className="h-3 w-3" /> Nome de Exibição
                           </p>
                           <p className="font-semibold">{user.display_name || '—'}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Personal Info */}
+                    <Card className="border-muted">
+                      <CardContent className="p-4 space-y-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-2">
+                          <UserCircle className="h-3 w-3" /> Nome Completo
+                        </p>
+                        <p className="font-semibold">{user.full_name || '—'}</p>
+                      </CardContent>
+                    </Card>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Card className="border-muted">
+                        <CardContent className="p-4 space-y-1">
+                          <p className="text-xs text-muted-foreground flex items-center gap-2">
+                            <Phone className="h-3 w-3" /> Telefone
+                          </p>
+                          <p className="font-semibold">{user.phone || '—'}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-muted">
+                        <CardContent className="p-4 space-y-1">
+                          <p className="text-xs text-muted-foreground flex items-center gap-2">
+                            <MapPin className="h-3 w-3" /> Cidade
+                          </p>
+                          <p className="font-semibold">{user.city || '—'}</p>
                         </CardContent>
                       </Card>
                     </div>
@@ -450,6 +540,68 @@ export function UserDetailModal({
                             ? format(new Date(stats.lastActivity), "dd 'de' MMMM 'de' yyyy 'às' HH:mm:ss", { locale: ptBR })
                             : 'Nenhuma atividade registrada'}
                         </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Password Change Section */}
+                    <Card className="border-primary/30 bg-primary/5">
+                      <CardContent className="p-4 space-y-4">
+                        <p className="text-sm font-semibold flex items-center gap-2">
+                          <Lock className="h-4 w-4" /> Alterar Senha do Usuário
+                        </p>
+                        
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <Label htmlFor="new-password" className="text-xs">Nova Senha</Label>
+                            <div className="relative">
+                              <Input
+                                id="new-password"
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Nova senha (mín. 6 caracteres)"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="pr-10"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                              >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <Label htmlFor="confirm-password" className="text-xs">Confirmar Senha</Label>
+                            <Input
+                              id="confirm-password"
+                              type={showPassword ? 'text' : 'password'}
+                              placeholder="Confirme a nova senha"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                          </div>
+                          
+                          <Button
+                            onClick={handleChangePassword}
+                            disabled={isChangingPassword || !newPassword || !confirmPassword}
+                            className="w-full"
+                            size="sm"
+                          >
+                            {isChangingPassword ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Alterando...
+                              </>
+                            ) : (
+                              <>
+                                <Key className="mr-2 h-4 w-4" />
+                                Alterar Senha
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>

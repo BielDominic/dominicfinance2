@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Lock, User, Plane, Loader2, Eye, EyeOff, Mail } from 'lucide-react';
+import { Lock, User, Plane, Loader2, Eye, EyeOff, Mail, Phone, MapPin, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Auth() {
@@ -25,6 +25,9 @@ export default function Auth() {
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerDisplayName, setRegisterDisplayName] = useState('');
+  const [registerFullName, setRegisterFullName] = useState('');
+  const [registerPhone, setRegisterPhone] = useState('');
+  const [registerCity, setRegisterCity] = useState('');
 
   // Redirect if already logged in
   useEffect(() => {
@@ -58,7 +61,7 @@ export default function Auth() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!registerUsername || !registerEmail || !registerPassword || !registerConfirmPassword) {
+    if (!registerUsername || !registerEmail || !registerPassword || !registerConfirmPassword || !registerFullName || !registerPhone || !registerCity) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -97,7 +100,10 @@ export default function Auth() {
       registerUsername,
       registerEmail,
       registerPassword,
-      registerDisplayName || registerUsername
+      registerDisplayName || registerUsername,
+      registerFullName,
+      registerPhone,
+      registerCity
     );
     
     if (error) {
@@ -245,6 +251,56 @@ export default function Auth() {
                       autoComplete="email"
                       disabled={isLoading}
                     />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-full-name">Nome Completo *</Label>
+                  <div className="relative">
+                    <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="register-full-name"
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={registerFullName}
+                      onChange={(e) => setRegisterFullName(e.target.value)}
+                      className="pl-10"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="register-phone">Telefone *</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="register-phone"
+                        type="tel"
+                        placeholder="(00) 00000-0000"
+                        value={registerPhone}
+                        onChange={(e) => setRegisterPhone(e.target.value)}
+                        className="pl-10"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="register-city">Cidade *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="register-city"
+                        type="text"
+                        placeholder="Sua cidade"
+                        value={registerCity}
+                        onChange={(e) => setRegisterCity(e.target.value)}
+                        className="pl-10"
+                        disabled={isLoading}
+                      />
+                    </div>
                   </div>
                 </div>
 

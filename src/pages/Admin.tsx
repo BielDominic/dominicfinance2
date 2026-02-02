@@ -35,6 +35,9 @@ interface UserWithProfile {
   role: string;
   created_at: string;
   last_sign_in: string | null;
+  full_name?: string | null;
+  phone?: string | null;
+  city?: string | null;
 }
 
 interface AuditLog {
@@ -104,6 +107,9 @@ export default function Admin() {
           role: roleData?.role || 'user',
           created_at: profile.created_at,
           last_sign_in: null,
+          full_name: (profile as any).full_name || null,
+          phone: (profile as any).phone || null,
+          city: (profile as any).city || null,
         });
       }
 
