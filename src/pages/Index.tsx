@@ -14,13 +14,19 @@ import { InvestmentsTable } from '@/components/InvestmentsTable';
 import { DayCounter } from '@/components/DayCounter';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { AIChatModal } from '@/components/AIChatModal';
+import { FinancialSnapshots } from '@/components/FinancialSnapshots';
+import { DecisionVault } from '@/components/DecisionVault';
+import { SmartAlerts } from '@/components/SmartAlerts';
+import { DecisionSimulator } from '@/components/DecisionSimulator';
+import { ReadOnlyProvider, ReadOnlyToggle, useReadOnly } from '@/components/ReadOnlyToggle';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Loader2 } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useAuth } from '@/contexts/AuthContext';
 
-const Index = () => {
+const IndexContent = () => {
   const { signOut, profile } = useAuth();
+  const { isReadOnly } = useReadOnly();
   
   // Dark mode is local per user (not synchronized)
   const [darkMode, setDarkMode] = useState(() => {
@@ -132,9 +138,12 @@ const Index = () => {
   return <div className="min-h-screen bg-background">
       <Header onLogout={handleLogout} incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} metaEntradas={metaEntradas} onImportData={handleImportData} title={appConfig.headerTitle} subtitle={appConfig.headerSubtitle} onTitleChange={handleTitleChange} onSubtitleChange={handleSubtitleChange} darkMode={darkMode} onDarkModeChange={handleDarkModeChange}>
         <GlobalSearch incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} />
+        <ReadOnlyToggle />
       </Header>
       
       <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Smart Alerts - Always on top */}
+        <SmartAlerts expenseCategories={expenseCategories} incomeEntries={incomeEntries} summary={summary} />
         {/* Day Counter - Ireland Theme Section */}
         <div className="relative overflow-hidden rounded-xl border-2 border-ireland-green/30 bg-gradient-to-r from-ireland-green/5 via-white/50 to-ireland-orange/5 dark:from-ireland-green/10 dark:via-card dark:to-ireland-orange/10">
           {/* Decorative elements */}
@@ -170,9 +179,9 @@ const Index = () => {
 
         {/* Income and Expenses - Stacked Layout */}
         <div className="space-y-6">
-          <IncomeTable entries={incomeEntries} onUpdateEntry={handleUpdateIncomeEntry} onAddEntry={handleAddIncomeEntry} onDeleteEntry={handleDeleteIncomeEntry} />
+          <IncomeTable entries={incomeEntries} onUpdateEntry={isReadOnly ? undefined : handleUpdateIncomeEntry} onAddEntry={isReadOnly ? undefined : handleAddIncomeEntry} onDeleteEntry={isReadOnly ? undefined : handleDeleteIncomeEntry} />
           
-          <ExpenseTable categories={expenseCategories} onUpdateCategory={handleUpdateExpenseCategory} onAddCategory={handleAddExpenseCategory} onDeleteCategory={handleDeleteExpenseCategory} />
+          <ExpenseTable categories={expenseCategories} onUpdateCategory={isReadOnly ? undefined : handleUpdateExpenseCategory} onAddCategory={isReadOnly ? undefined : handleAddExpenseCategory} onDeleteCategory={isReadOnly ? undefined : handleDeleteExpenseCategory} />
         </div>
 
         {/* Expense Charts */}
@@ -182,7 +191,7 @@ const Index = () => {
         <EvolutionChart incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
 
         {/* Investments Section */}
-        <InvestmentsTable investments={investments} onUpdateInvestment={handleUpdateInvestment} onAddInvestment={handleAddInvestment} onDeleteInvestment={handleDeleteInvestment} />
+        <InvestmentsTable investments={investments} onUpdateInvestment={isReadOnly ? undefined : handleUpdateInvestment} onAddInvestment={isReadOnly ? undefined : handleAddInvestment} onDeleteInvestment={isReadOnly ? undefined : handleDeleteInvestment} />
 
         {/* Person Summary */}
         <PersonSummary incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
@@ -192,6 +201,15 @@ const Index = () => {
 
         {/* Smart Financial Assistant (No limits) */}
         <SmartFinancialAssistant incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} summary={summary} metaEntradas={metaEntradas} targetDate={appConfig.targetDate} />
+
+        {/* Decision Simulator */}
+        <DecisionSimulator summary={summary} exchangeRate={appConfig.taxaCambio} />
+
+        {/* Financial Snapshots */}
+        <FinancialSnapshots summary={summary} incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} />
+
+        {/* Decision Vault */}
+        <DecisionVault />
 
         {/* Currency Converter */}
         <CurrencyConverter saldoFinal={summary.saldoFinalPrevisto} saldoFinalComFuturos={summary.saldoFinalComFuturos} saldoAtual={summary.saldoAtual} exchangeRate={appConfig.taxaCambio} onExchangeRateChange={handleTaxaCambioChange} spread={appConfig.spread} onSpreadChange={handleSpreadChange} />
@@ -216,4 +234,13 @@ const Index = () => {
       </main>
     </div>;
 };
+
+const Index = () => {
+  return (
+    <ReadOnlyProvider>
+      <IndexContent />
+    </ReadOnlyProvider>
+  );
+};
+
 export default Index;
