@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ImportExportData } from '@/components/ImportExportData';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AdminButton } from '@/components/AdminButton';
+import { ReadOnlyToggle } from '@/components/ReadOnlyToggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { IncomeEntry, ExpenseCategory, Investment } from '@/types/financial';
 interface HeaderProps {
@@ -125,6 +126,9 @@ export function Header({
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {/* Children (GlobalSearch) */}
             {children}
+            
+            {/* Read-Only Toggle - only visible to admins */}
+            <ReadOnlyToggle />
             
             {/* Admin Button - only visible to admins */}
             <AdminButton />
