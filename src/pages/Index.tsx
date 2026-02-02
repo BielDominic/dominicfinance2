@@ -62,7 +62,9 @@ const IndexContent = () => {
     handleSpreadChange,
     handleTargetDateChange,
     handleCounterTitleChange,
-    handleCounterBackgroundChange
+    handleCounterBackgroundChange,
+    handleCounterIconChange,
+    handleCounterColorChange
   } = useFinancialData();
 
   // Handle dark mode change (local only)
@@ -169,6 +171,10 @@ const IndexContent = () => {
               <DayCounterSettings 
                 currentBackground={appConfig.counterBackground}
                 onBackgroundChange={handleCounterBackgroundChange}
+                currentIcon={appConfig.counterIcon}
+                onIconChange={handleCounterIconChange}
+                currentColor={appConfig.counterColor}
+                onColorChange={handleCounterColorChange}
               />
             </div>
 
@@ -183,7 +189,14 @@ const IndexContent = () => {
               </>
             )}
             
-            <DayCounter targetDate={appConfig.targetDate} onDateChange={handleTargetDateChange} title={appConfig.counterTitle} onTitleChange={handleCounterTitleChange} />
+            <DayCounter 
+              targetDate={appConfig.targetDate} 
+              onDateChange={handleTargetDateChange} 
+              title={appConfig.counterTitle} 
+              onTitleChange={handleCounterTitleChange}
+              icon={appConfig.counterIcon}
+              color={appConfig.counterColor}
+            />
           </div>
         </div>
 

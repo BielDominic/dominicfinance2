@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { IncomeEntry, ExpenseCategory, Investment, Currency } from '@/types/financial';
 import { toast } from 'sonner';
 
-import { CounterBackground } from '@/components/DayCounterSettings';
+import { CounterBackground, CounterIcon, CounterColor } from '@/components/DayCounterSettings';
 
 interface AppConfig {
   headerTitle: string;
@@ -14,6 +14,8 @@ interface AppConfig {
   targetDate: string;
   counterTitle: string;
   counterBackground: CounterBackground;
+  counterIcon: CounterIcon;
+  counterColor: CounterColor;
 }
 
 export const useFinancialData = () => {
@@ -34,6 +36,8 @@ export const useFinancialData = () => {
     targetDate: '',
     counterTitle: 'Contagem para Irlanda',
     counterBackground: 'ireland',
+    counterIcon: 'shamrock',
+    counterColor: 'green',
   });
 
   // Fetch app config from database
@@ -55,6 +59,8 @@ export const useFinancialData = () => {
           targetDate: configMap['target_date'] || prev.targetDate,
           counterTitle: configMap['counter_title'] || prev.counterTitle,
           counterBackground: (configMap['counter_background'] as CounterBackground) || prev.counterBackground,
+          counterIcon: (configMap['counter_icon'] as CounterIcon) || prev.counterIcon,
+          counterColor: (configMap['counter_color'] as CounterColor) || prev.counterColor,
         }));
       }
     } catch (error) {
@@ -217,6 +223,16 @@ export const useFinancialData = () => {
   const handleCounterBackgroundChange = useCallback(async (counterBackground: CounterBackground) => {
     setAppConfig(prev => ({ ...prev, counterBackground }));
     await updateAppConfig('counter_background', counterBackground);
+  }, [updateAppConfig]);
+
+  const handleCounterIconChange = useCallback(async (counterIcon: CounterIcon) => {
+    setAppConfig(prev => ({ ...prev, counterIcon }));
+    await updateAppConfig('counter_icon', counterIcon);
+  }, [updateAppConfig]);
+
+  const handleCounterColorChange = useCallback(async (counterColor: CounterColor) => {
+    setAppConfig(prev => ({ ...prev, counterColor }));
+    await updateAppConfig('counter_color', counterColor);
   }, [updateAppConfig]);
 
   // Income entry handlers
@@ -540,5 +556,7 @@ export const useFinancialData = () => {
     handleTargetDateChange,
     handleCounterTitleChange,
     handleCounterBackgroundChange,
+    handleCounterIconChange,
+    handleCounterColorChange,
   };
 };

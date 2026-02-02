@@ -3,10 +3,11 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import { ExpenseCategory, Currency } from '@/types/financial';
 import { formatCurrency } from '@/utils/formatters';
 import { formatCurrencyWithSymbol } from './CurrencySelect';
-import { PieChart as PieChartIcon, BarChart3, ChevronDown, ChevronUp, CalendarDays, Filter } from 'lucide-react';
+import { PieChart as PieChartIcon, BarChart3, ChevronDown, ChevronUp, CalendarDays, Filter, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { format, parseISO, isAfter, isBefore, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -15,18 +16,82 @@ interface ExpenseChartsProps {
   categories: ExpenseCategory[];
 }
 
-const COLORS = [
-  'hsl(145, 63%, 32%)',
-  'hsl(30, 90%, 50%)',
-  'hsl(145, 63%, 45%)',
-  'hsl(30, 90%, 60%)',
-  'hsl(145, 63%, 25%)',
-  'hsl(30, 70%, 45%)',
-  'hsl(145, 45%, 55%)',
-  'hsl(35, 80%, 55%)',
-  'hsl(140, 50%, 40%)',
-  'hsl(25, 85%, 52%)',
-];
+type ChartPalette = 'ireland' | 'ocean' | 'sunset' | 'forest' | 'purple' | 'mono';
+
+const COLOR_PALETTES: Record<ChartPalette, string[]> = {
+  ireland: [
+    'hsl(145, 63%, 32%)',
+    'hsl(30, 90%, 50%)',
+    'hsl(145, 63%, 45%)',
+    'hsl(30, 90%, 60%)',
+    'hsl(145, 63%, 25%)',
+    'hsl(30, 70%, 45%)',
+    'hsl(145, 45%, 55%)',
+    'hsl(35, 80%, 55%)',
+    'hsl(140, 50%, 40%)',
+    'hsl(25, 85%, 52%)',
+  ],
+  ocean: [
+    'hsl(200, 80%, 40%)',
+    'hsl(180, 70%, 45%)',
+    'hsl(220, 75%, 50%)',
+    'hsl(190, 65%, 55%)',
+    'hsl(210, 85%, 35%)',
+    'hsl(170, 60%, 40%)',
+    'hsl(195, 70%, 60%)',
+    'hsl(205, 75%, 45%)',
+    'hsl(185, 55%, 50%)',
+    'hsl(215, 80%, 55%)',
+  ],
+  sunset: [
+    'hsl(15, 85%, 50%)',
+    'hsl(35, 90%, 55%)',
+    'hsl(350, 80%, 55%)',
+    'hsl(25, 95%, 60%)',
+    'hsl(5, 75%, 45%)',
+    'hsl(45, 85%, 50%)',
+    'hsl(330, 70%, 50%)',
+    'hsl(20, 80%, 55%)',
+    'hsl(355, 75%, 60%)',
+    'hsl(40, 90%, 45%)',
+  ],
+  forest: [
+    'hsl(120, 50%, 35%)',
+    'hsl(90, 55%, 45%)',
+    'hsl(140, 45%, 40%)',
+    'hsl(100, 60%, 50%)',
+    'hsl(130, 40%, 30%)',
+    'hsl(80, 50%, 40%)',
+    'hsl(110, 55%, 55%)',
+    'hsl(150, 45%, 45%)',
+    'hsl(95, 50%, 35%)',
+    'hsl(135, 55%, 50%)',
+  ],
+  purple: [
+    'hsl(270, 65%, 50%)',
+    'hsl(290, 60%, 55%)',
+    'hsl(250, 70%, 45%)',
+    'hsl(310, 55%, 50%)',
+    'hsl(280, 75%, 40%)',
+    'hsl(260, 60%, 55%)',
+    'hsl(300, 50%, 45%)',
+    'hsl(240, 65%, 50%)',
+    'hsl(295, 70%, 55%)',
+    'hsl(275, 55%, 45%)',
+  ],
+  mono: [
+    'hsl(0, 0%, 25%)',
+    'hsl(0, 0%, 40%)',
+    'hsl(0, 0%, 55%)',
+    'hsl(0, 0%, 35%)',
+    'hsl(0, 0%, 50%)',
+    'hsl(0, 0%, 65%)',
+    'hsl(0, 0%, 30%)',
+    'hsl(0, 0%, 45%)',
+    'hsl(0, 0%, 60%)',
+    'hsl(0, 0%, 75%)',
+  ],
+};
 
 type ChartType = 'pie' | 'bar';
 type DataView = 'total' | 'pago' | 'falta';
@@ -39,6 +104,10 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [colorPalette, setColorPalette] = useState<ChartPalette>('ireland');
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+
+  const COLORS = COLOR_PALETTES[colorPalette];
 
   const filteredCategories = useMemo(() => {
     if (dateFilter === 'all') return categories;
@@ -281,6 +350,49 @@ export function ExpenseCharts({ categories }: ExpenseChartsProps) {
                   <span className="hidden sm:inline">Barras</span>
                 </button>
               </div>
+
+              {/* Color Palette Selector */}
+              <Popover open={isPaletteOpen} onOpenChange={setIsPaletteOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1 text-xs">
+                    <Palette className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Cores</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-3" align="end">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Paleta de cores</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(Object.keys(COLOR_PALETTES) as ChartPalette[]).map((palette) => (
+                        <button
+                          key={palette}
+                          onClick={() => {
+                            setColorPalette(palette);
+                            setIsPaletteOpen(false);
+                          }}
+                          className={cn(
+                            "flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all text-[10px]",
+                            colorPalette === palette
+                              ? "border-primary ring-2 ring-primary/20"
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          <div className="flex gap-0.5">
+                            {COLOR_PALETTES[palette].slice(0, 3).map((color, i) => (
+                              <div
+                                key={i}
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                          <span className="capitalize">{palette === 'mono' ? 'Mono' : palette}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           )}
         </div>
