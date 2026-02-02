@@ -37,6 +37,9 @@ export function ReadOnlyToggle() {
   const { isReadOnly, toggleReadOnly } = useReadOnly();
   const { isAdmin } = useAuth();
 
+  // Only admins can toggle read-only mode
+  if (!isAdmin) return null;
+
   return (
     <TooltipProvider>
       <Tooltip>
