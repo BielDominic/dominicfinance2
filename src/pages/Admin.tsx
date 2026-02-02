@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AdminPasswordGate } from '@/components/AdminPasswordGate';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { UserDetailModal } from '@/components/admin/UserDetailModal';
+import { AdminSettings } from '@/components/admin/AdminSettings';
 import {
   Users,
   Settings,
@@ -21,14 +20,8 @@ import {
   ArrowLeft,
   Loader2,
   RefreshCw,
-  Check,
-  X,
   Trash2,
-  Key,
   Eye,
-  Pencil,
-  EyeOff,
-  Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -57,18 +50,6 @@ interface AuditLog {
   username?: string;
 }
 
-const SECTIONS = [
-  { key: 'entradas', label: 'Entradas' },
-  { key: 'despesas', label: 'Despesas' },
-  { key: 'investimentos', label: 'Investimentos' },
-  { key: 'resumo', label: 'Resumo Financeiro' },
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'assistente', label: 'Assistente IA' },
-  { key: 'conversor', label: 'Conversor de Moedas' },
-  { key: 'graficos', label: 'Gráficos' },
-  { key: 'decisoes', label: 'Decisões' },
-];
-
 export default function Admin() {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading: authLoading } = useAuth();
@@ -77,15 +58,8 @@ export default function Admin() {
   const [users, setUsers] = useState<UserWithProfile[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<UserWithProfile | null>(null);
-  const [userPermissions, setUserPermissions] = useState<Record<string, { can_view: boolean; can_edit: boolean }>>({});
   const [userToDelete, setUserToDelete] = useState<UserWithProfile | null>(null);
-  
-  // Password settings
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [userToView, setUserToView] = useState<UserWithProfile | null>(null);
 
   // Check if already verified in this session
   useEffect(() => {
@@ -182,14 +156,14 @@ export default function Admin() {
       if (error) throw error;
 
       // Log the action
-      await supabase.from('audit_logs').insert({
+      await supabase.from('audit_logs').insert([{
         user_id: user?.id,
         action: 'UPDATE_ROLE',
         table_name: 'user_roles',
         record_id: userId,
         old_values: { role: newRole === 'admin' ? 'user' : 'admin' },
         new_values: { role: newRole },
-      });
+      }]);
 
       toast.success(`Usuário ${newRole === 'admin' ? 'promovido a admin' : 'rebaixado para usuário'}`);
       fetchUsers();
@@ -223,14 +197,14 @@ export default function Admin() {
       if (error) throw error;
 
       // Log the action
-      await supabase.from('audit_logs').insert({
+      await supabase.from('audit_logs').insert([{
         user_id: user?.id,
         action: 'DELETE_USER',
         table_name: 'profiles',
         record_id: userToRemove.id,
         old_values: { username: userToRemove.username, display_name: userToRemove.display_name },
         new_values: null,
-      });
+      }]);
 
       toast.success(`Usuário ${userToRemove.username} removido com sucesso`);
       setUserToDelete(null);
@@ -241,131 +215,12 @@ export default function Admin() {
     }
   };
 
-  // Fetch user permissions
-  const fetchUserPermissions = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_permissions')
-        .select('section_key, can_view, can_edit')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-
-      const permMap: Record<string, { can_view: boolean; can_edit: boolean }> = {};
-      SECTIONS.forEach(section => {
-        const perm = data?.find(p => p.section_key === section.key);
-        permMap[section.key] = {
-          can_view: perm?.can_view ?? true,
-          can_edit: perm?.can_edit ?? true,
-        };
-      });
-
-      setUserPermissions(permMap);
-    } catch (error) {
-      console.error('Error fetching user permissions:', error);
-    }
-  };
-
-  // Update user permission
-  const updatePermission = async (sectionKey: string, field: 'can_view' | 'can_edit', value: boolean) => {
-    if (!selectedUser) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_permissions')
-        .upsert({
-          user_id: selectedUser.id,
-          section_key: sectionKey,
-          [field]: value,
-          ...(field === 'can_view' ? { can_view: value } : {}),
-          ...(field === 'can_edit' ? { can_edit: value } : {}),
-        }, { onConflict: 'user_id,section_key' });
-
-      if (error) throw error;
-
-      setUserPermissions(prev => ({
-        ...prev,
-        [sectionKey]: {
-          ...prev[sectionKey],
-          [field]: value,
-        },
-      }));
-
-      // Log the action
-      await supabase.from('audit_logs').insert({
-        user_id: user?.id,
-        action: 'UPDATE_PERMISSION',
-        table_name: 'user_permissions',
-        record_id: selectedUser.id,
-        old_values: { [field]: !value },
-        new_values: { [field]: value, section: sectionKey },
-      });
-
-      toast.success('Permissão atualizada');
-    } catch (error) {
-      console.error('Error updating permission:', error);
-      toast.error('Erro ao atualizar permissão');
-    }
-  };
-
-  // Update admin password
-  const updateAdminPassword = async () => {
-    if (!newPassword) {
-      toast.error('Digite a nova senha');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error('As senhas não coincidem');
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
-      return;
-    }
-
-    setIsSavingPassword(true);
-    try {
-      const { error } = await supabase
-        .from('system_config')
-        .update({ config_value: newPassword, updated_by: user?.id })
-        .eq('config_key', 'admin_password');
-
-      if (error) throw error;
-
-      // Log the action
-      await supabase.from('audit_logs').insert({
-        user_id: user?.id,
-        action: 'UPDATE_ADMIN_PASSWORD',
-        table_name: 'system_config',
-        record_id: 'admin_password',
-        old_values: null,
-        new_values: { updated: true },
-      });
-
-      toast.success('Senha do painel atualizada com sucesso');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (error) {
-      console.error('Error updating admin password:', error);
-      toast.error('Erro ao atualizar senha');
-    } finally {
-      setIsSavingPassword(false);
-    }
-  };
-
   // Initial data fetch
   useEffect(() => {
     if (isAdmin && isPasswordVerified) {
       Promise.all([fetchUsers(), fetchAuditLogs()]).then(() => setIsLoading(false));
     }
   }, [isAdmin, isPasswordVerified]);
-
-  // Fetch permissions when selecting a user
-  useEffect(() => {
-    if (selectedUser) {
-      fetchUserPermissions(selectedUser.id);
-    }
-  }, [selectedUser]);
 
   if (authLoading) {
     return (
@@ -432,10 +287,6 @@ export default function Admin() {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Usuários</span>
             </TabsTrigger>
-            <TabsTrigger value="permissions" className="gap-2">
-              <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Permissões</span>
-            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Configurações</span>
@@ -452,7 +303,7 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle>Gestão de Usuários</CardTitle>
                 <CardDescription>
-                  Visualize, edite e remova usuários do sistema
+                  Visualize, edite e remova usuários do sistema. Clique em "Ver" para mais detalhes.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -469,7 +320,7 @@ export default function Admin() {
                     </TableHeader>
                     <TableBody>
                       {users.map((u) => (
-                        <TableRow key={u.id}>
+                        <TableRow key={u.id} className="cursor-pointer hover:bg-muted/50">
                           <TableCell className="font-medium">{u.username}</TableCell>
                           <TableCell>{u.display_name || '-'}</TableCell>
                           <TableCell>
@@ -482,14 +333,15 @@ export default function Admin() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {/* Manage permissions */}
+                              {/* View user details */}
                               <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setSelectedUser(u)}
-                                title="Gerenciar permissões"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setUserToView(u)}
+                                className="gap-1"
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Eye className="h-3 w-3" />
+                                Ver
                               </Button>
                               
                               {/* Toggle admin */}
@@ -544,147 +396,9 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Permissions Tab */}
-          <TabsContent value="permissions">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* User List */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Selecionar Usuário</CardTitle>
-                  <CardDescription>
-                    Escolha um usuário para gerenciar suas permissões
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px]">
-                    <div className="space-y-2">
-                      {users.filter(u => u.role !== 'admin').map((u) => (
-                        <button
-                          key={u.id}
-                          onClick={() => setSelectedUser(u)}
-                          className={`w-full p-3 rounded-lg border text-left transition-colors ${
-                            selectedUser?.id === u.id
-                              ? 'bg-primary/10 border-primary'
-                              : 'bg-muted/50 border-transparent hover:bg-muted'
-                          }`}
-                        >
-                          <p className="font-medium">{u.display_name || u.username}</p>
-                          <p className="text-sm text-muted-foreground">@{u.username}</p>
-                        </button>
-                      ))}
-                      {users.filter(u => u.role !== 'admin').length === 0 && (
-                        <p className="text-center text-muted-foreground py-8">
-                          Nenhum usuário disponível
-                        </p>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              {/* Permissions Editor */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    Permissões {selectedUser ? `de ${selectedUser.display_name || selectedUser.username}` : ''}
-                  </CardTitle>
-                  <CardDescription>
-                    Configure quais seções o usuário pode ver e editar
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {selectedUser ? (
-                    <div className="space-y-4">
-                      {SECTIONS.map((section) => (
-                        <div key={section.key} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                          <span className="font-medium">{section.label}</span>
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                              <Switch
-                                checked={userPermissions[section.key]?.can_view ?? true}
-                                onCheckedChange={(checked) => updatePermission(section.key, 'can_view', checked)}
-                              />
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Pencil className="h-4 w-4 text-muted-foreground" />
-                              <Switch
-                                checked={userPermissions[section.key]?.can_edit ?? true}
-                                onCheckedChange={(checked) => updatePermission(section.key, 'can_edit', checked)}
-                                disabled={!userPermissions[section.key]?.can_view}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-8">
-                      Selecione um usuário para gerenciar permissões
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
           {/* Settings Tab */}
           <TabsContent value="settings">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Key className="h-5 w-5" />
-                    Senha do Painel Admin
-                  </CardTitle>
-                  <CardDescription>
-                    Altere a senha de acesso ao painel administrativo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="max-w-md space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">Nova Senha</Label>
-                      <div className="relative">
-                        <Input
-                          id="newPassword"
-                          type={showNewPassword ? 'text' : 'password'}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Digite a nova senha"
-                          className="pr-10"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirme a nova senha"
-                      />
-                    </div>
-                    <Button onClick={updateAdminPassword} disabled={isSavingPassword}>
-                      {isSavingPassword ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4 mr-2" />
-                      )}
-                      Salvar Nova Senha
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <AdminSettings />
           </TabsContent>
 
           {/* Audit Tab */}
@@ -745,6 +459,15 @@ export default function Admin() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* User Detail Modal */}
+      <UserDetailModal
+        user={userToView}
+        open={!!userToView}
+        onOpenChange={(open) => !open && setUserToView(null)}
+        currentUserId={user?.id}
+        onUserUpdated={fetchUsers}
+      />
 
       {/* Delete User Confirmation */}
       <ConfirmDialog
