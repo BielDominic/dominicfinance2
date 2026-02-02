@@ -183,6 +183,7 @@ export type Database = {
           pessoa: string | null
           total: number
           updated_at: string
+          user_id: string | null
           vencimento: string | null
         }
         Insert: {
@@ -197,6 +198,7 @@ export type Database = {
           pessoa?: string | null
           total?: number
           updated_at?: string
+          user_id?: string | null
           vencimento?: string | null
         }
         Update: {
@@ -211,6 +213,7 @@ export type Database = {
           pessoa?: string | null
           total?: number
           updated_at?: string
+          user_id?: string | null
           vencimento?: string | null
         }
         Relationships: []
@@ -257,6 +260,7 @@ export type Database = {
           status: string
           tags: string[] | null
           updated_at: string
+          user_id: string | null
           valor: number
         }
         Insert: {
@@ -270,6 +274,7 @@ export type Database = {
           status?: string
           tags?: string[] | null
           updated_at?: string
+          user_id?: string | null
           valor?: number
         }
         Update: {
@@ -283,6 +288,7 @@ export type Database = {
           status?: string
           tags?: string[] | null
           updated_at?: string
+          user_id?: string | null
           valor?: number
         }
         Relationships: []
@@ -294,6 +300,7 @@ export type Database = {
           id: string
           moeda: string | null
           updated_at: string
+          user_id: string | null
           valor: number
         }
         Insert: {
@@ -302,6 +309,7 @@ export type Database = {
           id?: string
           moeda?: string | null
           updated_at?: string
+          user_id?: string | null
           valor?: number
         }
         Update: {
@@ -310,6 +318,7 @@ export type Database = {
           id?: string
           moeda?: string | null
           updated_at?: string
+          user_id?: string | null
           valor?: number
         }
         Relationships: []
@@ -493,6 +502,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_shared_data: { Args: { _user_id: string }; Returns: boolean }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
