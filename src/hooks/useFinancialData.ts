@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { IncomeEntry, ExpenseCategory, Investment, Currency } from '@/types/financial';
 import { toast } from 'sonner';
 
+import { CounterBackground } from '@/components/DayCounterSettings';
+
 interface AppConfig {
   headerTitle: string;
   headerSubtitle: string;
@@ -11,6 +13,7 @@ interface AppConfig {
   darkMode: boolean;
   targetDate: string;
   counterTitle: string;
+  counterBackground: CounterBackground;
 }
 
 export const useFinancialData = () => {
@@ -30,6 +33,7 @@ export const useFinancialData = () => {
     darkMode: false,
     targetDate: '',
     counterTitle: 'Contagem para Irlanda',
+    counterBackground: 'ireland',
   });
 
   // Fetch app config from database
@@ -50,6 +54,7 @@ export const useFinancialData = () => {
           darkMode: configMap['dark_mode'] === 'true',
           targetDate: configMap['target_date'] || prev.targetDate,
           counterTitle: configMap['counter_title'] || prev.counterTitle,
+          counterBackground: (configMap['counter_background'] as CounterBackground) || prev.counterBackground,
         }));
       }
     } catch (error) {
@@ -207,6 +212,11 @@ export const useFinancialData = () => {
   const handleCounterTitleChange = useCallback(async (counterTitle: string) => {
     setAppConfig(prev => ({ ...prev, counterTitle }));
     await updateAppConfig('counter_title', counterTitle);
+  }, [updateAppConfig]);
+
+  const handleCounterBackgroundChange = useCallback(async (counterBackground: CounterBackground) => {
+    setAppConfig(prev => ({ ...prev, counterBackground }));
+    await updateAppConfig('counter_background', counterBackground);
   }, [updateAppConfig]);
 
   // Income entry handlers
@@ -529,5 +539,6 @@ export const useFinancialData = () => {
     handleDarkModeChange,
     handleTargetDateChange,
     handleCounterTitleChange,
+    handleCounterBackgroundChange,
   };
 };
