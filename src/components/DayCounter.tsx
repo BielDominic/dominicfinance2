@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { CounterIcon, CounterColor, getIconEmoji, getColorClasses } from './DayCounterSettings';
 import confetti from 'canvas-confetti';
 
 interface DayCounterProps {
@@ -14,9 +15,18 @@ interface DayCounterProps {
   onDateChange: (date: string) => void;
   title: string;
   onTitleChange: (title: string) => void;
+  icon?: CounterIcon;
+  color?: CounterColor;
 }
 
-export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: DayCounterProps) {
+export function DayCounter({ 
+  targetDate, 
+  onDateChange, 
+  title, 
+  onTitleChange,
+  icon = 'shamrock',
+  color = 'green'
+}: DayCounterProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(title);
@@ -53,6 +63,8 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
 
   const today = new Date();
   const daysRemaining = selectedDate ? differenceInDays(selectedDate, today) : null;
+  const colorClasses = getColorClasses(color);
+  const iconEmoji = getIconEmoji(icon);
 
   // Trigger confetti when daysRemaining is 0
   useEffect(() => {
@@ -110,7 +122,7 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
 
   const getCounterColor = () => {
     if (daysRemaining === null) return 'text-muted-foreground';
-    if (daysRemaining === 0) return 'text-ireland-green';
+    if (daysRemaining === 0) return colorClasses.text;
     if (daysRemaining > 0) return 'text-income';
     return 'text-expense';
   };
@@ -120,7 +132,7 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
 
       {/* Editable title with decorations */}
       <div className="flex items-center gap-3">
-        <span className="text-2xl">☘️</span>
+        <span className="text-2xl">{iconEmoji}</span>
         {isEditingTitle ? (
           <Input
             value={titleInput}
@@ -133,13 +145,20 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
                 setIsEditingTitle(false);
               }
             }}
-            className="text-lg sm:text-xl font-bold text-ireland-green text-center uppercase tracking-wide bg-transparent border-ireland-green/30 max-w-xs"
+            className={cn(
+              "text-lg sm:text-xl font-bold text-center uppercase tracking-wide bg-transparent max-w-xs",
+              colorClasses.text,
+              `border-${color}-500/30`
+            )}
             autoFocus
           />
         ) : (
           <button
             onClick={() => setIsEditingTitle(true)}
-            className="text-lg sm:text-xl font-bold text-ireland-green uppercase tracking-wide hover:underline cursor-pointer"
+            className={cn(
+              "text-lg sm:text-xl font-bold uppercase tracking-wide hover:underline cursor-pointer",
+              colorClasses.text
+            )}
           >
             {title}
           </button>
@@ -171,7 +190,7 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
 
       {/* Date display and edit button */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Calendar className="h-4 w-4 text-ireland-green" />
+        <Calendar className={cn("h-4 w-4", colorClasses.text)} />
         {selectedDate ? (
           <span className="font-mono">
             {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
@@ -185,7 +204,10 @@ export function DayCounter({ targetDate, onDateChange, title, onTitleChange }: D
             <Button 
               variant="outline" 
               size="sm" 
-              className="h-7 gap-1 text-xs border-ireland-green/30 hover:border-ireland-green hover:bg-ireland-green/10"
+              className={cn(
+                "h-7 gap-1 text-xs",
+                `border-${color}-500/30 hover:border-${color}-500 hover:bg-${color}-500/10`
+              )}
             >
               <Edit2 className="h-3 w-3" />
               Editar

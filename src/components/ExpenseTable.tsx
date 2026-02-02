@@ -6,6 +6,7 @@ import { EditableCell } from './EditableCell';
 import { ProgressBar } from './ProgressBar';
 import { PersonBadge } from './PersonBadge';
 import { CurrencySelect, formatCurrencyWithSymbol } from './CurrencySelect';
+import { SectionCurrencyFilter, SectionCurrency, convertCurrency, formatWithCurrency } from './SectionCurrencyFilter';
 import { Button } from '@/components/ui/button';
 import { PeriodFilter, PeriodFilterValue, filterExpensesByPeriod } from '@/components/PeriodFilter';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -30,6 +31,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
   const [isExpanded, setIsExpanded] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
   const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
+  const [displayCurrency, setDisplayCurrency] = useState<SectionCurrency>('original');
   
   // Track pending (unconfirmed) entries
   const [pendingEntries, setPendingEntries] = useState<Set<string>>(new Set());
@@ -310,24 +312,31 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
           )}
         </div>
         
-        {/* Period Filter */}
+        {/* Period Filter & Currency Filter */}
         {isExpanded && (
           <div className="pt-3 mt-3 border-t border-border/50 flex items-center justify-between gap-2">
-            <PeriodFilter 
-              value={periodFilter}
-              onChange={setPeriodFilter}
+            <div className="flex items-center gap-2">
+              <PeriodFilter 
+                value={periodFilter}
+                onChange={setPeriodFilter}
+              />
+              {periodFilter.type !== 'all' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPeriodFilter({ type: 'all' })}
+                  className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Limpar
+                </Button>
+              )}
+            </div>
+            <SectionCurrencyFilter 
+              value={displayCurrency}
+              onChange={setDisplayCurrency}
+              compact
             />
-            {periodFilter.type !== 'all' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setPeriodFilter({ type: 'all' })}
-                className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
-              >
-                <X className="h-3.5 w-3.5" />
-                Limpar filtro
-              </Button>
-            )}
           </div>
         )}
       </div>
