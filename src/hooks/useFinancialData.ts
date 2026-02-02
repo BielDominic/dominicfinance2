@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { IncomeEntry, ExpenseCategory, Investment, Currency } from '@/types/financial';
 import { toast } from 'sonner';
-
+import { useAuth } from '@/contexts/AuthContext';
 import { CounterBackground, CounterIcon, CounterColor } from '@/components/DayCounterSettings';
 
 interface AppConfig {
@@ -19,6 +19,7 @@ interface AppConfig {
 }
 
 export const useFinancialData = () => {
+  const { user } = useAuth();
   const [incomeEntries, setIncomeEntries] = useState<IncomeEntry[]>([]);
   const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
@@ -252,12 +253,18 @@ export const useFinancialData = () => {
   }, []);
 
   const handleAddIncomeEntry = useCallback(async (status: 'Entrada' | 'Futuros') => {
+    if (!user) {
+      toast.error('Você precisa estar logado para adicionar entradas');
+      return;
+    }
+    
     const newEntry = {
       valor: 0,
       descricao: '',
       data: new Date().toISOString().split('T')[0],
       pessoa: 'Gabriel',
       status: status,
+      user_id: user.id,
     };
 
     const { data, error } = await supabase.from('income_entries').insert(newEntry).select().single();
@@ -305,12 +312,18 @@ export const useFinancialData = () => {
   }, []);
 
   const handleAddExpenseCategory = useCallback(async () => {
+    if (!user) {
+      toast.error('Você precisa estar logado para adicionar categorias');
+      return;
+    }
+    
     const newCategory = {
       categoria: '',
       total: 0,
       pago: 0,
       falta_pagar: 0,
       pessoa: 'Ambos',
+      user_id: user.id,
     };
 
     const { data, error } = await supabase.from('expense_categories').insert(newCategory).select().single();
@@ -353,9 +366,15 @@ export const useFinancialData = () => {
   }, []);
 
   const handleAddInvestment = useCallback(async () => {
+    if (!user) {
+      toast.error('Você precisa estar logado para adicionar investimentos');
+      return;
+    }
+    
     const newInvestment = {
       categoria: '',
       valor: 0,
+      user_id: user.id,
     };
 
     const { data, error } = await supabase.from('investments').insert(newInvestment).select().single();
@@ -430,13 +449,14 @@ export const useFinancialData = () => {
 
       const insertPromises: Promise<void>[] = [];
 
-      if (data.incomeEntries.length > 0) {
+      if (data.incomeEntries.length > 0 && user) {
         const incomeData = data.incomeEntries.map(e => ({
           valor: e.valor,
           descricao: e.descricao,
           data: e.data || '',
           pessoa: e.pessoa,
           status: e.status,
+          user_id: user.id,
         }));
         const incomePromise = (async () => {
           const { data: inserted } = await supabase.from('income_entries').insert(incomeData).select();
@@ -457,12 +477,13 @@ export const useFinancialData = () => {
         insertPromises.push(incomePromise);
       }
 
-      if (data.expenseCategories.length > 0) {
+      if (data.expenseCategories.length > 0 && user) {
         const expenseData = data.expenseCategories.map(c => ({
           categoria: c.categoria,
           total: c.total,
           pago: c.pago,
           falta_pagar: c.faltaPagar,
+          user_id: user.id,
         }));
         const expensePromise = (async () => {
           const { data: inserted } = await supabase.from('expense_categories').insert(expenseData).select();
@@ -484,10 +505,11 @@ export const useFinancialData = () => {
         insertPromises.push(expensePromise);
       }
 
-      if (data.investments.length > 0) {
+      if (data.investments.length > 0 && user) {
         const investData = data.investments.map(i => ({
           categoria: i.categoria,
           valor: i.valor,
+          user_id: user.id,
         }));
         const investPromise = (async () => {
           const { data: inserted } = await supabase.from('investments').insert(investData).select();
