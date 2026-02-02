@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Find profile by username to get the associated email
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('user_id')
+        .select('user_id, email')
         .eq('username', username.toLowerCase())
         .single();
 
@@ -141,40 +141,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Usuário não encontrado') };
       }
 
-      // Get user from auth by user_id to retrieve their email
-      // We'll use a simple approach: try to sign in with the stored email pattern
-      // First, let's get the email from profiles metadata or use a lookup
+      // Use the email stored in profile, or fallback to legacy format
+      const email = (profileData as any).email || `${username.toLowerCase()}@dominic.app`;
       
-      // Since we now store real emails, we need to look up the actual email
-      // We'll use RPC or a direct approach - for now, use the email stored in auth
-      const { data: { user: authUser }, error: getUserError } = await supabase.auth.getUser();
-      
-      // Try signing in directly - the user provides username, we look up the email
-      // For this to work, we need to store the email in profiles or use a function
-      
-      // Workaround: Query the database for the user's email pattern
-      // Since we migrated to real emails, we need a way to get the email
-      // Let's add email to profiles table via a migration, or use a simpler approach
-      
-      // For now, let's try signing in with the profile's stored email
-      // We'll need to add email to profiles - but first, let's check if user exists
-      
-      // Simplified: We'll use the username@dominic.app pattern for existing users
-      // and real emails for new users (detected by checking if email contains @dominic.app)
-      
-      // Try the real email first (stored in a system we'll query)
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: `${username.toLowerCase()}@dominic.app`,
+        email,
         password,
       });
 
-      if (!signInError && signInData.user) {
-        return { error: null };
+      if (signInError) {
+        return { error: new Error('Senha incorreta') };
       }
 
-      // If that failed, it might be a user with a real email - we need email lookup
-      // For now, return the error as "wrong password" since username was found
-      return { error: new Error('Senha incorreta ou usuário não encontrado') };
+      return { error: null };
     } catch (error) {
       console.error('Sign in error:', error);
       return { error: error as Error };
@@ -218,13 +197,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        // Create profile
+        // Create profile with email
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             user_id: data.user.id,
             username: username.toLowerCase(),
             display_name: displayName || username,
+            email: email.toLowerCase(),
           });
 
         if (profileError) {
