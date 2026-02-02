@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Lock, User, Plane, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, Plane, Loader2, Eye, EyeOff, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Auth() {
@@ -21,6 +21,7 @@ export default function Auth() {
   
   // Register form state
   const [registerUsername, setRegisterUsername] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerDisplayName, setRegisterDisplayName] = useState('');
@@ -57,8 +58,15 @@ export default function Auth() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!registerUsername || !registerPassword || !registerConfirmPassword) {
+    if (!registerUsername || !registerEmail || !registerPassword || !registerConfirmPassword) {
       toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerEmail)) {
+      toast.error('Digite um email válido');
       return;
     }
     
@@ -87,6 +95,7 @@ export default function Auth() {
     
     const { error } = await signUp(
       registerUsername,
+      registerEmail,
       registerPassword,
       registerDisplayName || registerUsername
     );
@@ -220,6 +229,23 @@ export default function Auth() {
                   <p className="text-xs text-muted-foreground">
                     Apenas letras, números e underscores
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-email">Email *</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="register-email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={registerEmail}
+                      onChange={(e) => setRegisterEmail(e.target.value)}
+                      className="pl-10"
+                      autoComplete="email"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
