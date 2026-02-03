@@ -33,6 +33,7 @@ interface AuthContextType {
   signIn: (username: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (username: string, email: string, password: string, displayName?: string, fullName?: string, phone?: string, city?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
   hasPermission: (sectionKey: string, action: 'view' | 'edit') => boolean;
   refreshPermissions: () => Promise<void>;
 }
@@ -264,6 +265,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPermissions([]);
   }, []);
 
+  // Reset password
+  const resetPassword = useCallback(async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+      
+      if (error) {
+        return { error: new Error(error.message) };
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return { error: error as Error };
+    }
+  }, []);
+
   // Initialize auth state
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -349,6 +368,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signOut,
+    resetPassword,
     hasPermission,
     refreshPermissions,
   };

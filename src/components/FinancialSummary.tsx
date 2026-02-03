@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { SummaryCard } from './SummaryCard';
-import { formatCurrency } from '@/utils/formatters';
 import { useCurrencyFilter } from '@/contexts/CurrencyFilterContext';
 
 interface FinancialSummaryProps {
@@ -29,16 +28,16 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
     return `€${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Convert all values to display currency
+  // Convert all values to display currency (only if not 'ALL')
   const convertedSummary = {
-    totalEntradas: convertValue(summary.totalEntradas, 'BRL', summary.taxaCambio),
-    totalSaidas: convertValue(summary.totalSaidas, 'BRL', summary.taxaCambio),
-    totalPago: convertValue(summary.totalPago, 'BRL', summary.taxaCambio),
-    totalAPagar: convertValue(summary.totalAPagar, 'BRL', summary.taxaCambio),
-    totalFuturos: convertValue(summary.totalFuturos, 'BRL', summary.taxaCambio),
-    saldoAtual: convertValue(summary.saldoAtual, 'BRL', summary.taxaCambio),
-    saldoFinalPrevisto: convertValue(summary.saldoFinalPrevisto, 'BRL', summary.taxaCambio),
-    saldoFinalComFuturos: convertValue(summary.saldoFinalComFuturos, 'BRL', summary.taxaCambio),
+    totalEntradas: displayCurrency === 'ALL' ? summary.totalEntradas : convertValue(summary.totalEntradas, 'BRL', summary.taxaCambio),
+    totalSaidas: displayCurrency === 'ALL' ? summary.totalSaidas : convertValue(summary.totalSaidas, 'BRL', summary.taxaCambio),
+    totalPago: displayCurrency === 'ALL' ? summary.totalPago : convertValue(summary.totalPago, 'BRL', summary.taxaCambio),
+    totalAPagar: displayCurrency === 'ALL' ? summary.totalAPagar : convertValue(summary.totalAPagar, 'BRL', summary.taxaCambio),
+    totalFuturos: displayCurrency === 'ALL' ? summary.totalFuturos : convertValue(summary.totalFuturos, 'BRL', summary.taxaCambio),
+    saldoAtual: displayCurrency === 'ALL' ? summary.saldoAtual : convertValue(summary.saldoAtual, 'BRL', summary.taxaCambio),
+    saldoFinalPrevisto: displayCurrency === 'ALL' ? summary.saldoFinalPrevisto : convertValue(summary.saldoFinalPrevisto, 'BRL', summary.taxaCambio),
+    saldoFinalComFuturos: displayCurrency === 'ALL' ? summary.saldoFinalComFuturos : convertValue(summary.saldoFinalComFuturos, 'BRL', summary.taxaCambio),
   };
 
   return (
@@ -75,7 +74,6 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
               value={convertedSummary.totalEntradas}
               icon={TrendingUp}
               variant="positive"
-              displayCurrency={displayCurrency}
             />
             <div className="bg-future-light rounded-lg p-3 sm:p-4 flex flex-col gap-1 ring-2 ring-future/30">
               <div className="flex items-center gap-2 text-future">
@@ -83,7 +81,7 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
                 <span className="text-xs font-medium uppercase tracking-wide">Entradas + Futuros</span>
               </div>
               <span className="font-mono text-lg sm:text-xl font-bold text-future">
-                {formatWithSymbol(convertedSummary.totalEntradas + convertedSummary.totalFuturos)}
+                {formatWithSymbol(convertedSummary.totalEntradas + convertedSummary.totalFuturos, 'BRL')}
               </span>
               <span className="text-xs text-muted-foreground">
                 Total combinado
@@ -94,42 +92,36 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
               value={convertedSummary.totalSaidas}
               icon={TrendingDown}
               variant="negative"
-              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Total Pago"
               value={convertedSummary.totalPago}
               icon={CheckCircle2}
               variant="positive"
-              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Total a Pagar"
               value={convertedSummary.totalAPagar}
               icon={CreditCard}
               variant="negative"
-              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Total Futuros"
               value={convertedSummary.totalFuturos}
               icon={Clock}
               variant="default"
-              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Saldo Atual"
               value={convertedSummary.saldoAtual}
               icon={Wallet}
               variant="neutral"
-              displayCurrency={displayCurrency}
             />
             <SummaryCard
               label="Saldo Final Previsto"
               value={convertedSummary.saldoFinalPrevisto}
               icon={Target}
               variant="positive"
-              displayCurrency={displayCurrency}
             />
             <div className="bg-future-light rounded-lg p-3 sm:p-4 flex flex-col gap-1 ring-2 ring-future/30">
               <div className="flex items-center gap-2 text-future">
@@ -137,7 +129,7 @@ export function FinancialSummary({ summary }: FinancialSummaryProps) {
                 <span className="text-xs font-medium uppercase tracking-wide">Com Futuros</span>
               </div>
               <span className="font-mono text-lg sm:text-xl font-bold text-future">
-                {formatWithSymbol(convertedSummary.saldoFinalComFuturos)}
+                {formatWithSymbol(convertedSummary.saldoFinalComFuturos, 'BRL')}
               </span>
               <span className="text-xs text-muted-foreground">
                 Entradas + Futuros - Saídas
