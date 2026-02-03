@@ -98,9 +98,7 @@ export function Header({
                 </div> : <h1 className="text-sm sm:text-xl font-bold tracking-tight flex items-center gap-1 sm:gap-2 group cursor-pointer flex-wrap" onClick={() => setIsEditingTitle(true)}>
                   <span className="truncate max-w-[120px] sm:max-w-none">{title}</span>
                   <Pencil className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                  <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-ireland-orange-light text-ireland-orange rounded-full font-medium whitespace-nowrap flex-shrink-0">
-                    Irlanda
-                  </span>
+                  
                 </h1>}
               
               {/* Editable Subtitle */}
