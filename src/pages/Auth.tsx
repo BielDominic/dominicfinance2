@@ -1,22 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Lock, User, Plane, Loader2, Eye, EyeOff, Mail, Phone, MapPin, UserCircle } from 'lucide-react';
+import { Lock, User, Plane, Loader2, Eye, EyeOff, Mail, Phone, MapPin, UserCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const {
     user,
     isLoading: authLoading,
     signIn,
-    signUp
+    signUp,
+    resetPassword
   } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   // Login form state
   const [loginUsername, setLoginUsername] = useState('');
@@ -32,6 +37,13 @@ export default function Auth() {
   const [registerPhone, setRegisterPhone] = useState('');
   const [registerCity, setRegisterCity] = useState('');
 
+  // Check if coming from password reset link
+  useEffect(() => {
+    if (searchParams.get('reset') === 'true') {
+      toast.info('Você pode definir sua nova senha agora');
+    }
+  }, [searchParams]);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading) {
@@ -40,6 +52,7 @@ export default function Auth() {
       });
     }
   }, [user, authLoading, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginUsername || !loginPassword) {
@@ -60,6 +73,36 @@ export default function Auth() {
       replace: true
     });
   };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast.error('Digite seu email');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(resetEmail)) {
+      toast.error('Digite um email válido');
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await resetPassword(resetEmail);
+    setIsLoading(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+
+    toast.success('Email de recuperação enviado!', {
+      description: 'Verifique sua caixa de entrada e spam.'
+    });
+    setShowResetForm(false);
+    setResetEmail('');
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!registerUsername || !registerEmail || !registerPassword || !registerConfirmPassword || !registerFullName || !registerPhone || !registerCity) {
@@ -105,11 +148,73 @@ export default function Auth() {
     });
     setIsLoading(false);
   };
+
   if (authLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>;
   }
+
+  // Password Reset Form
+  if (showResetForm) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-lg">
+            {/* Header */}
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-primary text-primary-foreground mx-auto mb-3 sm:mb-4">
+                <Mail className="h-6 w-6 sm:h-8 sm:w-8" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Recuperar Senha</h1>
+              <p className="text-muted-foreground mt-1.5 sm:mt-2 text-sm sm:text-base">
+                Digite seu email para receber o link de recuperação
+              </p>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="reset-email" className="text-sm">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="reset-email" 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    value={resetEmail} 
+                    onChange={e => setResetEmail(e.target.value)} 
+                    className="pl-10 h-10 sm:h-11 text-sm sm:text-base" 
+                    autoComplete="email" 
+                    disabled={isLoading} 
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full h-10 sm:h-12 text-sm sm:text-base" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : 'Enviar Link de Recuperação'}
+              </Button>
+
+              <Button 
+                type="button" 
+                variant="ghost" 
+                className="w-full" 
+                onClick={() => setShowResetForm(false)}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar ao login
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return <div className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4">
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-lg">
@@ -162,6 +267,14 @@ export default function Auth() {
                       Entrando...
                     </> : 'Entrar'}
                 </Button>
+
+                <button 
+                  type="button" 
+                  onClick={() => setShowResetForm(true)}
+                  className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Esqueceu sua senha?
+                </button>
               </form>
             </TabsContent>
 

@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-export type DisplayCurrency = 'BRL' | 'USD' | 'EUR';
+export type DisplayCurrency = 'ALL' | 'BRL' | 'USD' | 'EUR';
 
 interface CurrencyFilterContextType {
   displayCurrency: DisplayCurrency;
   setDisplayCurrency: (currency: DisplayCurrency) => void;
+  resetFilter: () => void;
   convertValue: (value: number, fromCurrency: string, exchangeRate: number) => number;
-  formatWithSymbol: (value: number) => string;
+  formatWithSymbol: (value: number, originalCurrency?: string) => string;
 }
 
 const CurrencyFilterContext = createContext<CurrencyFilterContextType | undefined>(undefined);
@@ -25,10 +26,19 @@ export function CurrencyFilterProvider({
   children: ReactNode;
   exchangeRate?: number;
 }) {
-  const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('BRL');
+  const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>('ALL');
+
+  const resetFilter = () => {
+    setDisplayCurrency('ALL');
+  };
 
   // Convert a value from its original currency to the display currency
   const convertValue = (value: number, fromCurrency: string = 'BRL', eurRate: number = exchangeRate): number => {
+    // If showing ALL (original), return value as-is
+    if (displayCurrency === 'ALL') {
+      return value;
+    }
+
     // First convert to BRL
     let valueInBRL = value;
     if (fromCurrency === 'EUR') {
@@ -48,13 +58,16 @@ export function CurrencyFilterProvider({
     return valueInBRL;
   };
 
-  const formatWithSymbol = (value: number): string => {
+  const formatWithSymbol = (value: number, originalCurrency?: string): string => {
     const symbols: Record<DisplayCurrency, string> = {
+      ALL: originalCurrency === 'EUR' ? '€' : originalCurrency === 'USD' ? '$' : 'R$',
       BRL: 'R$',
       USD: '$',
       EUR: '€',
     };
-    const symbol = symbols[displayCurrency];
+    const symbol = displayCurrency === 'ALL' && originalCurrency 
+      ? symbols.ALL 
+      : symbols[displayCurrency] || 'R$';
     return `${symbol} ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
@@ -62,6 +75,7 @@ export function CurrencyFilterProvider({
     <CurrencyFilterContext.Provider value={{ 
       displayCurrency, 
       setDisplayCurrency, 
+      resetFilter,
       convertValue,
       formatWithSymbol 
     }}>

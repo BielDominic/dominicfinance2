@@ -1,24 +1,31 @@
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
-import { DisplayCurrency } from '@/contexts/CurrencyFilterContext';
+import { DisplayCurrency, useCurrencyFilter } from '@/contexts/CurrencyFilterContext';
 
 interface SummaryCardProps {
   label: string;
   value: number;
+  originalCurrency?: string;
   icon?: LucideIcon;
   variant?: 'default' | 'positive' | 'negative' | 'highlight' | 'neutral';
-  displayCurrency?: DisplayCurrency;
   className?: string;
 }
 
-const CURRENCY_SYMBOLS: Record<DisplayCurrency, string> = {
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  ALL: 'R$',
   BRL: 'R$',
   USD: '$',
   EUR: '€',
 };
 
-function formatValue(value: number, currency: DisplayCurrency = 'BRL'): string {
-  const symbol = CURRENCY_SYMBOLS[currency];
+function formatValue(value: number, displayCurrency: DisplayCurrency, originalCurrency?: string): string {
+  let symbol = CURRENCY_SYMBOLS[displayCurrency] || 'R$';
+  
+  // If showing ALL (original values), use original currency symbol
+  if (displayCurrency === 'ALL' && originalCurrency) {
+    symbol = CURRENCY_SYMBOLS[originalCurrency] || 'R$';
+  }
+  
   const formatted = new Intl.NumberFormat('pt-BR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -29,11 +36,13 @@ function formatValue(value: number, currency: DisplayCurrency = 'BRL'): string {
 export function SummaryCard({ 
   label, 
   value, 
+  originalCurrency = 'BRL',
   icon: Icon,
   variant = 'default',
-  displayCurrency = 'BRL',
   className 
 }: SummaryCardProps) {
+  const { displayCurrency } = useCurrencyFilter();
+  
   return (
     <div className={cn('summary-card animate-fade-in overflow-hidden', className)}>
       <div className="flex items-center justify-between gap-2">
@@ -57,7 +66,7 @@ export function SummaryCard({
         variant === 'neutral' && 'text-foreground',
         variant === 'default' && 'text-foreground'
       )}>
-        {formatValue(value, displayCurrency)}
+        {formatValue(value, displayCurrency, originalCurrency)}
       </span>
     </div>
   );
