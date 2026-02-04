@@ -491,6 +491,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_onboarding: {
+        Row: {
+          created_at: string
+          destination_city: string | null
+          destination_country: string | null
+          financial_goal: number | null
+          goal_description: string | null
+          has_completed_onboarding: boolean
+          id: string
+          monthly_expense_estimate: number | null
+          monthly_income_estimate: number | null
+          travel_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_city?: string | null
+          destination_country?: string | null
+          financial_goal?: number | null
+          goal_description?: string | null
+          has_completed_onboarding?: boolean
+          id?: string
+          monthly_expense_estimate?: number | null
+          monthly_income_estimate?: number | null
+          travel_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_city?: string | null
+          destination_country?: string | null
+          financial_goal?: number | null
+          goal_description?: string | null
+          has_completed_onboarding?: boolean
+          id?: string
+          monthly_expense_estimate?: number | null
+          monthly_income_estimate?: number | null
+          travel_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_permissions: {
         Row: {
           can_edit: boolean
