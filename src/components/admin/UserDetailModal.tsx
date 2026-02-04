@@ -33,11 +33,13 @@ import {
   UserCircle,
   Lock,
   EyeOff,
+  Plane,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { UserOnboardingInfo } from './UserOnboardingInfo';
 
 interface UserWithProfile {
   id: string;
@@ -365,10 +367,14 @@ export function UserDetailModal({
             </div>
           ) : (
             <Tabs defaultValue="info" className="mt-3 sm:mt-4">
-              <TabsList className="grid grid-cols-4 w-full h-8 sm:h-10">
+              <TabsList className="grid grid-cols-5 w-full h-8 sm:h-10">
                 <TabsTrigger value="info" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
                   <User className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Info</span>
+                </TabsTrigger>
+                <TabsTrigger value="onboarding" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
+                  <Plane className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Onboarding</span>
                 </TabsTrigger>
                 <TabsTrigger value="permissions" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
                   <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -605,6 +611,13 @@ export function UserDetailModal({
                       </CardContent>
                     </Card>
                   </div>
+                </ScrollArea>
+              </TabsContent>
+
+              {/* Onboarding Tab */}
+              <TabsContent value="onboarding" className="mt-4">
+                <ScrollArea className="h-[350px] sm:h-[400px] pr-2 sm:pr-4">
+                  <UserOnboardingInfo userId={user.id} />
                 </ScrollArea>
               </TabsContent>
 
