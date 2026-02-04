@@ -64,6 +64,7 @@ export default function Admin() {
   const [userToDelete, setUserToDelete] = useState<UserWithProfile | null>(null);
   const [userToView, setUserToView] = useState<UserWithProfile | null>(null);
   const [showDeleteAllLogsConfirm, setShowDeleteAllLogsConfirm] = useState(false);
+  const [blockEmail, setBlockEmail] = useState(false);
 
   // Check if already verified in this session
   useEffect(() => {
@@ -181,8 +182,35 @@ export default function Admin() {
   };
 
   // Delete user (profile, role, permissions)
-  const deleteUser = async (userToRemove: UserWithProfile) => {
+  const deleteUser = async (userToRemove: UserWithProfile, shouldBlockEmail: boolean = false) => {
     try {
+      // Block email if requested
+      if (shouldBlockEmail && userToRemove.email) {
+        const { error: blockError } = await supabase
+          .from('blocked_emails')
+          .insert({
+            email: userToRemove.email.toLowerCase(),
+            blocked_by: user?.id,
+            reason: `Blocked when user ${userToRemove.username} was deleted`,
+          });
+        
+        if (blockError && !blockError.message.includes('duplicate')) {
+          console.error('Error blocking email:', blockError);
+        }
+      }
+
+      // Delete user onboarding
+      await supabase
+        .from('user_onboarding')
+        .delete()
+        .eq('user_id', userToRemove.id);
+
+      // Delete user counter config
+      await supabase
+        .from('user_counter_config')
+        .delete()
+        .eq('user_id', userToRemove.id);
+
       // Delete user permissions
       await supabase
         .from('user_permissions')
@@ -206,15 +234,20 @@ export default function Admin() {
       // Log the action
       await supabase.from('audit_logs').insert([{
         user_id: user?.id,
-        action: 'DELETE_USER',
+        action: shouldBlockEmail ? 'DELETE_USER_AND_BLOCK' : 'DELETE_USER',
         table_name: 'profiles',
         record_id: userToRemove.id,
-        old_values: { username: userToRemove.username, display_name: userToRemove.display_name },
-        new_values: null,
+        old_values: { username: userToRemove.username, display_name: userToRemove.display_name, email: userToRemove.email },
+        new_values: shouldBlockEmail ? { email_blocked: true } : null,
       }]);
 
-      toast.success(`Usuário ${userToRemove.username} removido com sucesso`);
+      toast.success(
+        shouldBlockEmail 
+          ? `Usuário ${userToRemove.username} removido e email bloqueado` 
+          : `Usuário ${userToRemove.username} removido com sucesso`
+      );
       setUserToDelete(null);
+      setBlockEmail(false);
       fetchUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -555,13 +588,37 @@ export default function Admin() {
       {/* Delete User Confirmation */}
       <ConfirmDialog
         open={!!userToDelete}
-        onOpenChange={(open) => !open && setUserToDelete(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setUserToDelete(null);
+            setBlockEmail(false);
+          }
+        }}
         title="Remover Usuário"
-        description={`Tem certeza que deseja remover o usuário "${userToDelete?.display_name || userToDelete?.username}"? Esta ação não pode ser desfeita e removerá todas as permissões associadas.`}
-        confirmText="Remover"
+        description={
+          <div className="space-y-4">
+            <p>
+              Tem certeza que deseja remover o usuário "{userToDelete?.display_name || userToDelete?.username}"? 
+              Esta ação não pode ser desfeita e removerá todas as permissões associadas.
+            </p>
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+              <input
+                type="checkbox"
+                id="block-email"
+                checked={blockEmail}
+                onChange={(e) => setBlockEmail(e.target.checked)}
+                className="h-4 w-4 rounded border-border"
+              />
+              <label htmlFor="block-email" className="text-sm font-medium cursor-pointer">
+                🚫 Bloquear email ({userToDelete?.email}) - impede novo cadastro
+              </label>
+            </div>
+          </div>
+        }
+        confirmText={blockEmail ? "Remover e Bloquear" : "Remover"}
         cancelText="Cancelar"
         variant="destructive"
-        onConfirm={() => userToDelete && deleteUser(userToDelete)}
+        onConfirm={() => userToDelete && deleteUser(userToDelete, blockEmail)}
       />
 
       {/* Delete All Logs Confirmation */}

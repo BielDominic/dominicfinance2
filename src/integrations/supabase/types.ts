@@ -104,6 +104,30 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_emails: {
+        Row: {
+          blocked_at: string
+          blocked_by: string | null
+          email: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_at?: string
+          blocked_by?: string | null
+          email: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_at?: string
+          blocked_by?: string | null
+          email?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       dashboard_people: {
         Row: {
           color: string
@@ -605,6 +629,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_email_blocked: { Args: { check_email: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"

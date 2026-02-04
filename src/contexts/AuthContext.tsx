@@ -167,6 +167,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign up with username, email and password
   const signUp = useCallback(async (username: string, email: string, password: string, displayName?: string, fullName?: string, phone?: string, city?: string) => {
     try {
+      // Check if email is blocked
+      const { data: blockedData } = await supabase
+        .from('blocked_emails')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (blockedData) {
+        return { error: new Error('Este email não pode ser utilizado para cadastro') };
+      }
+
       // Check if username is already taken
       const { data: existingProfile } = await supabase
         .from('profiles')
