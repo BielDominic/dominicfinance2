@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { ArrowUpDown, Plus, User, CalendarDays, Sparkles, Trash2, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
-import { IncomeEntry, Person, EntryStatus, Currency } from '@/types/financial';
+import { ArrowUpDown, Plus, CalendarDays, Sparkles, Trash2, ChevronDown, ChevronUp, X, Check } from 'lucide-react';
+import { IncomeEntry, EntryStatus, Currency } from '@/types/financial';
 import { formatCurrency, formatDate, parseCurrencyInput, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
 import { StatusBadge } from './StatusBadge';
 import { PersonBadge } from './PersonBadge';
+import { PersonFilterSelect } from './PersonFilterSelect';
 import { CurrencySelect, formatCurrencyWithSymbol } from './CurrencySelect';
 import { SectionCurrencyFilter, SectionCurrency, convertCurrency, formatWithCurrency } from './SectionCurrencyFilter';
 import { Button } from '@/components/ui/button';
@@ -13,13 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PeriodFilter, PeriodFilterValue, filterByPeriod } from '@/components/PeriodFilter';
 import { ConfirmDialog } from './ConfirmDialog';
 import { toast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface IncomeTableProps {
@@ -33,7 +27,7 @@ type SortField = 'data' | 'valor' | 'pessoa';
 type SortDirection = 'asc' | 'desc';
 
 export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry }: IncomeTableProps) {
-  const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
+  const [filterPerson, setFilterPerson] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('data');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [activeTab, setActiveTab] = useState<'Entrada' | 'Futuros'>('Entrada');
@@ -268,7 +262,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
           <PersonBadge 
             person={entry.pessoa} 
             editable 
-            onChange={(pessoa) => onUpdateEntry(entry.id, { pessoa })}
+            onChange={(pessoa: string) => onUpdateEntry(entry.id, { pessoa })}
           />
           <StatusBadge 
             status={entry.status} 
@@ -389,7 +383,7 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
                     <PersonBadge 
                       person={entry.pessoa} 
                       editable 
-                      onChange={(pessoa) => onUpdateEntry(entry.id, { pessoa })}
+                      onChange={(pessoa: string) => onUpdateEntry(entry.id, { pessoa })}
                     />
                   </td>
                   <td className="p-3">
@@ -468,18 +462,10 @@ export function IncomeTable({ entries, onUpdateEntry, onAddEntry, onDeleteEntry 
           {isExpanded && (
             <div className="flex flex-wrap items-center gap-2">
               {/* Filter by Person */}
-              <Select value={filterPerson} onValueChange={(v) => setFilterPerson(v as Person | 'all')}>
-                <SelectTrigger className="w-[130px] h-8 sm:h-9 text-xs sm:text-sm">
-                  <User className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1.5 sm:mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Pessoa" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border shadow-md z-50">
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="Gabriel">Gabriel</SelectItem>
-                  <SelectItem value="Myrelle">Myrelle</SelectItem>
-                  <SelectItem value="Ambos">Ambos</SelectItem>
-                </SelectContent>
-              </Select>
+              <PersonFilterSelect
+                value={filterPerson}
+                onChange={setFilterPerson}
+              />
 
               {filterPerson !== 'all' && (
                 <Button
