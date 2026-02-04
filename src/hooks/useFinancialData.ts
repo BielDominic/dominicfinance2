@@ -117,7 +117,7 @@ export const useFinancialData = () => {
           valor: Number(e.valor),
           descricao: e.descricao,
           data: e.data,
-          pessoa: e.pessoa as 'Gabriel' | 'Myrelle',
+          pessoa: e.pessoa,
           status: e.status as 'Entrada' | 'Futuros',
           tags: (e as any).tags || [],
           notas: (e as any).notas || null,
@@ -135,7 +135,7 @@ export const useFinancialData = () => {
           metaOrcamento: (c as any).meta_orcamento ? Number((c as any).meta_orcamento) : null,
           vencimento: (c as any).vencimento || null,
           notas: (c as any).notas || null,
-          pessoa: ((c as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
+          pessoa: (c as any).pessoa || 'Ambos',
           moeda: ((c as any).moeda || 'BRL') as Currency,
         })));
       }
@@ -343,11 +343,22 @@ export const useFinancialData = () => {
       return;
     }
     
+    // Get the first individual person (not "Ambos") from dashboard_people
+    const { data: peopleData } = await supabase
+      .from('dashboard_people')
+      .select('name')
+      .eq('is_active', true)
+      .neq('name', 'Ambos')
+      .order('display_order', { ascending: true })
+      .limit(1);
+    
+    const defaultPerson = peopleData?.[0]?.name || 'Ambos';
+    
     const newEntry = {
       valor: 0,
       descricao: '',
       data: new Date().toISOString().split('T')[0],
-      pessoa: 'Gabriel',
+      pessoa: defaultPerson,
       status: status,
       user_id: user.id,
     };
@@ -362,14 +373,14 @@ export const useFinancialData = () => {
         valor: Number(data.valor),
         descricao: data.descricao,
         data: data.data,
-        pessoa: data.pessoa as 'Gabriel' | 'Myrelle',
+        pessoa: data.pessoa,
         status: data.status as 'Entrada' | 'Futuros',
         tags: (data as any).tags || [],
         notas: (data as any).notas || null,
         moeda: ((data as any).moeda || 'BRL') as Currency,
       }, ...prev]);
     }
-  }, []);
+  }, [user]);
 
   const handleDeleteIncomeEntry = useCallback(async (id: string) => {
     const deletedEntry = incomeEntries.find(e => e.id === id);
@@ -455,7 +466,7 @@ export const useFinancialData = () => {
         metaOrcamento: (data as any).meta_orcamento ? Number((data as any).meta_orcamento) : null,
         vencimento: (data as any).vencimento || null,
         notas: (data as any).notas || null,
-        pessoa: ((data as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
+        pessoa: (data as any).pessoa || 'Ambos',
         moeda: ((data as any).moeda || 'BRL') as Currency,
       }, ...prev]);
     }
@@ -624,7 +635,7 @@ export const useFinancialData = () => {
               valor: Number(e.valor),
               descricao: e.descricao,
               data: e.data,
-              pessoa: e.pessoa as 'Gabriel' | 'Myrelle',
+              pessoa: e.pessoa,
               status: e.status as 'Entrada' | 'Futuros',
               tags: (e as any).tags || [],
               notas: (e as any).notas || null,
@@ -655,7 +666,7 @@ export const useFinancialData = () => {
               metaOrcamento: (c as any).meta_orcamento ? Number((c as any).meta_orcamento) : null,
               vencimento: (c as any).vencimento || null,
               notas: (c as any).notas || null,
-              pessoa: ((c as any).pessoa || 'Ambos') as 'Gabriel' | 'Myrelle' | 'Ambos',
+              pessoa: (c as any).pessoa || 'Ambos',
               moeda: ((c as any).moeda || 'BRL') as Currency,
             }));
           }

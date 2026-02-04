@@ -1,4 +1,5 @@
-export type Person = 'Gabriel' | 'Myrelle' | 'Ambos';
+// Person is now dynamic - stored in dashboard_people table
+export type Person = string;
 export type EntryStatus = 'Entrada' | 'Futuros';
 export type EntryTag = 'urgente' | 'opcional' | 'confirmado' | 'pendente' | 'recorrente';
 export type Currency = 'BRL' | 'EUR' | 'USD';

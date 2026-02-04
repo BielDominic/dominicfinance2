@@ -1,23 +1,17 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays, X, User } from 'lucide-react';
-import { ExpenseCategory, Person, Currency } from '@/types/financial';
+import { Plus, Plane, Trash2, ChevronDown, ChevronUp, CalendarDays, X } from 'lucide-react';
+import { ExpenseCategory, Currency } from '@/types/financial';
 import { formatCurrency, parseCurrencyInput, formatDate, parseDateInput } from '@/utils/formatters';
 import { EditableCell } from './EditableCell';
 import { ProgressBar } from './ProgressBar';
 import { PersonBadge } from './PersonBadge';
+import { PersonFilterSelect } from './PersonFilterSelect';
 import { CurrencySelect, formatCurrencyWithSymbol } from './CurrencySelect';
 import { SectionCurrencyFilter, SectionCurrency, convertCurrency, formatWithCurrency } from './SectionCurrencyFilter';
 import { Button } from '@/components/ui/button';
 import { PeriodFilter, PeriodFilterValue, filterExpensesByPeriod } from '@/components/PeriodFilter';
 import { ConfirmDialog } from './ConfirmDialog';
 import { toast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 interface ExpenseTableProps {
@@ -30,7 +24,7 @@ interface ExpenseTableProps {
 export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDeleteCategory }: ExpenseTableProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterValue>({ type: 'all' });
-  const [filterPerson, setFilterPerson] = useState<Person | 'all'>('all');
+  const [filterPerson, setFilterPerson] = useState<string>('all');
   const [displayCurrency, setDisplayCurrency] = useState<SectionCurrency>('original');
   
   // Track pending (unconfirmed) entries
@@ -239,7 +233,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
         <PersonBadge 
           person={category.pessoa} 
           editable 
-          onChange={(pessoa) => onUpdateCategory(category.id, { pessoa })}
+          onChange={(pessoa: string) => onUpdateCategory(category.id, { pessoa })}
         />
       </div>
       
@@ -275,18 +269,10 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
           {isExpanded && (
             <div className="flex flex-wrap items-center gap-2">
               {/* Filter by Person */}
-              <Select value={filterPerson} onValueChange={(v) => setFilterPerson(v as Person | 'all')}>
-                <SelectTrigger className="w-[130px] h-8 sm:h-9 text-xs sm:text-sm">
-                  <User className="h-3.5 sm:h-4 w-3.5 sm:w-4 mr-1.5 sm:mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Pessoa" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border shadow-md z-50">
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="Gabriel">Gabriel</SelectItem>
-                  <SelectItem value="Myrelle">Myrelle</SelectItem>
-                  <SelectItem value="Ambos">Ambos</SelectItem>
-                </SelectContent>
-              </Select>
+              <PersonFilterSelect
+                value={filterPerson}
+                onChange={setFilterPerson}
+              />
 
               {filterPerson !== 'all' && (
                 <Button
@@ -449,7 +435,7 @@ export function ExpenseTable({ categories, onUpdateCategory, onAddCategory, onDe
                     <PersonBadge 
                       person={category.pessoa} 
                       editable 
-                      onChange={(pessoa) => onUpdateCategory(category.id, { pessoa })}
+                      onChange={(pessoa: string) => onUpdateCategory(category.id, { pessoa })}
                     />
                   </td>
                   <td className="p-3">

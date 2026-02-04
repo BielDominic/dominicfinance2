@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Person } from '@/types/financial';
+import { usePersonOptions } from '@/hooks/usePeople';
 import {
   Select,
   SelectContent,
@@ -9,49 +9,52 @@ import {
 } from '@/components/ui/select';
 
 interface PersonBadgeProps {
-  person: Person;
+  person: string;
   className?: string;
   editable?: boolean;
-  onChange?: (person: Person) => void;
+  onChange?: (person: string) => void;
 }
 
 export function PersonBadge({ person, className, editable = false, onChange }: PersonBadgeProps) {
+  const options = usePersonOptions();
+
+  // Find the color for the current person
+  const currentOption = options.find(o => o.value === person);
+  const currentColor = currentOption?.color || '#6366f1';
+
+  const getBadgeStyle = (color: string) => ({
+    backgroundColor: `${color}20`,
+    color: color,
+    borderColor: `${color}40`,
+  });
+
   if (editable && onChange) {
     return (
-      <Select value={person} onValueChange={(v) => onChange(v as Person)}>
+      <Select value={person} onValueChange={onChange}>
         <SelectTrigger 
           className={cn(
-            'h-7 w-[100px] border-0 bg-transparent p-0 focus:ring-0',
+            'h-7 w-[110px] border-0 bg-transparent p-0 focus:ring-0',
             className
           )}
         >
           <span
-            className={cn(
-              'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-              person === 'Gabriel' && 'bg-primary/10 text-primary',
-              person === 'Myrelle' && 'bg-accent text-accent-foreground',
-              person === 'Ambos' && 'bg-muted text-muted-foreground'
-            )}
+            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border"
+            style={getBadgeStyle(currentColor)}
           >
-            {person}
+            {person || 'Selecionar'}
           </span>
         </SelectTrigger>
         <SelectContent className="bg-popover border shadow-md z-50">
-          <SelectItem value="Gabriel">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
-              Gabriel
-            </span>
-          </SelectItem>
-          <SelectItem value="Myrelle">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent text-accent-foreground">
-              Myrelle
-            </span>
-          </SelectItem>
-          <SelectItem value="Ambos">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
-              Ambos
-            </span>
-          </SelectItem>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              <span 
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border"
+                style={getBadgeStyle(option.color)}
+              >
+                {option.label}
+              </span>
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     );
@@ -60,12 +63,10 @@ export function PersonBadge({ person, className, editable = false, onChange }: P
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-        person === 'Gabriel' && 'bg-primary/10 text-primary',
-        person === 'Myrelle' && 'bg-accent text-accent-foreground',
-        person === 'Ambos' && 'bg-muted text-muted-foreground',
+        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border',
         className
       )}
+      style={getBadgeStyle(currentColor)}
     >
       {person}
     </span>

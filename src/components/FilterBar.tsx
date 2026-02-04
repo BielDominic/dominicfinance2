@@ -7,13 +7,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Person, EntryStatus, EntryTag } from '@/types/financial';
+import { EntryStatus, EntryTag } from '@/types/financial';
 import { TagSelector } from './TagBadge';
+import { PersonFilterSelect } from './PersonFilterSelect';
 import { cn } from '@/lib/utils';
 
 export interface FilterState {
   search: string;
-  person: Person | 'all';
+  person: string;
   status: EntryStatus | 'all';
   tags: EntryTag[];
   dateFrom: Date | undefined;
@@ -115,19 +116,10 @@ export function FilterBar({ filters, onFiltersChange, showStatusFilter = true }:
                 <User className="h-3 w-3" />
                 Pessoa
               </label>
-              <Select 
-                value={filters.person} 
-                onValueChange={(v) => onFiltersChange({ ...filters, person: v as Person | 'all' })}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="Gabriel">Gabriel</SelectItem>
-                  <SelectItem value="Myrelle">Myrelle</SelectItem>
-                </SelectContent>
-              </Select>
+              <PersonFilterSelect
+                value={filters.person}
+                onChange={(v) => onFiltersChange({ ...filters, person: v })}
+              />
             </div>
             
             {/* Status Filter */}
