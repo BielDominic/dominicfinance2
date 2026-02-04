@@ -305,6 +305,7 @@ export const useFinancialData = () => {
 
   // Income entry handlers
   const handleUpdateIncomeEntry = useCallback(async (id: string, updates: Partial<IncomeEntry>) => {
+    const oldEntry = incomeEntries.find(e => e.id === id);
     setIncomeEntries(prev => prev.map(entry => entry.id === id ? { ...entry, ...updates } : entry));
     
     const dbUpdates: Record<string, unknown> = {};
@@ -316,8 +317,25 @@ export const useFinancialData = () => {
     if (updates.moeda !== undefined) dbUpdates.moeda = updates.moeda;
 
     const { error } = await supabase.from('income_entries').update(dbUpdates).eq('id', id);
-    if (error) console.error('Error updating income entry:', error);
-  }, []);
+    if (error) {
+      console.error('Error updating income entry:', error);
+    } else if (user) {
+      // Calculate financial impact for value changes
+      const financialImpact = updates.valor !== undefined && oldEntry 
+        ? updates.valor - oldEntry.valor 
+        : null;
+      
+      await supabase.from('audit_logs').insert([{
+        user_id: user.id,
+        action: 'UPDATE_INCOME',
+        table_name: 'income_entries',
+        record_id: id,
+        old_values: oldEntry ? JSON.parse(JSON.stringify({ valor: oldEntry.valor, descricao: oldEntry.descricao })) : null,
+        new_values: JSON.parse(JSON.stringify(dbUpdates)),
+        financial_impact: financialImpact,
+      }]);
+    }
+  }, [user, incomeEntries]);
 
   const handleAddIncomeEntry = useCallback(async (status: 'Entrada' | 'Futuros') => {
     if (!user) {
@@ -354,13 +372,27 @@ export const useFinancialData = () => {
   }, []);
 
   const handleDeleteIncomeEntry = useCallback(async (id: string) => {
+    const deletedEntry = incomeEntries.find(e => e.id === id);
     setIncomeEntries(prev => prev.filter(entry => entry.id !== id));
     const { error } = await supabase.from('income_entries').delete().eq('id', id);
-    if (error) console.error('Error deleting income entry:', error);
-  }, []);
+    if (error) {
+      console.error('Error deleting income entry:', error);
+    } else if (user && deletedEntry) {
+      await supabase.from('audit_logs').insert([{
+        user_id: user.id,
+        action: 'DELETE_INCOME',
+        table_name: 'income_entries',
+        record_id: id,
+        old_values: JSON.parse(JSON.stringify({ valor: deletedEntry.valor, descricao: deletedEntry.descricao })),
+        new_values: null,
+        financial_impact: -deletedEntry.valor,
+      }]);
+    }
+  }, [user, incomeEntries]);
 
   // Expense category handlers
   const handleUpdateExpenseCategory = useCallback(async (id: string, updates: Partial<ExpenseCategory>) => {
+    const oldCategory = expenseCategories.find(c => c.id === id);
     setExpenseCategories(prev => prev.map(cat => cat.id === id ? { ...cat, ...updates } : cat));
     
     const dbUpdates: Record<string, unknown> = {};
@@ -375,8 +407,24 @@ export const useFinancialData = () => {
     if (updates.moeda !== undefined) dbUpdates.moeda = updates.moeda;
 
     const { error } = await supabase.from('expense_categories').update(dbUpdates).eq('id', id);
-    if (error) console.error('Error updating expense category:', error);
-  }, []);
+    if (error) {
+      console.error('Error updating expense category:', error);
+    } else if (user) {
+      const financialImpact = updates.total !== undefined && oldCategory 
+        ? updates.total - oldCategory.total 
+        : null;
+      
+      await supabase.from('audit_logs').insert([{
+        user_id: user.id,
+        action: 'UPDATE_EXPENSE',
+        table_name: 'expense_categories',
+        record_id: id,
+        old_values: oldCategory ? JSON.parse(JSON.stringify({ total: oldCategory.total, categoria: oldCategory.categoria })) : null,
+        new_values: JSON.parse(JSON.stringify(dbUpdates)),
+        financial_impact: financialImpact,
+      }]);
+    }
+  }, [user, expenseCategories]);
 
   const handleAddExpenseCategory = useCallback(async () => {
     if (!user) {
@@ -414,13 +462,27 @@ export const useFinancialData = () => {
   }, []);
 
   const handleDeleteExpenseCategory = useCallback(async (id: string) => {
+    const deletedCategory = expenseCategories.find(c => c.id === id);
     setExpenseCategories(prev => prev.filter(cat => cat.id !== id));
     const { error } = await supabase.from('expense_categories').delete().eq('id', id);
-    if (error) console.error('Error deleting expense category:', error);
-  }, []);
+    if (error) {
+      console.error('Error deleting expense category:', error);
+    } else if (user && deletedCategory) {
+      await supabase.from('audit_logs').insert([{
+        user_id: user.id,
+        action: 'DELETE_EXPENSE',
+        table_name: 'expense_categories',
+        record_id: id,
+        old_values: JSON.parse(JSON.stringify({ total: deletedCategory.total, categoria: deletedCategory.categoria })),
+        new_values: null,
+        financial_impact: deletedCategory.total,
+      }]);
+    }
+  }, [user, expenseCategories]);
 
   // Investment handlers
   const handleUpdateInvestment = useCallback(async (id: string, updates: Partial<Investment>) => {
+    const oldInvestment = investments.find(i => i.id === id);
     setInvestments(prev => prev.map(inv => inv.id === id ? { ...inv, ...updates } : inv));
     
     const dbUpdates: Record<string, unknown> = {};
@@ -429,8 +491,24 @@ export const useFinancialData = () => {
     if (updates.moeda !== undefined) dbUpdates.moeda = updates.moeda;
 
     const { error } = await supabase.from('investments').update(dbUpdates).eq('id', id);
-    if (error) console.error('Error updating investment:', error);
-  }, []);
+    if (error) {
+      console.error('Error updating investment:', error);
+    } else if (user) {
+      const financialImpact = updates.valor !== undefined && oldInvestment 
+        ? updates.valor - oldInvestment.valor 
+        : null;
+      
+      await supabase.from('audit_logs').insert([{
+        user_id: user.id,
+        action: 'UPDATE_INVESTMENT',
+        table_name: 'investments',
+        record_id: id,
+        old_values: oldInvestment ? JSON.parse(JSON.stringify({ valor: oldInvestment.valor, categoria: oldInvestment.categoria })) : null,
+        new_values: JSON.parse(JSON.stringify(dbUpdates)),
+        financial_impact: financialImpact,
+      }]);
+    }
+  }, [user, investments]);
 
   const handleAddInvestment = useCallback(async () => {
     if (!user) {
@@ -456,13 +534,26 @@ export const useFinancialData = () => {
         moeda: ((data as any).moeda || 'BRL') as Currency,
       }, ...prev]);
     }
-  }, []);
+  }, [user]);
 
   const handleDeleteInvestment = useCallback(async (id: string) => {
+    const deletedInvestment = investments.find(i => i.id === id);
     setInvestments(prev => prev.filter(inv => inv.id !== id));
     const { error } = await supabase.from('investments').delete().eq('id', id);
-    if (error) console.error('Error deleting investment:', error);
-  }, []);
+    if (error) {
+      console.error('Error deleting investment:', error);
+    } else if (user && deletedInvestment) {
+      await supabase.from('audit_logs').insert([{
+        user_id: user.id,
+        action: 'DELETE_INVESTMENT',
+        table_name: 'investments',
+        record_id: id,
+        old_values: JSON.parse(JSON.stringify({ valor: deletedInvestment.valor, categoria: deletedInvestment.categoria })),
+        new_values: null,
+        financial_impact: -deletedInvestment.valor,
+      }]);
+    }
+  }, [user, investments]);
 
   // Meta handler
   const handleMetaChange = useCallback(async (value: number) => {
