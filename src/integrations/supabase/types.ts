@@ -20,6 +20,7 @@ export type Database = {
           id: string
           key: string
           updated_at: string
+          user_id: string | null
           value: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           id?: string
           key: string
           updated_at?: string
+          user_id?: string | null
           value?: string
         }
         Update: {
@@ -34,6 +36,7 @@ export type Database = {
           id?: string
           key?: string
           updated_at?: string
+          user_id?: string | null
           value?: string
         }
         Relationships: []
@@ -44,6 +47,7 @@ export type Database = {
           id: string
           key: string
           updated_at: string
+          user_id: string | null
           value: number
         }
         Insert: {
@@ -51,6 +55,7 @@ export type Database = {
           id?: string
           key: string
           updated_at?: string
+          user_id?: string | null
           value?: number
         }
         Update: {
@@ -58,6 +63,7 @@ export type Database = {
           id?: string
           key?: string
           updated_at?: string
+          user_id?: string | null
           value?: number
         }
         Relationships: []
@@ -137,6 +143,7 @@ export type Database = {
           is_active: boolean
           name: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           color?: string
@@ -146,6 +153,7 @@ export type Database = {
           is_active?: boolean
           name: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           color?: string
@@ -155,6 +163,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

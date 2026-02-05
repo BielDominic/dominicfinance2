@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface DashboardPerson {
   id: string;
@@ -32,6 +33,7 @@ const COLORS = [
 ];
 
 export function PeopleManager({ onPeopleChange }: PeopleManagerProps) {
+  const { user } = useAuth();
   const [people, setPeople] = useState<DashboardPerson[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +76,11 @@ export function PeopleManager({ onPeopleChange }: PeopleManagerProps) {
   };
 
   const addPerson = async () => {
+    if (!user) {
+      toast.error('Você precisa estar logado');
+      return;
+    }
+    
     if (!newName.trim()) {
       toast.error('Nome é obrigatório');
       return;
@@ -85,6 +92,7 @@ export function PeopleManager({ onPeopleChange }: PeopleManagerProps) {
       name: newName.trim(),
       color: newColor,
       display_order: maxOrder + 1,
+      user_id: user.id,
     });
 
     if (error) {
