@@ -157,14 +157,27 @@ export const useOnboarding = () => {
         }
       }
 
-      // Set income goal if provided
-      if (data.financial_goal) {
-        await supabase
+      // Set income goal if provided (per user)
+      if (data.financial_goal && user) {
+        // Check if setting exists for this user
+        const { data: existing } = await supabase
           .from('app_settings')
-          .upsert({
-            key: 'meta_entradas',
-            value: data.financial_goal,
-          }, { onConflict: 'key' });
+          .select('id')
+          .eq('key', 'meta_entradas')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (existing) {
+          await supabase
+            .from('app_settings')
+            .update({ value: data.financial_goal })
+            .eq('key', 'meta_entradas')
+            .eq('user_id', user.id);
+        } else {
+          await supabase
+            .from('app_settings')
+            .insert({ key: 'meta_entradas', value: data.financial_goal, user_id: user.id });
+        }
       }
 
       setNeedsOnboarding(false);

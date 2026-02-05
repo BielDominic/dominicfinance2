@@ -734,11 +734,29 @@ export const useFinancialData = () => {
         insertPromises.push(investPromise);
       }
 
-      // Update meta
+      // Update meta (per user)
       const metaPromise = (async () => {
-        await supabase
+        if (!user) return;
+        
+        // Check if setting exists for this user
+        const { data: existing } = await supabase
           .from('app_settings')
-          .upsert({ key: 'meta_entradas', value: data.metaEntradas }, { onConflict: 'key' });
+          .select('id')
+          .eq('key', 'meta_entradas')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (existing) {
+          await supabase
+            .from('app_settings')
+            .update({ value: data.metaEntradas })
+            .eq('key', 'meta_entradas')
+            .eq('user_id', user.id);
+        } else {
+          await supabase
+            .from('app_settings')
+            .insert({ key: 'meta_entradas', value: data.metaEntradas, user_id: user.id });
+        }
       })();
       insertPromises.push(metaPromise);
 

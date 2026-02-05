@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface DashboardPerson {
   id: string;
@@ -10,11 +11,13 @@ export interface DashboardPerson {
 }
 
 export function usePeople() {
+  const { user } = useAuth();
   const [people, setPeople] = useState<DashboardPerson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchPeople = useCallback(async () => {
     setIsLoading(true);
+    // RLS will automatically filter to user's own data or Gabriel/Myrelle shared data
     const { data, error } = await supabase
       .from('dashboard_people')
       .select('*')
@@ -30,7 +33,9 @@ export function usePeople() {
   }, []);
 
   useEffect(() => {
-    fetchPeople();
+    if (user) {
+      fetchPeople();
+    }
 
     const channel = supabase
       .channel('people_sync_realtime')
@@ -40,7 +45,7 @@ export function usePeople() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchPeople]);
+  }, [fetchPeople, user]);
 
   // Get all person names (including "Ambos")
   const personNames = people.map(p => p.name);
@@ -76,10 +81,14 @@ export function usePeople() {
 
 // Smaller hook for components that only need person names for selects
 export function usePersonOptions() {
+  const { user } = useAuth();
   const [options, setOptions] = useState<{ value: string; label: string; color: string }[]>([]);
 
   useEffect(() => {
     const fetchOptions = async () => {
+      if (!user) return;
+      
+      // RLS will automatically filter to user's own data or Gabriel/Myrelle shared data
       const { data } = await supabase
         .from('dashboard_people')
         .select('name, color')
@@ -101,7 +110,7 @@ export function usePersonOptions() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   return options;
 }
