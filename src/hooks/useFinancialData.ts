@@ -218,14 +218,34 @@ export const useFinancialData = () => {
     };
   }, [fetchData, fetchAppConfig, fetchUserCounterConfig]);
 
-  // Update app config
+  // Update app config (per user)
   const updateAppConfig = useCallback(async (key: string, value: string) => {
-    const { error } = await supabase
-      .from('app_config')
-      .upsert({ key, value }, { onConflict: 'key' });
+    if (!user) return;
     
-    if (error) console.error('Error updating app config:', error);
-  }, []);
+    // Check if config exists for this user
+    const { data: existing } = await supabase
+      .from('app_config')
+      .select('id')
+      .eq('key', key)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (existing) {
+      const { error } = await supabase
+        .from('app_config')
+        .update({ value })
+        .eq('key', key)
+        .eq('user_id', user.id);
+      
+      if (error) console.error('Error updating app config:', error);
+    } else {
+      const { error } = await supabase
+        .from('app_config')
+        .insert({ key, value, user_id: user.id });
+      
+      if (error) console.error('Error inserting app config:', error);
+    }
+  }, [user]);
 
   const handleTitleChange = useCallback(async (title: string) => {
     setAppConfig(prev => ({ ...prev, headerTitle: title }));
@@ -566,16 +586,36 @@ export const useFinancialData = () => {
     }
   }, [user, investments]);
 
-  // Meta handler
+  // Meta handler (per user)
   const handleMetaChange = useCallback(async (value: number) => {
+    if (!user) return;
+    
     setMetaEntradas(value);
     
-    const { error } = await supabase
+    // Check if setting exists for this user
+    const { data: existing } = await supabase
       .from('app_settings')
-      .upsert({ key: 'meta_entradas', value }, { onConflict: 'key' });
+      .select('id')
+      .eq('key', 'meta_entradas')
+      .eq('user_id', user.id)
+      .maybeSingle();
     
-    if (error) console.error('Error updating meta:', error);
-  }, []);
+    if (existing) {
+      const { error } = await supabase
+        .from('app_settings')
+        .update({ value })
+        .eq('key', 'meta_entradas')
+        .eq('user_id', user.id);
+      
+      if (error) console.error('Error updating meta:', error);
+    } else {
+      const { error } = await supabase
+        .from('app_settings')
+        .insert({ key: 'meta_entradas', value, user_id: user.id });
+      
+      if (error) console.error('Error inserting meta:', error);
+    }
+  }, [user]);
 
   // Save all data (manual sync)
   const handleSaveData = useCallback(async () => {
