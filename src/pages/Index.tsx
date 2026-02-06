@@ -22,6 +22,7 @@ import { DecisionSimulator } from '@/components/DecisionSimulator';
 import { PeopleManager } from '@/components/PeopleManager';
 import { SupportButton } from '@/components/SupportButton';
 import { CurrencyFilterSelect } from '@/components/CurrencyFilterSelect';
+import { GuidedTutorial } from '@/components/GuidedTutorial';
 import { ReadOnlyProvider, useReadOnly } from '@/components/ReadOnlyToggle';
 import { CurrencyFilterProvider } from '@/contexts/CurrencyFilterContext';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
@@ -286,6 +287,7 @@ const Index = () => {
     <ReadOnlyProvider>
       <CurrencyFilterProvider exchangeRate={liveExchangeRate || 6.5}>
         <IndexContent />
+        <GuidedTutorial />
       </CurrencyFilterProvider>
     </ReadOnlyProvider>
   );
