@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,8 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
+import { BlockedEmailsManager } from './BlockedEmailsManager';
 import {
   Key,
   Palette,
@@ -41,6 +44,7 @@ import {
   Users,
   AlertTriangle,
   CheckCircle,
+  Ban,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -116,10 +120,13 @@ const ICON_OPTIONS = [
 
 export function AdminSettings() {
   const { user } = useAuth();
+  const { isMaintenanceMode, maintenanceMessage, toggleMaintenanceMode } = useMaintenanceMode();
   const [config, setConfig] = useState<SystemConfig>(DEFAULT_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [maintenanceMsg, setMaintenanceMsg] = useState('');
+  const [isTogglingMaintenance, setIsTogglingMaintenance] = useState(false);
   
   // Password settings
   const [newPassword, setNewPassword] = useState('');
@@ -364,6 +371,10 @@ export function AdminSettings() {
           <TabsTrigger value="maintenance" className="gap-2">
             <AlertTriangle className="h-4 w-4" />
             Manutenção
+          </TabsTrigger>
+          <TabsTrigger value="blocked-emails" className="gap-2">
+            <Ban className="h-4 w-4" />
+            Emails
           </TabsTrigger>
         </TabsList>
 
@@ -944,7 +955,7 @@ export function AdminSettings() {
                 Modo de Manutenção
               </CardTitle>
               <CardDescription>
-                Coloque o sistema em manutenção para atualizações
+                Coloque o sistema em manutenção para atualizações. Usuários comuns verão uma tela de manutenção.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -956,24 +967,49 @@ export function AdminSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={config.maintenance_mode}
-                  onCheckedChange={(checked) => updateConfig('maintenance_mode', checked)}
+                  checked={isMaintenanceMode}
+                  disabled={isTogglingMaintenance}
+                  onCheckedChange={async (checked) => {
+                    setIsTogglingMaintenance(true);
+                    const { error } = await toggleMaintenanceMode(checked, maintenanceMsg || undefined);
+                    if (error) {
+                      toast.error('Erro ao alterar modo de manutenção');
+                    } else {
+                      toast.success(checked ? 'Modo de manutenção ativado' : 'Modo de manutenção desativado');
+                    }
+                    setIsTogglingMaintenance(false);
+                  }}
                 />
               </div>
 
-              {config.maintenance_mode && (
+              <div className="space-y-2">
+                <Label>Mensagem de Manutenção</Label>
+                <Textarea
+                  value={maintenanceMsg || maintenanceMessage}
+                  onChange={(e) => setMaintenanceMsg(e.target.value)}
+                  placeholder="O sistema está em manutenção. Tente novamente mais tarde."
+                  rows={3}
+                />
+              </div>
+
+              {isMaintenanceMode && (
                 <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
                   <p className="text-destructive font-medium flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
                     Modo de manutenção ativo
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Usuários comuns não conseguirão acessar o sistema
+                    Usuários comuns não conseguirão acessar o sistema até você desativar
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Blocked Emails */}
+        <TabsContent value="blocked-emails">
+          <BlockedEmailsManager />
         </TabsContent>
       </Tabs>
 

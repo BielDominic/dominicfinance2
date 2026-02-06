@@ -1,7 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
+import { MaintenanceScreen } from '@/components/MaintenanceScreen';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -12,10 +14,11 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
   const { user, isLoading: authLoading, isAdmin } = useAuth();
   const { needsOnboarding, isLoading: onboardingLoading, refetch } = useOnboarding();
+  const { isMaintenanceMode, maintenanceMessage, isLoading: maintenanceLoading } = useMaintenanceMode();
   const location = useLocation();
 
   // Show loading while checking auth
-  if (authLoading) {
+  if (authLoading || maintenanceLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -29,6 +32,11 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   // Redirect to auth if not logged in
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Check maintenance mode - block non-admin users
+  if (isMaintenanceMode && !isAdmin) {
+    return <MaintenanceScreen message={maintenanceMessage} />;
   }
 
   // Check admin requirement

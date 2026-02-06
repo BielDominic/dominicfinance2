@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UserEditForm } from './UserEditForm';
+import { ProfileChangeHistory } from './ProfileChangeHistory';
 import { 
   User, 
   Shield, 
@@ -34,6 +36,8 @@ import {
   Lock,
   EyeOff,
   Plane,
+  History,
+  Edit,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -117,6 +121,7 @@ export function UserDetailModal({
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteLogsConfirm, setShowDeleteLogsConfirm] = useState(false);
   const [isDeletingLogs, setIsDeletingLogs] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
   
   // Password change state
   const [newPassword, setNewPassword] = useState('');
@@ -135,6 +140,17 @@ export function UserDetailModal({
     setIsLoading(true);
 
     try {
+      // Fetch profile ID
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profileData) {
+        setProfileId(profileData.id);
+      }
+
       // Fetch permissions
       const { data: permsData } = await supabase
         .from('user_permissions')
@@ -367,22 +383,26 @@ export function UserDetailModal({
             </div>
           ) : (
             <Tabs defaultValue="info" className="mt-3 sm:mt-4">
-              <TabsList className="grid grid-cols-5 w-full h-8 sm:h-10">
+              <TabsList className="grid grid-cols-6 w-full h-8 sm:h-10">
                 <TabsTrigger value="info" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
                   <User className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Info</span>
                 </TabsTrigger>
+                <TabsTrigger value="edit" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Editar</span>
+                </TabsTrigger>
                 <TabsTrigger value="onboarding" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
                   <Plane className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Onboarding</span>
+                  <span className="hidden sm:inline">Onb.</span>
                 </TabsTrigger>
                 <TabsTrigger value="permissions" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
                   <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Permissões</span>
+                  <span className="hidden sm:inline">Perm.</span>
                 </TabsTrigger>
                 <TabsTrigger value="activity" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
                   <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Atividade</span>
+                  <span className="hidden sm:inline">Ativ.</span>
                 </TabsTrigger>
                 <TabsTrigger value="stats" className="gap-1 text-xs sm:text-sm px-1 sm:px-3">
                   <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -610,6 +630,23 @@ export function UserDetailModal({
                         </div>
                       </CardContent>
                     </Card>
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+
+              {/* Edit Tab - NEW */}
+              <TabsContent value="edit" className="mt-3 sm:mt-4">
+                <ScrollArea className="h-[350px] sm:h-[400px] pr-2 sm:pr-4">
+                  <div className="space-y-4">
+                    <UserEditForm 
+                      user={user} 
+                      currentAdminId={currentUserId || ''} 
+                      onSaved={() => {
+                        fetchUserData();
+                        onUserUpdated?.();
+                      }} 
+                    />
+                    {profileId && <ProfileChangeHistory profileId={profileId} />}
                   </div>
                 </ScrollArea>
               </TabsContent>
