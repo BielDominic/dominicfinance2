@@ -36,6 +36,10 @@
 
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
 
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=Merriweather&display=swap");
+
 @layer base {
   :root {
     --background: 240 4% 95%;
@@ -47,8 +51,8 @@
     --popover: 240 5% 90%;
     --popover-foreground: 240 5% 10%;
 
-    --primary: 333 71% 50%;
-    --primary-foreground: 327 73% 97%;
+    --primary: 204 80.2469% 15.8824%;
+    --primary-foreground: 210 40% 98.0392%;
 
     --secondary: 240 5% 33%;
     --secondary-foreground: 0 0% 98%;
@@ -56,8 +60,8 @@
     --muted: 240 4% 83%;
     --muted-foreground: 240 5% 10%;
 
-    --accent: 355 100% 97%;
-    --accent-foreground: 349 89% 60%;
+    --accent: 210 40% 96.0784%;
+    --accent-foreground: 215 16.318% 46.8627%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 85% 97%;
