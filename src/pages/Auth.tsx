@@ -1,21 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { lovable } from '@/integrations/lovable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Lock, User, Plane, Loader2, Eye, EyeOff, Mail, Phone, MapPin, UserCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-
-const GoogleIcon = () => (
-  <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-    <g transform="matrix(1, 0, 0, 1, 0, 0)">
-      <path d="M21.35,11.1H12v3.28h5.3c-.57,2.53-2.7,3.62-5.3,3.62a5.9,5.9,0,0,1,0-11.8,5.52,5.52,0,0,1,3.44,1.2l2.44-2.44A9.32,9.32,0,0,0,12,2a10,10,0,1,0,0,20c5.17,0,9.86-3.76,9.86-10A8.26,8.26,0,0,0,21.35,11.1Z" fill="#4285F4"/>
-    </g>
-  </svg>
-);
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -252,36 +243,7 @@ export default function Auth() {
                     </> : 'Entrar'}
                 </Button>
 
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">ou</span>
-                  </div>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full h-10 sm:h-12 text-sm sm:text-base"
-                  disabled={isLoading}
-                  onClick={async () => {
-                    setIsLoading(true);
-                    const { error } = await lovable.auth.signInWithOAuth('google', {
-                      redirect_uri: window.location.origin,
-                    });
-                    if (error) {
-                      toast.error('Erro ao entrar com Google');
-                      setIsLoading(false);
-                    }
-                  }}
-                >
-                  <GoogleIcon />
-                  Entrar com Google
-                </Button>
-
-                <button type="button" onClick={() => setShowResetForm(true)} className="w-full text-sm text-muted-foreground hover:text-primary transition-colors">
+                <button type="button" onClick={() => setShowResetForm(true)} className="w-full text-sm text-muted-foreground hover:text-primary transition-colors mt-4">
                   Esqueceu sua senha?
                 </button>
               </form>
@@ -333,11 +295,6 @@ export default function Auth() {
                       <Input id="register-city" type="text" placeholder="Sua cidade" value={registerCity} onChange={e => setRegisterCity(e.target.value)} className="pl-10 h-10 sm:h-11 text-sm sm:text-base" disabled={isLoading} />
                     </div>
                   </div>
-                </div>
-
-                <div className="space-y-1.5 sm:space-y-2">
-                  <Label htmlFor="register-display-name" className="text-sm">Nome de Exibição</Label>
-                  <Input id="register-display-name" type="text" placeholder="Como você quer ser chamado" value={registerDisplayName} onChange={e => setRegisterDisplayName(e.target.value)} className="h-10 sm:h-11 text-sm sm:text-base" disabled={isLoading} />
                 </div>
 
                 <div className="space-y-1.5 sm:space-y-2">
