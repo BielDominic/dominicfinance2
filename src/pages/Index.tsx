@@ -18,12 +18,13 @@ import { AIChatModal } from '@/components/AIChatModal';
 import { FinancialSnapshots } from '@/components/FinancialSnapshots';
 import { DecisionVault } from '@/components/DecisionVault';
 import { SmartAlerts } from '@/components/SmartAlerts';
-import { DecisionSimulator } from '@/components/DecisionSimulator';
+
 import { PeopleManager } from '@/components/PeopleManager';
 import { SupportButton } from '@/components/SupportButton';
 import { CurrencyFilterSelect } from '@/components/CurrencyFilterSelect';
 import { GuidedTutorial } from '@/components/GuidedTutorial';
 import { ReadOnlyProvider, useReadOnly } from '@/components/ReadOnlyToggle';
+import { PermissionGate } from '@/components/PermissionGate';
 import { CurrencyFilterProvider } from '@/contexts/CurrencyFilterContext';
 import { FinancialSummary as FinancialSummaryType } from '@/types/financial';
 import { Loader2 } from 'lucide-react';
@@ -218,55 +219,73 @@ const IndexContent = () => {
 
         {/* Income and Expenses - Stacked Layout */}
         <div className="space-y-6">
-          <IncomeTable entries={incomeEntries} onUpdateEntry={isReadOnly ? undefined : handleUpdateIncomeEntry} onAddEntry={isReadOnly ? undefined : handleAddIncomeEntry} onDeleteEntry={isReadOnly ? undefined : handleDeleteIncomeEntry} />
+          <PermissionGate sectionKey="entradas">
+            <IncomeTable entries={incomeEntries} onUpdateEntry={isReadOnly ? undefined : handleUpdateIncomeEntry} onAddEntry={isReadOnly ? undefined : handleAddIncomeEntry} onDeleteEntry={isReadOnly ? undefined : handleDeleteIncomeEntry} />
+          </PermissionGate>
           
-          <ExpenseTable categories={expenseCategories} onUpdateCategory={isReadOnly ? undefined : handleUpdateExpenseCategory} onAddCategory={isReadOnly ? undefined : handleAddExpenseCategory} onDeleteCategory={isReadOnly ? undefined : handleDeleteExpenseCategory} />
+          <PermissionGate sectionKey="despesas">
+            <ExpenseTable categories={expenseCategories} onUpdateCategory={isReadOnly ? undefined : handleUpdateExpenseCategory} onAddCategory={isReadOnly ? undefined : handleAddExpenseCategory} onDeleteCategory={isReadOnly ? undefined : handleDeleteExpenseCategory} />
+          </PermissionGate>
         </div>
 
         {/* Expense Charts */}
-        <ExpenseCharts categories={expenseCategories} />
+        <PermissionGate sectionKey="graficos">
+          <ExpenseCharts categories={expenseCategories} />
+        </PermissionGate>
 
         {/* Evolution Chart */}
-        <EvolutionChart incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
+        <PermissionGate sectionKey="graficos">
+          <EvolutionChart incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
+        </PermissionGate>
 
         {/* Investments Section */}
-        <InvestmentsTable investments={investments} onUpdateInvestment={isReadOnly ? undefined : handleUpdateInvestment} onAddInvestment={isReadOnly ? undefined : handleAddInvestment} onDeleteInvestment={isReadOnly ? undefined : handleDeleteInvestment} />
+        <PermissionGate sectionKey="investimentos">
+          <InvestmentsTable investments={investments} onUpdateInvestment={isReadOnly ? undefined : handleUpdateInvestment} onAddInvestment={isReadOnly ? undefined : handleAddInvestment} onDeleteInvestment={isReadOnly ? undefined : handleDeleteInvestment} />
+        </PermissionGate>
 
         {/* Person Summary */}
         <PersonSummary incomeEntries={incomeEntries} expenseCategories={expenseCategories} />
 
         {/* Summary Section */}
-        <FinancialSummary summary={summary} />
+        <PermissionGate sectionKey="resumo">
+          <FinancialSummary summary={summary} />
+        </PermissionGate>
 
         {/* Smart Financial Assistant (No limits) */}
-        <SmartFinancialAssistant incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} summary={summary} metaEntradas={metaEntradas} targetDate={appConfig.targetDate} />
+        <PermissionGate sectionKey="assistente">
+          <SmartFinancialAssistant incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} summary={summary} metaEntradas={metaEntradas} targetDate={appConfig.targetDate} />
+        </PermissionGate>
 
-        {/* Decision Simulator */}
-        <DecisionSimulator summary={summary} exchangeRate={appConfig.taxaCambio} />
 
         {/* Financial Snapshots */}
         <FinancialSnapshots summary={summary} incomeEntries={incomeEntries} expenseCategories={expenseCategories} investments={investments} />
 
         {/* Decision Vault */}
-        <DecisionVault />
+        <PermissionGate sectionKey="decisoes">
+          <DecisionVault />
+        </PermissionGate>
 
         {/* People Manager */}
         <PeopleManager />
 
         {/* Currency Converter */}
-        <CurrencyConverter saldoFinal={summary.saldoFinalPrevisto} saldoFinalComFuturos={summary.saldoFinalComFuturos} saldoAtual={summary.saldoAtual} exchangeRate={appConfig.taxaCambio} onExchangeRateChange={handleTaxaCambioChange} spread={appConfig.spread} onSpreadChange={handleSpreadChange} />
+        <PermissionGate sectionKey="conversor">
+          <CurrencyConverter saldoFinal={summary.saldoFinalPrevisto} saldoFinalComFuturos={summary.saldoFinalComFuturos} saldoAtual={summary.saldoAtual} exchangeRate={appConfig.taxaCambio} onExchangeRateChange={handleTaxaCambioChange} spread={appConfig.spread} onSpreadChange={handleSpreadChange} />
+        </PermissionGate>
 
         {/* AI Assistant Chat - Fixed */}
-        <div className="fixed bottom-6 right-6 z-50">
-          <AIChatModal
-            incomeEntries={incomeEntries}
-            expenseCategories={expenseCategories}
-            investments={investments}
-            summary={summary}
-            metaEntradas={metaEntradas}
-            targetDate={appConfig.targetDate}
-          />
-        </div>
+        <PermissionGate sectionKey="assistente">
+          <div className="fixed bottom-6 right-6 z-50">
+            <AIChatModal
+              incomeEntries={incomeEntries}
+              expenseCategories={expenseCategories}
+              investments={investments}
+              summary={summary}
+              metaEntradas={metaEntradas}
+              targetDate={appConfig.targetDate}
+            />
+          </div>
+        </PermissionGate>
 
         {/* Support Button - Fixed Left */}
         <SupportButton />

@@ -6,7 +6,7 @@ interface CurrencyFilterContextType {
   displayCurrency: DisplayCurrency;
   setDisplayCurrency: (currency: DisplayCurrency) => void;
   resetFilter: () => void;
-  convertValue: (value: number, fromCurrency: string, exchangeRate: number) => number;
+  convertValue: (value: number, fromCurrency?: string, exchangeRate?: number) => number;
   formatWithSymbol: (value: number, originalCurrency?: string) => string;
 }
 

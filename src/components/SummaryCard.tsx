@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
-import { DisplayCurrency, useCurrencyFilter } from '@/contexts/CurrencyFilterContext';
+import { useCurrencyFilter } from '@/contexts/CurrencyFilterContext';
 
 interface SummaryCardProps {
   label: string;
@@ -11,28 +11,6 @@ interface SummaryCardProps {
   className?: string;
 }
 
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  ALL: 'R$',
-  BRL: 'R$',
-  USD: '$',
-  EUR: '€',
-};
-
-function formatValue(value: number, displayCurrency: DisplayCurrency, originalCurrency?: string): string {
-  let symbol = CURRENCY_SYMBOLS[displayCurrency] || 'R$';
-  
-  // If showing ALL (original values), use original currency symbol
-  if (displayCurrency === 'ALL' && originalCurrency) {
-    symbol = CURRENCY_SYMBOLS[originalCurrency] || 'R$';
-  }
-  
-  const formatted = new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-  return `${symbol} ${formatted}`;
-}
-
 export function SummaryCard({ 
   label, 
   value, 
@@ -41,7 +19,10 @@ export function SummaryCard({
   variant = 'default',
   className 
 }: SummaryCardProps) {
-  const { displayCurrency } = useCurrencyFilter();
+  const { displayCurrency, formatWithSymbol, convertValue } = useCurrencyFilter();
+  
+  // Convert value from original currency to display currency
+  const convertedValue = convertValue(value, originalCurrency);
   
   return (
     <div className={cn('summary-card animate-fade-in overflow-hidden', className)}>
@@ -66,7 +47,7 @@ export function SummaryCard({
         variant === 'neutral' && 'text-foreground',
         variant === 'default' && 'text-foreground'
       )}>
-        {formatValue(value, displayCurrency, originalCurrency)}
+        {formatWithSymbol(convertedValue, displayCurrency === 'ALL' ? originalCurrency : undefined)}
       </span>
     </div>
   );

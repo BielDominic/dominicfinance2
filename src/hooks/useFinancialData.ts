@@ -101,14 +101,20 @@ export const useFinancialData = () => {
     }
   }, [user]);
 
-  // Fetch all data from database
+  // Fetch all data from database (filtered by user_id via RLS)
   const fetchData = useCallback(async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       const [incomeRes, expenseRes, investRes, settingsRes] = await Promise.all([
         supabase.from('income_entries').select('*').order('created_at', { ascending: true }),
         supabase.from('expense_categories').select('*').order('created_at', { ascending: true }),
         supabase.from('investments').select('*').order('created_at', { ascending: true }),
-        supabase.from('app_settings').select('*').eq('key', 'meta_entradas').maybeSingle(),
+        // Fetch meta for current user specifically
+        supabase.from('app_settings').select('*').eq('key', 'meta_entradas').eq('user_id', user.id).maybeSingle(),
       ]);
 
       if (incomeRes.data) {
@@ -151,6 +157,9 @@ export const useFinancialData = () => {
 
       if (settingsRes.data) {
         setMetaEntradas(Number(settingsRes.data.value));
+      } else {
+        // Default meta for new users
+        setMetaEntradas(35000);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -158,7 +167,7 @@ export const useFinancialData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // Setup realtime subscriptions
   useEffect(() => {

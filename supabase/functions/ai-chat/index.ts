@@ -97,9 +97,31 @@ serve(async (req) => {
         throw new Error("Supabase credentials not configured");
       }
 
+      // Get user from authorization header
+      const authHeader = req.headers.get("authorization");
+      let userId: string | null = null;
+      
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        try {
+          const anonClient = createClient(SUPABASE_URL, authHeader.split(" ")[1]);
+          const { data: userData } = await anonClient.auth.getUser();
+          userId = userData?.user?.id || null;
+        } catch (e) {
+          console.error("Error getting user:", e);
+        }
+      }
+
       const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
       const { toolName, toolArgs } = executeToolCall;
       let result: any = { success: false, message: "Função não reconhecida" };
+
+      // For data modifications, we need a user_id
+      if (!userId && (toolName === "add_income_entry" || toolName === "add_expense")) {
+        result = { success: false, message: "Usuário não autenticado. Faça login novamente." };
+        return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       switch (toolName) {
         case "add_income_entry": {
@@ -109,6 +131,7 @@ serve(async (req) => {
             pessoa: toolArgs.pessoa,
             status: toolArgs.status,
             data: toolArgs.data || new Date().toISOString().split('T')[0],
+            user_id: userId,
           }).select().single();
           
           if (error) {
@@ -128,6 +151,7 @@ serve(async (req) => {
             falta_pagar: faltaPagar,
             pessoa: toolArgs.pessoa || "Ambos",
             vencimento: toolArgs.vencimento || null,
+            user_id: userId,
           }).select().single();
           
           if (error) {
