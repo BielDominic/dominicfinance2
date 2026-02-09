@@ -72,10 +72,17 @@ export function GuidedTutorial() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
+    // Prevent multiple checks within the same session
+    if (hasChecked) return;
+    
     const checkTutorialStatus = async () => {
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
       try {
         const { data } = await supabase
@@ -85,19 +92,21 @@ export function GuidedTutorial() {
           .eq('key', 'tutorial_completed')
           .maybeSingle();
 
-        // Show tutorial if not completed
+        // Show tutorial ONLY if not completed AND we haven't checked before in this session
         if (!data || data.value !== 'true') {
           setIsVisible(true);
         }
+        setHasChecked(true);
       } catch (error) {
         console.error('Error checking tutorial status:', error);
+        setHasChecked(true);
       } finally {
         setIsLoading(false);
       }
     };
 
     checkTutorialStatus();
-  }, [user]);
+  }, [user, hasChecked]);
 
   const completeTutorial = async () => {
     if (!user) return;

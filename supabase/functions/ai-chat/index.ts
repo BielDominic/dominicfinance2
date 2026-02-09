@@ -6,8 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Define available tools for data modification
-const tools = [
+// Define available tools for data modification - pessoa will be dynamically populated
+const createTools = (personNames: string[]) => [
   {
     type: "function",
     function: {
@@ -18,7 +18,7 @@ const tools = [
         properties: {
           valor: { type: "number", description: "Valor da entrada em reais" },
           descricao: { type: "string", description: "Descrição da entrada" },
-          pessoa: { type: "string", enum: ["Gabriel", "Myrelle"], description: "Pessoa responsável" },
+          pessoa: { type: "string", enum: personNames.length > 0 ? personNames : ["Pessoa"], description: "Pessoa responsável" },
           status: { type: "string", enum: ["Entrada", "Futuros"], description: "Status: Entrada (confirmada) ou Futuros (prevista)" },
           data: { type: "string", description: "Data no formato YYYY-MM-DD" },
         },
@@ -37,7 +37,7 @@ const tools = [
           categoria: { type: "string", description: "Nome da categoria de despesa" },
           total: { type: "number", description: "Valor total da despesa" },
           pago: { type: "number", description: "Valor já pago" },
-          pessoa: { type: "string", enum: ["Gabriel", "Myrelle", "Ambos"], description: "Pessoa responsável" },
+          pessoa: { type: "string", enum: personNames.length > 0 ? [...personNames, "Ambos"] : ["Ambos"], description: "Pessoa responsável" },
           vencimento: { type: "string", description: "Data de vencimento no formato YYYY-MM-DD" },
         },
         required: ["categoria", "total"],
@@ -86,6 +86,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -216,6 +217,45 @@ serve(async (req) => {
       });
     }
 
+    // Fetch dashboard people for this user to create dynamic tools
+    let personNames: string[] = [];
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      
+      // Get user from auth header to find their people
+      const authHeader = req.headers.get("authorization");
+      let currentUserId: string | null = null;
+      
+      if (authHeader && authHeader.startsWith("Bearer ") && SUPABASE_ANON_KEY) {
+        try {
+          const userToken = authHeader.split(" ")[1];
+          const tempClient = createClient(SUPABASE_URL, userToken);
+          const { data: userData } = await tempClient.auth.getUser();
+          currentUserId = userData?.user?.id || null;
+        } catch (e) {
+          console.error("Error getting user for people lookup:", e);
+        }
+      }
+
+      // Fetch people for this user (RLS handles filtering)
+      if (currentUserId) {
+        const { data: peopleData } = await supabaseAdmin
+          .from("dashboard_people")
+          .select("name")
+          .eq("user_id", currentUserId)
+          .eq("is_active", true)
+          .neq("name", "Ambos")
+          .order("display_order", { ascending: true });
+        
+        if (peopleData && peopleData.length > 0) {
+          personNames = peopleData.map((p: any) => p.name);
+        }
+      }
+    }
+
+    // Create tools with dynamic person names
+    const tools = createTools(personNames);
+
     const systemPrompt = `Você é DOMINIC, um assistente financeiro especializado e sofisticado para planejamento de viagens internacionais.
 
 IDENTIDADE:
@@ -227,6 +267,9 @@ IDENTIDADE:
 
 DADOS FINANCEIROS ATUAIS (ESTRUTURADOS):
 ${JSON.stringify(financialContext, null, 2)}
+
+PESSOAS CADASTRADAS NO SISTEMA:
+${personNames.length > 0 ? personNames.join(", ") : "Nenhuma pessoa cadastrada ainda"}
 
 REGRAS CRÍTICAS DE ANÁLISE:
 1. NUNCA invente valores - use APENAS os dados fornecidos
@@ -240,6 +283,7 @@ REGRAS CRÍTICAS DE ANÁLISE:
    - "Falta Pagar" = Total - Pago
 4. Considere vencimentos ao dar alertas
 5. Analise dados por moeda quando houver multimoeda
+6. Use APENAS as pessoas cadastradas no sistema (listadas acima) ao adicionar entradas ou despesas
 
 CAPACIDADES:
 1. Análise financeira detalhada
@@ -256,6 +300,7 @@ REGRAS PARA MODIFICAÇÃO DE DADOS:
 - NUNCA modifique dados sem solicitação EXPLÍCITA do usuário
 - Pergunte confirmação antes de fazer alterações
 - Informe claramente o que será alterado
+- Use APENAS as pessoas cadastradas no sistema
 - Exemplos de solicitações válidas:
   - "Adicione uma entrada de R$ 500 de freelance"
   - "Remova a despesa de academia"
