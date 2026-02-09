@@ -18,14 +18,28 @@ export function PermissionGate({
   children, 
   fallback = null 
 }: PermissionGateProps) {
-  const { hasPermission, isLoading } = useAuth();
+  const { hasPermission, isLoading, permissions, isAdmin } = useAuth();
   
-  // Don't render anything while loading
+  // Don't render anything while loading permissions
   if (isLoading) {
     return null;
   }
   
-  // Check permission
+  // Admins always have full access
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+  
+  // For regular users, check specific permission
+  // If no permissions are defined yet (empty array), allow access by default
+  const hasDefinedPermission = permissions.some(p => p.section_key === sectionKey);
+  
+  if (!hasDefinedPermission) {
+    // No permission defined for this section - allow by default for backward compatibility
+    return <>{children}</>;
+  }
+  
+  // Check permission explicitly
   if (!hasPermission(sectionKey, action)) {
     return <>{fallback}</>;
   }
